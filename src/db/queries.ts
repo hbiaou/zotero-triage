@@ -15,7 +15,7 @@
  * Used to verify database compatibility before querying.
  */
 export const VERSION_QUERY = `
-SELECT value FROM version WHERE schema = 'userdata'
+SELECT version FROM version WHERE schema = 'userdata'
 `;
 
 /**
