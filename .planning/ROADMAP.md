@@ -12,7 +12,7 @@ This roadmap delivers a progressive literature processing plugin for researchers
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Foundation** - SQLite access, state management, basic note generation
+- [x] **Phase 1: Foundation** - SQLite access, state management, basic note generation
 - [ ] **Phase 2: Batch Workflow** - Triage UI, batch generation, processing engine
 - [ ] **Phase 3: Quality Gates** - Metadata validation, enhanced templates, annotations
 - [ ] **Phase 4: Onboarding & Recommendations** - Setup wizard, profile-based batch generation
@@ -38,9 +38,9 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 Plans:
 - [x] 01-01-PLAN.md — Project setup, build tooling, plugin scaffold
-- [ ] 01-02-PLAN.md — Zotero database connector with sql.js and EAV queries
-- [ ] 01-03-PLAN.md — Settings tab and registry service for state persistence
-- [ ] 01-04-PLAN.md — Search modal, preview modal, and note generator
+- [x] 01-02-PLAN.md — Zotero database connector with sql.js and EAV queries
+- [x] 01-03-PLAN.md — Settings tab and registry service for state persistence
+- [x] 01-04-PLAN.md — Search modal, preview modal, and note generator
 
 ### Phase 2: Batch Workflow
 **Goal**: Users can process Zotero items in batches using a card-based triage interface with Accept/Reject/Defer actions
@@ -138,7 +138,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation | 1/4 | In progress | - |
+| 1. Foundation | 4/4 | Complete | 2026-01-22 |
 | 2. Batch Workflow | 0/TBD | Not started | - |
 | 3. Quality Gates | 0/TBD | Not started | - |
 | 4. Onboarding & Recommendations | 0/TBD | Not started | - |

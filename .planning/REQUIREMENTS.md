@@ -109,10 +109,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| ZCON-01 | Phase 1 | Pending |
-| ZCON-02 | Phase 1 | Pending |
-| ZCON-03 | Phase 1 | Pending |
-| ZCON-04 | Phase 1 | Pending |
+| ZCON-01 | Phase 1 | Complete |
+| ZCON-02 | Phase 1 | Complete |
+| ZCON-03 | Phase 1 | Complete |
+| ZCON-04 | Phase 1 | Complete |
 | ONBD-01 | Phase 4 | Pending |
 | ONBD-02 | Phase 4 | Pending |
 | ONBD-03 | Phase 4 | Pending |
@@ -130,16 +130,16 @@ Which phases cover which requirements. Updated during roadmap creation.
 | QUAL-03 | Phase 3 | Pending |
 | QUAL-04 | Phase 3 | Pending |
 | QUAL-05 | Phase 3 | Pending |
-| NOTE-01 | Phase 1 | Pending |
-| NOTE-02 | Phase 1 | Pending |
-| NOTE-03 | Phase 1 | Pending |
-| NOTE-04 | Phase 1 | Pending |
-| RGST-01 | Phase 1 | Pending |
-| RGST-02 | Phase 1 | Pending |
+| NOTE-01 | Phase 1 | Complete |
+| NOTE-02 | Phase 1 | Complete |
+| NOTE-03 | Phase 1 | Complete |
+| NOTE-04 | Phase 1 | Complete |
+| RGST-01 | Phase 1 | Complete |
+| RGST-02 | Phase 1 | Complete |
 | RGST-03 | Phase 2 | Pending |
 | RGST-04 | Phase 2 | Pending |
-| SETT-01 | Phase 1 | Pending |
-| SETT-02 | Phase 1 | Pending |
+| SETT-01 | Phase 1 | Complete |
+| SETT-02 | Phase 1 | Complete |
 | SETT-03 | Phase 2 | Pending |
 | SETT-04 | Phase 3 | Pending |
 | SETT-05 | Phase 4 | Pending |
