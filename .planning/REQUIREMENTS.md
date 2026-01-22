@@ -109,46 +109,46 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| ZCON-01 | TBD | Pending |
-| ZCON-02 | TBD | Pending |
-| ZCON-03 | TBD | Pending |
-| ZCON-04 | TBD | Pending |
-| ONBD-01 | TBD | Pending |
-| ONBD-02 | TBD | Pending |
-| ONBD-03 | TBD | Pending |
-| ONBD-04 | TBD | Pending |
-| BTCH-01 | TBD | Pending |
-| BTCH-02 | TBD | Pending |
-| BTCH-03 | TBD | Pending |
-| BTCH-04 | TBD | Pending |
-| TRIG-01 | TBD | Pending |
-| TRIG-02 | TBD | Pending |
-| TRIG-03 | TBD | Pending |
-| TRIG-04 | TBD | Pending |
-| QUAL-01 | TBD | Pending |
-| QUAL-02 | TBD | Pending |
-| QUAL-03 | TBD | Pending |
-| QUAL-04 | TBD | Pending |
-| QUAL-05 | TBD | Pending |
-| NOTE-01 | TBD | Pending |
-| NOTE-02 | TBD | Pending |
-| NOTE-03 | TBD | Pending |
-| NOTE-04 | TBD | Pending |
-| RGST-01 | TBD | Pending |
-| RGST-02 | TBD | Pending |
-| RGST-03 | TBD | Pending |
-| RGST-04 | TBD | Pending |
-| SETT-01 | TBD | Pending |
-| SETT-02 | TBD | Pending |
-| SETT-03 | TBD | Pending |
-| SETT-04 | TBD | Pending |
-| SETT-05 | TBD | Pending |
+| ZCON-01 | Phase 1 | Pending |
+| ZCON-02 | Phase 1 | Pending |
+| ZCON-03 | Phase 1 | Pending |
+| ZCON-04 | Phase 1 | Pending |
+| ONBD-01 | Phase 4 | Pending |
+| ONBD-02 | Phase 4 | Pending |
+| ONBD-03 | Phase 4 | Pending |
+| ONBD-04 | Phase 4 | Pending |
+| BTCH-01 | Phase 2 | Pending |
+| BTCH-02 | Phase 2 | Pending |
+| BTCH-03 | Phase 4 | Pending |
+| BTCH-04 | Phase 2 | Pending |
+| TRIG-01 | Phase 2 | Pending |
+| TRIG-02 | Phase 2 | Pending |
+| TRIG-03 | Phase 2 | Pending |
+| TRIG-04 | Phase 2 | Pending |
+| QUAL-01 | Phase 3 | Pending |
+| QUAL-02 | Phase 3 | Pending |
+| QUAL-03 | Phase 3 | Pending |
+| QUAL-04 | Phase 3 | Pending |
+| QUAL-05 | Phase 3 | Pending |
+| NOTE-01 | Phase 1 | Pending |
+| NOTE-02 | Phase 1 | Pending |
+| NOTE-03 | Phase 1 | Pending |
+| NOTE-04 | Phase 1 | Pending |
+| RGST-01 | Phase 1 | Pending |
+| RGST-02 | Phase 1 | Pending |
+| RGST-03 | Phase 2 | Pending |
+| RGST-04 | Phase 2 | Pending |
+| SETT-01 | Phase 1 | Pending |
+| SETT-02 | Phase 1 | Pending |
+| SETT-03 | Phase 2 | Pending |
+| SETT-04 | Phase 3 | Pending |
+| SETT-05 | Phase 4 | Pending |
 
 **Coverage:**
 - v1 requirements: 34 total
-- Mapped to phases: 0
-- Unmapped: 34 ⚠️
+- Mapped to phases: 34
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2025-01-22*
-*Last updated: 2025-01-22 after initial definition*
+*Last updated: 2026-01-22 after roadmap creation*
