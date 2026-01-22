@@ -37,7 +37,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans:** 4 plans
 
 Plans:
-- [ ] 01-01-PLAN.md — Project setup, build tooling, plugin scaffold
+- [x] 01-01-PLAN.md — Project setup, build tooling, plugin scaffold
 - [ ] 01-02-PLAN.md — Zotero database connector with sql.js and EAV queries
 - [ ] 01-03-PLAN.md — Settings tab and registry service for state persistence
 - [ ] 01-04-PLAN.md — Search modal, preview modal, and note generator
@@ -138,7 +138,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation | 0/4 | Planned | - |
+| 1. Foundation | 1/4 | In progress | - |
 | 2. Batch Workflow | 0/TBD | Not started | - |
 | 3. Quality Gates | 0/TBD | Not started | - |
 | 4. Onboarding & Recommendations | 0/TBD | Not started | - |
