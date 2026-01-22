@@ -34,12 +34,13 @@ Decimal phases appear between their surrounding integers in numeric order.
   4. User can manually import a single item and a literature note is created with YAML frontmatter (title, authors, year, DOI, Zotero link, PDF path)
   5. Processing registry persists item state (imported/unprocessed) and survives Obsidian restarts
 
-**Plans**: TBD
+**Plans:** 4 plans
 
 Plans:
-- [ ] 01-01: TBD during planning
-- [ ] 01-02: TBD during planning
-- [ ] 01-03: TBD during planning
+- [ ] 01-01-PLAN.md — Project setup, build tooling, plugin scaffold
+- [ ] 01-02-PLAN.md — Zotero database connector with sql.js and EAV queries
+- [ ] 01-03-PLAN.md — Settings tab and registry service for state persistence
+- [ ] 01-04-PLAN.md — Search modal, preview modal, and note generator
 
 ### Phase 2: Batch Workflow
 **Goal**: Users can process Zotero items in batches using a card-based triage interface with Accept/Reject/Defer actions
@@ -137,7 +138,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation | 0/TBD | Not started | - |
+| 1. Foundation | 0/4 | Planned | - |
 | 2. Batch Workflow | 0/TBD | Not started | - |
 | 3. Quality Gates | 0/TBD | Not started | - |
 | 4. Onboarding & Recommendations | 0/TBD | Not started | - |
