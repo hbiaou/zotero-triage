@@ -1,0 +1,30 @@
+{
+  "name": "zotbridge",
+  "version": "0.1.0",
+  "description": "Progressive Zotero-Obsidian bridge for sustainable literature processing",
+  "main": "main.js",
+  "scripts": {
+    "build": "node esbuild.config.mjs",
+    "dev": "node esbuild.config.mjs --watch"
+  },
+  "keywords": [
+    "obsidian",
+    "zotero",
+    "literature",
+    "research"
+  ],
+  "author": "ZotBridge",
+  "license": "MIT",
+  "dependencies": {
+    "sql.js": "^1.13.0",
+    "lodash.debounce": "^4.0.8"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@types/lodash.debounce": "^4.0.9",
+    "typescript": "^5.3.0",
+    "esbuild": "^0.20.0",
+    "obsidian": "latest",
+    "builtin-modules": "^3.3.0"
+  }
+}

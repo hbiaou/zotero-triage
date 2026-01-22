@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+
+# Build output
+main.js
+main.js.map
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Plugin data
+data.json
+
+# WASM files (added separately to releases)
+*.wasm
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Logs
+*.log
+npm-debug.log*
+
+# TypeScript cache
+*.tsbuildinfo
