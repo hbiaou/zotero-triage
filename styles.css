@@ -1,8 +1,142 @@
 /* ZotBridge Plugin Styles
  *
- * Placeholder for future UI components:
- * - Search modal
- * - Triage dashboard
- * - Card-based item display
- * - Settings panel enhancements
+ * UI components for Zotero-Obsidian integration:
+ * - Search modal suggestions
+ * - Preview modal
+ * - Triage dashboard (future)
  */
+
+/* ==========================================================================
+   Search Modal Suggestions
+   ========================================================================== */
+
+.zotbridge-suggestion {
+  padding: 6px 0;
+}
+
+.zotbridge-suggestion .suggestion-title {
+  font-weight: 500;
+  font-size: 1em;
+  line-height: 1.4;
+  margin-bottom: 2px;
+}
+
+.zotbridge-suggestion .suggestion-meta {
+  color: var(--text-muted);
+  font-size: 0.85em;
+  display: block;
+}
+
+/* ==========================================================================
+   Preview Modal
+   ========================================================================== */
+
+.zotbridge-preview-modal {
+  padding: 0;
+}
+
+/* Metadata Summary */
+.zotbridge-metadata {
+  margin-bottom: 16px;
+  padding: 12px;
+  background: var(--background-secondary);
+  border-radius: 6px;
+}
+
+.zotbridge-metadata-row {
+  display: flex;
+  gap: 8px;
+  padding: 4px 0;
+  line-height: 1.5;
+}
+
+.zotbridge-metadata-label {
+  font-weight: 600;
+  min-width: 70px;
+  color: var(--text-muted);
+}
+
+.zotbridge-metadata-value {
+  flex: 1;
+  word-break: break-word;
+}
+
+/* Preview Toggle Section */
+.zotbridge-preview-section {
+  margin-bottom: 16px;
+}
+
+.zotbridge-preview-toggle {
+  cursor: pointer;
+  padding: 8px 0;
+  font-size: 0.9em;
+  color: var(--text-muted);
+  user-select: none;
+}
+
+.zotbridge-preview-toggle:hover {
+  color: var(--text-normal);
+}
+
+.zotbridge-toggle-icon {
+  font-size: 0.8em;
+  margin-right: 4px;
+}
+
+.zotbridge-preview-content {
+  margin-top: 8px;
+}
+
+.zotbridge-preview-code {
+  background: var(--background-secondary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 6px;
+  padding: 12px;
+  max-height: 300px;
+  overflow: auto;
+  font-family: var(--font-monospace);
+  font-size: 0.85em;
+  line-height: 1.5;
+}
+
+.zotbridge-preview-code code {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* File Path Indicator */
+.zotbridge-filepath {
+  margin-bottom: 16px;
+  padding: 8px 12px;
+  background: var(--background-secondary-alt);
+  border-radius: 4px;
+  font-size: 0.85em;
+  color: var(--text-muted);
+  font-family: var(--font-monospace);
+}
+
+/* Button Row */
+.zotbridge-button-row {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--background-modifier-border);
+}
+
+.zotbridge-button-row button {
+  padding: 8px 16px;
+}
+
+/* ==========================================================================
+   Utility Classes
+   ========================================================================== */
+
+/* For future use */
+.zotbridge-notice-success {
+  background: var(--background-modifier-success);
+}
+
+.zotbridge-notice-error {
+  background: var(--background-modifier-error);
+}
