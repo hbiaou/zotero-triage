@@ -78,13 +78,21 @@ export class TriageView extends ItemView {
   async generateAndShowBatch(): Promise<void> {
     let loadingNotice: Notice | null = null;
     try {
-      // Ensure items are loaded
-      if (!this.plugin.connector.itemsLoaded) {
-        loadingNotice = new Notice('Loading Zotero library...', 0);
-        await this.plugin.connector.connect(this.plugin.settings.zoteroDbPath);
-        loadingNotice.hide();
-        new Notice('Library loaded');
+      // Ensure items are loaded - always reload to get fresh items
+      loadingNotice = new Notice('Loading Zotero library...', 0);
+      await this.plugin.connector.connect(this.plugin.settings.zoteroDbPath);
+      loadingNotice.hide();
+
+      // Verify items were loaded
+      const itemCount = this.plugin.connector.getCachedItems().length;
+      console.log('ZotBridge DEBUG: Loaded', itemCount, 'items from Zotero');
+
+      if (itemCount === 0) {
+        new Notice('No items found in Zotero library');
+        return;
       }
+
+      new Notice(`Library loaded: ${itemCount} items`);
 
       // Store total item count
       this.totalZoteroItems = this.plugin.connector.getCachedItems().length;
