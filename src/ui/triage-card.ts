@@ -5,9 +5,11 @@
  */
 
 import type { ZoteroItem } from '../types';
+import type { ValidationResult } from '../validation/types';
 
 export interface TriageCardOptions {
   item: ZoteroItem;
+  validationResult?: ValidationResult;
   onAccept: (item: ZoteroItem) => void;
   onReject: (item: ZoteroItem) => void;
   onDefer: (item: ZoteroItem) => void;
@@ -24,13 +26,22 @@ export function createTriageCard(
   container: HTMLElement,
   options: TriageCardOptions
 ): HTMLElement {
-  const { item, onAccept, onReject, onDefer } = options;
+  const { item, validationResult, onAccept, onReject, onDefer } = options;
 
   const card = container.createDiv({ cls: 'zotbridge-triage-card' });
 
   // Header with item type badge
   const header = card.createDiv({ cls: 'triage-card-header' });
   header.createSpan({ cls: 'item-type-badge', text: item.itemType });
+
+  // Validation badge if item has validation issues
+  if (validationResult && !validationResult.valid) {
+    const warningBadge = header.createSpan({
+      cls: 'validation-warning-badge',
+      text: `${validationResult.missingFields.length} missing`
+    });
+    warningBadge.title = validationResult.missingFields.join(', ');
+  }
 
   // Title
   card.createEl('h3', {
@@ -56,12 +67,31 @@ export function createTriageCard(
     });
   }
 
+  // Validation errors section
+  if (validationResult && !validationResult.valid) {
+    const errorDiv = card.createDiv({ cls: 'triage-card-validation-errors' });
+    errorDiv.createEl('strong', { text: 'Issues found:' });
+    const list = errorDiv.createEl('ul');
+    validationResult.errors.slice(0, 3).forEach(error => {
+      list.createEl('li', { text: error });
+    });
+
+    // Link to fix in Zotero
+    const fixLink = errorDiv.createEl('a', {
+      cls: 'validation-fix-link',
+      text: '→ Open in Zotero to fix'
+    });
+    fixLink.href = `zotero://select/items/0_${item.itemKey}`;
+  }
+
   // Action buttons
   const actions = card.createDiv({ cls: 'triage-card-actions' });
 
   const acceptBtn = actions.createEl('button', {
-    cls: 'triage-btn triage-btn-accept',
-    text: 'Accept'
+    cls: validationResult && !validationResult.valid
+      ? 'triage-btn triage-btn-accept-warning'
+      : 'triage-btn triage-btn-accept',
+    text: validationResult && !validationResult.valid ? 'Accept Anyway' : 'Accept'
   });
   acceptBtn.addEventListener('click', () => onAccept(item));
 

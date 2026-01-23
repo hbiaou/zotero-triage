@@ -10,6 +10,7 @@ import { SessionTracker } from './ui/session-tracker';
 import { ItemSearchModal } from './ui/search-modal';
 import { PreviewModal } from './ui/preview-modal';
 import { TriageView, TRIAGE_VIEW_TYPE } from './ui/triage-view';
+import { ValidationService } from './validation/validation-service';
 
 /**
  * ZotBridge Plugin
@@ -25,6 +26,7 @@ export default class ZotBridgePlugin extends Plugin {
   noteGenerator!: NoteGenerator;
   batchService!: BatchService;
   sessionTracker!: SessionTracker;
+  validationService!: ValidationService;
 
   async onload(): Promise<void> {
     await this.loadSettings();
@@ -45,6 +47,9 @@ export default class ZotBridgePlugin extends Plugin {
 
     // Initialize session tracker
     this.sessionTracker = new SessionTracker();
+
+    // Initialize validation service
+    this.validationService = new ValidationService(this.settings.qualityGate);
 
     // Register triage view
     this.registerView(

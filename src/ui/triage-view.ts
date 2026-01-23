@@ -156,8 +156,12 @@ export class TriageView extends ItemView {
     // Render cards
     const cardContainer = container.createDiv({ cls: 'zotbridge-card-list' });
     for (const item of this.currentBatch.items) {
+      // Run validation
+      const validationResult = this.plugin.validationService.validate(item);
+
       createTriageCard(cardContainer, {
         item,
+        validationResult,
         onAccept: (item) => this.handleAccept(item),
         onReject: (item) => this.handleReject(item),
         onDefer: (item) => this.handleDefer(item)
