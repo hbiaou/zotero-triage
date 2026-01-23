@@ -6,6 +6,7 @@ import { ZoteroConnector, ZoteroItem } from './db/zotero-connector';
 import { RegistryService } from './registry/registry-service';
 import { NoteGenerator } from './notes/note-generator';
 import { BatchService } from './batch/batch-service';
+import { SessionTracker } from './ui/session-tracker';
 import { ItemSearchModal } from './ui/search-modal';
 import { PreviewModal } from './ui/preview-modal';
 import { TriageView, TRIAGE_VIEW_TYPE } from './ui/triage-view';
@@ -23,6 +24,7 @@ export default class ZotBridgePlugin extends Plugin {
   registry!: RegistryService;
   noteGenerator!: NoteGenerator;
   batchService!: BatchService;
+  sessionTracker!: SessionTracker;
 
   async onload(): Promise<void> {
     await this.loadSettings();
@@ -40,6 +42,9 @@ export default class ZotBridgePlugin extends Plugin {
 
     // Initialize batch service
     this.batchService = new BatchService(this.connector, this.registry);
+
+    // Initialize session tracker
+    this.sessionTracker = new SessionTracker();
 
     // Register triage view
     this.registerView(

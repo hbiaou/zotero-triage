@@ -11,6 +11,7 @@ import type { ZoteroItem, RegistryState } from '../types';
 import type { Batch } from '../batch/types';
 import { createTriageCard } from './triage-card';
 import { showUndoNotice } from './undo-notice';
+import { renderStatsPanel } from './stats-panel';
 
 export const TRIAGE_VIEW_TYPE = 'zotbridge-triage';
 
@@ -29,6 +30,7 @@ export class TriageView extends ItemView {
   private plugin: ZotBridgePlugin;
   private currentBatch: Batch | null = null;
   private processedCount: number = 0;
+  private totalZoteroItems: number = 0;
 
   constructor(leaf: WorkspaceLeaf, plugin: ZotBridgePlugin) {
     super(leaf);
@@ -80,6 +82,9 @@ export class TriageView extends ItemView {
         await this.plugin.connector.connect(this.plugin.settings.zoteroDbPath);
         new Notice('Library loaded');
       }
+
+      // Store total item count
+      this.totalZoteroItems = this.plugin.connector.getCachedItems().length;
 
       // Generate batch
       const batch = await this.plugin.batchService.generateBatch({
@@ -142,6 +147,9 @@ export class TriageView extends ItemView {
       return;
     }
 
+    // Render stats panel
+    this.renderStatsPanel(container);
+
     // Render progress bar
     this.renderProgressBar(container);
 
@@ -155,6 +163,17 @@ export class TriageView extends ItemView {
         onDefer: (item) => this.handleDefer(item)
       });
     }
+  }
+
+  /**
+   * Render stats panel with library and session statistics
+   */
+  private renderStatsPanel(container: HTMLElement): void {
+    renderStatsPanel(container, {
+      registry: this.plugin.registry,
+      sessionTracker: this.plugin.sessionTracker,
+      totalZoteroItems: this.totalZoteroItems
+    });
   }
 
   /**
@@ -213,10 +232,13 @@ export class TriageView extends ItemView {
       // Increment processed count
       this.processedCount++;
 
+      // Record session action
+      this.plugin.sessionTracker.recordAction('accepted');
+
       // Show undo notice
       showUndoNotice({
         message: 'Item accepted and note created.',
-        onUndo: () => this.undoAction({ itemId: item.itemID, previousState }),
+        onUndo: () => this.undoAction({ itemId: item.itemID, previousState }, 'accepted'),
         timeout: 3000
       });
 
@@ -242,10 +264,13 @@ export class TriageView extends ItemView {
     // Increment processed count
     this.processedCount++;
 
+    // Record session action
+    this.plugin.sessionTracker.recordAction('rejected');
+
     // Show undo notice
     showUndoNotice({
       message: 'Item rejected.',
-      onUndo: () => this.undoAction({ itemId: item.itemID, previousState }),
+      onUndo: () => this.undoAction({ itemId: item.itemID, previousState }, 'rejected'),
       timeout: 3000
     });
 
@@ -265,10 +290,13 @@ export class TriageView extends ItemView {
     // Increment processed count
     this.processedCount++;
 
+    // Record session action
+    this.plugin.sessionTracker.recordAction('deferred');
+
     // Show undo notice
     showUndoNotice({
       message: 'Item deferred.',
-      onUndo: () => this.undoAction({ itemId: item.itemID, previousState }),
+      onUndo: () => this.undoAction({ itemId: item.itemID, previousState }, 'deferred'),
       timeout: 3000
     });
 
@@ -279,12 +307,15 @@ export class TriageView extends ItemView {
   /**
    * Undo the last action
    */
-  private undoAction(undoState: UndoState): void {
+  private undoAction(undoState: UndoState, actionType: 'accepted' | 'rejected' | 'deferred'): void {
     // Revert registry state
     this.plugin.registry.markState(undoState.itemId, undoState.previousState);
 
     // Decrement processed count
     this.processedCount--;
+
+    // Undo session action
+    this.plugin.sessionTracker.undoAction(actionType);
 
     // Refresh view
     this.refresh();
