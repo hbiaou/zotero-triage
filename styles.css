@@ -129,6 +129,68 @@
 }
 
 /* ==========================================================================
+   Stats Panel
+   ========================================================================== */
+
+.zotbridge-stats-panel {
+  margin-bottom: 16px;
+  padding: 12px;
+  background: var(--background-secondary);
+  border-radius: 8px;
+}
+
+.stats-section {
+  margin-bottom: 12px;
+}
+
+.stats-section:last-child {
+  margin-bottom: 0;
+}
+
+.stats-section h4 {
+  margin: 0 0 8px 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stats-grid {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.stat-item {
+  text-align: center;
+  min-width: 60px;
+}
+
+.stat-value {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--text-normal);
+}
+
+.stat-value.stat-success {
+  color: var(--color-green);
+}
+
+.stat-value.stat-muted {
+  color: var(--text-muted);
+}
+
+.stat-value.stat-pending {
+  color: var(--color-orange);
+}
+
+.stat-label {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* ==========================================================================
    Triage Dashboard
    ========================================================================== */
 
@@ -155,6 +217,18 @@
 .batch-complete p {
   margin-bottom: 20px;
   color: var(--text-muted);
+}
+
+/* Batch Complete */
+.batch-complete-text {
+  color: var(--text-muted);
+  margin-bottom: 16px;
+}
+
+.batch-complete-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
 }
 
 /* Progress indicator */

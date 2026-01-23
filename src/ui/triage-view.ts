@@ -180,19 +180,55 @@ export class TriageView extends ItemView {
    * Render the batch complete state
    */
   private renderBatchComplete(container: HTMLElement): void {
+    this.handleBatchComplete();
+  }
+
+  /**
+   * Handle batch completion with stats and next batch options
+   */
+  private handleBatchComplete(): void {
+    const container = this.containerEl.children[1] as HTMLElement;
     container.empty();
+    container.addClass('zotbridge-triage-container');
 
-    const completeState = container.createDiv({ cls: 'batch-complete' });
-    completeState.createEl('h3', { text: 'Batch Complete!' });
-    completeState.createEl('p', {
-      text: `You processed ${this.processedCount} items.`
+    // Re-render stats panel
+    this.renderStatsPanel(container);
+
+    // Completion message
+    const message = container.createDiv({ cls: 'batch-complete' });
+    message.createEl('h3', { text: 'Batch Complete!' });
+    message.createDiv({
+      cls: 'batch-complete-text',
+      text: 'Great progress! Ready for another batch?'
     });
 
-    const newBatchBtn = completeState.createEl('button', {
-      cls: 'mod-cta',
-      text: 'Generate New Batch'
+    const actions = message.createDiv({ cls: 'batch-complete-actions' });
+
+    // Check if more items available
+    const hasMore = this.plugin.batchService.getUnprocessedCount() > 0 ||
+                    this.plugin.batchService.getDeferredCount() > 0;
+
+    if (hasMore) {
+      const nextBtn = actions.createEl('button', {
+        cls: 'mod-cta',
+        text: 'Generate Next Batch'
+      });
+      nextBtn.addEventListener('click', async () => {
+        await this.generateAndShowBatch();
+      });
+    } else {
+      actions.createDiv({
+        cls: 'batch-complete-text',
+        text: 'No more items to process!'
+      });
+    }
+
+    const laterBtn = actions.createEl('button', {
+      text: 'Take a Break'
     });
-    newBatchBtn.addEventListener('click', () => this.generateAndShowBatch());
+    laterBtn.addEventListener('click', () => {
+      this.plugin.app.workspace.detachLeavesOfType(TRIAGE_VIEW_TYPE);
+    });
   }
 
   /**
