@@ -81,6 +81,9 @@ export class TriageView extends ItemView {
       // Ensure items are loaded - always reload to get fresh items
       loadingNotice = new Notice('Loading Zotero library...', 0);
       await this.plugin.connector.connect(this.plugin.settings.zoteroDbPath);
+
+      // Load items from database
+      await this.plugin.connector.loadItems();
       loadingNotice.hide();
 
       // Verify items were loaded
