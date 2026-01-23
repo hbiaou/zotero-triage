@@ -59,12 +59,12 @@ Plans:
   7. Registry never proposes the same item twice (deduplication enforced)
   8. User can see stats dashboard showing items imported, rejected, and pending
 
-**Plans**: TBD
+**Plans:** 3 plans
 
 Plans:
-- [ ] 02-01: TBD during planning
-- [ ] 02-02: TBD during planning
-- [ ] 02-03: TBD during planning
+- [ ] 02-01-PLAN.md — Batch service, registry deferred state, batch size setting
+- [ ] 02-02-PLAN.md — Triage view with cards, actions, and undo notices
+- [ ] 02-03-PLAN.md — Stats panel, session tracking, batch completion flow
 
 ### Phase 3: Quality Gates
 **Goal**: Plugin validates metadata completeness before import and enhances literature notes with configurable quality gates
@@ -139,7 +139,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation | 4/4 | Complete | 2026-01-22 |
-| 2. Batch Workflow | 0/TBD | Not started | - |
+| 2. Batch Workflow | 0/3 | Planned | - |
 | 3. Quality Gates | 0/TBD | Not started | - |
 | 4. Onboarding & Recommendations | 0/TBD | Not started | - |
 | 5. Polish | 0/TBD | Not started | - |
