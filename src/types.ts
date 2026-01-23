@@ -4,6 +4,8 @@
  * Defines interfaces for plugin settings, Zotero items, and the processing registry.
  */
 
+import type { QualityGateConfig } from './validation/types';
+
 /**
  * Plugin settings stored in data.json
  */
@@ -14,7 +16,11 @@ export interface ZotBridgeSettings {
   outputFolder: string;
   /** Number of items per batch (1-20, default: 5) */
   batchSize: number;
+  /** Quality gate validation configuration */
+  qualityGate: QualityGateConfig;
 }
+
+import { DEFAULT_QUALITY_GATE_CONFIG } from './validation/types';
 
 /**
  * Default settings applied on first plugin load
@@ -22,7 +28,8 @@ export interface ZotBridgeSettings {
 export const DEFAULT_SETTINGS: ZotBridgeSettings = {
   zoteroDbPath: '',
   outputFolder: '10_Literature',
-  batchSize: 5
+  batchSize: 5,
+  qualityGate: DEFAULT_QUALITY_GATE_CONFIG
 };
 
 /**
