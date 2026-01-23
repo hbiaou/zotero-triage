@@ -140,6 +140,21 @@ export class ZotBridgeSettingTab extends PluginSettingTab {
           this.plugin.settings.outputFolder = value;
           await this.plugin.saveSettings();
         }));
+
+    // Batch Settings Section
+    containerEl.createEl('h2', { text: 'Batch Settings' });
+
+    new Setting(containerEl)
+      .setName('Batch Size')
+      .setDesc('Number of items per batch (default: 5)')
+      .addSlider(slider => slider
+        .setLimits(1, 20, 1)
+        .setValue(this.plugin.settings.batchSize)
+        .setDynamicTooltip()
+        .onChange(async (value) => {
+          this.plugin.settings.batchSize = value;
+          await this.plugin.saveSettings();
+        }));
   }
 
   /**

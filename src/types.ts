@@ -12,6 +12,8 @@ export interface ZotBridgeSettings {
   zoteroDbPath: string;
   /** Output folder for literature notes (relative to vault root) */
   outputFolder: string;
+  /** Number of items per batch (1-20, default: 5) */
+  batchSize: number;
 }
 
 /**
@@ -19,7 +21,8 @@ export interface ZotBridgeSettings {
  */
 export const DEFAULT_SETTINGS: ZotBridgeSettings = {
   zoteroDbPath: '',
-  outputFolder: '10_Literature'
+  outputFolder: '10_Literature',
+  batchSize: 5
 };
 
 /**
