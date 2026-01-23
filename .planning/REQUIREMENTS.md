@@ -23,8 +23,8 @@ Requirements for MVP release. Each maps to roadmap phases.
 
 ### Batch Generation
 
-- [ ] **BTCH-01**: Plugin generates daily batch of 5 candidate items
-- [ ] **BTCH-02**: User can request new batch at any time (not limited to daily)
+- [ ] **BTCH-01**: Plugin can generate a batch of N candidate items on demand (default: 5)
+- [ ] **BTCH-02**: User can request new batch at any time via command or button
 - [ ] **BTCH-03**: Batch ranking uses profile similarity (matching tags and authors)
 - [ ] **BTCH-04**: Batch generator never proposes items already in registry (dedup)
 
@@ -52,7 +52,7 @@ Requirements for MVP release. Each maps to roadmap phases.
 
 ### Processing Registry
 
-- [ ] **RGST-01**: Plugin tracks state of each Zotero item: unseen, proposed, accepted, rejected, imported
+- [ ] **RGST-01**: Plugin tracks state of each Zotero item: unseen, proposed, accepted, rejected, deferred, imported
 - [ ] **RGST-02**: Registry persists to plugin data folder as JSON
 - [ ] **RGST-03**: Batch generator respects registry states (dedup enforcement)
 - [ ] **RGST-04**: Plugin provides stats dashboard: X imported, Y rejected, Z pending
@@ -147,8 +147,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 **Coverage:**
 - v1 requirements: 34 total
 - Mapped to phases: 34
-- Unmapped: 0 ✓
+- Unmapped: 0
 
 ---
 *Requirements defined: 2025-01-22*
-*Last updated: 2026-01-22 after roadmap creation*
+*Last updated: 2026-01-23 - Clarified BTCH-01 and BTCH-02 wording, added 'deferred' to RGST-01*
