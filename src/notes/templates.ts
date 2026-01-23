@@ -110,6 +110,29 @@ export function formatTagsYaml(tags: string[]): string {
 }
 
 /**
+ * Format an array of collections for YAML list format.
+ *
+ * Similar to formatTagsYaml, but for collection names.
+ *
+ * @param collections - Array of collection names
+ * @returns YAML formatted collection list, or empty string if no collections
+ */
+export function formatCollectionsYaml(collections: string[]): string {
+  if (!collections || collections.length === 0) {
+    return '';
+  }
+
+  return collections
+    .map(collection => {
+      const escaped = collection
+        .replace(/\\/g, '\\\\')
+        .replace(/"/g, '\\"');
+      return `  - "${escaped}"`;
+    })
+    .join('\n');
+}
+
+/**
  * Format abstract for YAML block scalar.
  *
  * Uses the folded style (>) for multiline text.
@@ -152,8 +175,11 @@ export function generateFrontmatter(item: ZoteroItem): string {
     formatAuthorsYaml(item.authors),
     `year: ${escapeYaml(item.year || 'Unknown')}`,
     `doi: ${escapeYaml(item.doi)}`,
+    `isbn: ${escapeYaml(item.isbn)}`,
     `journal: ${escapeYaml(item.journal)}`,
+    `publisher: ${escapeYaml(item.publisher)}`,
     `volume: ${escapeYaml(item.volume)}`,
+    `issue: ${escapeYaml(item.issue)}`,
     `pages: ${escapeYaml(item.pages)}`,
     `item-type: ${escapeYaml(item.itemType)}`,
     `zotero-key: ${item.itemKey}`,
@@ -167,6 +193,14 @@ export function generateFrontmatter(item: ZoteroItem): string {
     lines.push(formatTagsYaml(item.tags));
   } else {
     lines.push('tags: []');
+  }
+
+  // Add collections if present
+  if (item.collections && item.collections.length > 0) {
+    lines.push('collections:');
+    lines.push(formatCollectionsYaml(item.collections));
+  } else {
+    lines.push('collections: []');
   }
 
   // Add abstract with block scalar formatting

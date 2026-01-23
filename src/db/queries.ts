@@ -27,7 +27,7 @@ SELECT version FROM version WHERE schema = 'userdata'
  * - Notes (itemType = 'note')
  *
  * Returns: itemID, itemKey, dateAdded, dateModified, itemType,
- *          title, doi, date, journal, volume, pages, abstract
+ *          title, doi, date, journal, volume, issue, pages, abstract, publisher, isbn
  */
 export const ITEMS_QUERY = `
 WITH itemFields AS (
@@ -59,8 +59,11 @@ SELECT
   MAX(CASE WHEN fieldName = 'date' THEN value END) AS date,
   MAX(CASE WHEN fieldName = 'publicationTitle' THEN value END) AS journal,
   MAX(CASE WHEN fieldName = 'volume' THEN value END) AS volume,
+  MAX(CASE WHEN fieldName = 'issue' THEN value END) AS issue,
   MAX(CASE WHEN fieldName = 'pages' THEN value END) AS pages,
-  MAX(CASE WHEN fieldName = 'abstractNote' THEN value END) AS abstract
+  MAX(CASE WHEN fieldName = 'abstractNote' THEN value END) AS abstract,
+  MAX(CASE WHEN fieldName = 'publisher' THEN value END) AS publisher,
+  MAX(CASE WHEN fieldName = 'ISBN' THEN value END) AS isbn
 FROM itemFields
 GROUP BY itemID
 ORDER BY dateAdded DESC
@@ -127,6 +130,20 @@ FROM itemTags it
 JOIN tags t ON it.tagID = t.tagID
 WHERE it.itemID = ?
 ORDER BY t.name
+`;
+
+/**
+ * Query to get collections for a specific item.
+ * Parameterized with itemID (?).
+ *
+ * Returns: collection names ordered alphabetically.
+ */
+export const ITEM_COLLECTIONS_QUERY = `
+SELECT c.collectionName
+FROM collectionItems ci
+JOIN collections c ON ci.collectionID = c.collectionID
+WHERE ci.itemID = ?
+ORDER BY c.collectionName
 `;
 
 /**

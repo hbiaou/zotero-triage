@@ -20,6 +20,7 @@ import {
   CREATORS_QUERY,
   ATTACHMENTS_QUERY,
   ITEM_TAGS_QUERY,
+  ITEM_COLLECTIONS_QUERY,
   ITEM_COUNT_QUERY,
   formatCreator,
   parseYear,
@@ -49,16 +50,24 @@ export interface ZoteroItem {
   journal: string | null;
   /** Volume number */
   volume: string | null;
+  /** Issue number */
+  issue: string | null;
   /** Page range */
   pages: string | null;
   /** Abstract text */
   abstract: string | null;
+  /** Publisher name (for books, reports, etc.) */
+  publisher: string | null;
+  /** ISBN identifier (for books) */
+  isbn: string | null;
   /** Full path to attached PDF (if available) */
   pdfPath: string | null;
   /** Item type (journalArticle, book, etc.) */
   itemType: string;
   /** Tags assigned to item */
   tags: string[];
+  /** Collections item belongs to */
+  collections: string[];
   /** Date added to Zotero */
   dateAdded: string;
   /** Date last modified */
@@ -261,8 +270,11 @@ export class ZoteroConnector {
       date: columns.indexOf('date'),
       journal: columns.indexOf('journal'),
       volume: columns.indexOf('volume'),
+      issue: columns.indexOf('issue'),
       pages: columns.indexOf('pages'),
-      abstract: columns.indexOf('abstract')
+      abstract: columns.indexOf('abstract'),
+      publisher: columns.indexOf('publisher'),
+      isbn: columns.indexOf('isbn')
     };
 
     const dataDir = getZoteroDataDir(this.dbPath);
@@ -317,6 +329,15 @@ export class ZoteroConnector {
           }
         }
 
+        // Get collections for this item
+        const collectionsResult = this.db!.exec(ITEM_COLLECTIONS_QUERY, [itemID]);
+        const collections: string[] = [];
+        if (collectionsResult.length > 0) {
+          for (const collectionRow of collectionsResult[0].values) {
+            collections.push(collectionRow[0] as string);
+          }
+        }
+
         const item: ZoteroItem = {
           itemID,
           itemKey,
@@ -326,11 +347,15 @@ export class ZoteroConnector {
           doi: row[colIndex.doi] as string | null,
           journal: row[colIndex.journal] as string | null,
           volume: row[colIndex.volume] as string | null,
+          issue: row[colIndex.issue] as string | null,
           pages: row[colIndex.pages] as string | null,
           abstract: row[colIndex.abstract] as string | null,
+          publisher: row[colIndex.publisher] as string | null,
+          isbn: row[colIndex.isbn] as string | null,
           pdfPath,
           itemType: row[colIndex.itemType] as string,
           tags,
+          collections,
           dateAdded: row[colIndex.dateAdded] as string,
           dateModified: row[colIndex.dateModified] as string
         };
