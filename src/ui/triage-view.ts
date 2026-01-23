@@ -12,6 +12,7 @@ import type { Batch } from '../batch/types';
 import { createTriageCard } from './triage-card';
 import { showUndoNotice } from './undo-notice';
 import { renderStatsPanel } from './stats-panel';
+import { OverrideConfirmModal } from './override-modal';
 
 export const TRIAGE_VIEW_TYPE = 'zotbridge-triage';
 
@@ -257,11 +258,41 @@ export class TriageView extends ItemView {
   }
 
   /**
-   * Handle Accept action - create note and mark imported
+   * Handle Accept action - check validation and show override modal if needed
    */
   private async handleAccept(item: ZoteroItem): Promise<void> {
     const previousState = this.plugin.registry.getState(item.itemID);
 
+    // Run validation if quality gate is enabled
+    if (this.plugin.settings.qualityGate.enabled) {
+      const validationResult = this.plugin.validationService.validate(item);
+
+      if (!validationResult.valid) {
+        // Show override confirmation modal
+        new OverrideConfirmModal(this.app, {
+          item: item,
+          missingFields: validationResult.missingFields,
+          onConfirm: () => {
+            // User confirmed override - proceed with import
+            this.performAccept(item, previousState);
+          },
+          onCancel: () => {
+            // User cancelled - do nothing
+            new Notice('Import cancelled');
+          }
+        }).open();
+        return;  // Exit early, wait for modal decision
+      }
+    }
+
+    // Validation passed or disabled - proceed
+    this.performAccept(item, previousState);
+  }
+
+  /**
+   * Perform the actual import after validation check
+   */
+  private async performAccept(item: ZoteroItem, previousState: RegistryState): Promise<void> {
     try {
       // Create the note
       await this.plugin.noteGenerator.createNote(item);
