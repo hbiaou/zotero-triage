@@ -5,8 +5,10 @@ import { ZotBridgeSettingTab } from './settings';
 import { ZoteroConnector, ZoteroItem } from './db/zotero-connector';
 import { RegistryService } from './registry/registry-service';
 import { NoteGenerator } from './notes/note-generator';
+import { BatchService } from './batch/batch-service';
 import { ItemSearchModal } from './ui/search-modal';
 import { PreviewModal } from './ui/preview-modal';
+import { TriageView, TRIAGE_VIEW_TYPE } from './ui/triage-view';
 
 /**
  * ZotBridge Plugin
@@ -20,6 +22,7 @@ export default class ZotBridgePlugin extends Plugin {
   connector!: ZoteroConnector;
   registry!: RegistryService;
   noteGenerator!: NoteGenerator;
+  batchService!: BatchService;
 
   async onload(): Promise<void> {
     await this.loadSettings();
@@ -35,6 +38,15 @@ export default class ZotBridgePlugin extends Plugin {
     // Initialize note generator
     this.noteGenerator = new NoteGenerator(this.app, this.settings.outputFolder);
 
+    // Initialize batch service
+    this.batchService = new BatchService(this.connector, this.registry);
+
+    // Register triage view
+    this.registerView(
+      TRIAGE_VIEW_TYPE,
+      (leaf) => new TriageView(leaf, this)
+    );
+
     // Add settings tab
     this.addSettingTab(new ZotBridgeSettingTab(this.app, this));
 
@@ -45,6 +57,18 @@ export default class ZotBridgePlugin extends Plugin {
       callback: () => this.handleImportCommand()
     });
 
+    // Command to open triage view
+    this.addCommand({
+      id: 'zotbridge-open-triage',
+      name: 'Open triage dashboard',
+      callback: () => this.activateTriageView()
+    });
+
+    // Ribbon icon for quick access
+    this.addRibbonIcon('inbox', 'ZotBridge Triage', () => {
+      this.activateTriageView();
+    });
+
     console.log('ZotBridge plugin loaded', {
       dbPath: this.settings.zoteroDbPath || '(not configured)',
       outputFolder: this.settings.outputFolder,
@@ -53,6 +77,9 @@ export default class ZotBridgePlugin extends Plugin {
   }
 
   async onunload(): Promise<void> {
+    // Detach triage views
+    this.app.workspace.detachLeavesOfType(TRIAGE_VIEW_TYPE);
+
     // Flush registry to ensure all pending saves complete
     if (this.registry) {
       await this.registry.flush();
@@ -212,6 +239,25 @@ export default class ZotBridgePlugin extends Plugin {
       } else {
         new Notice(`Failed to create note: ${message}`);
       }
+    }
+  }
+
+  /**
+   * Activate the triage view in the right sidebar.
+   * Detaches any existing instances first to avoid duplicates.
+   */
+  async activateTriageView(): Promise<void> {
+    // Detach existing to avoid duplicates
+    this.app.workspace.detachLeavesOfType(TRIAGE_VIEW_TYPE);
+
+    // Open in right sidebar
+    const leaf = this.app.workspace.getRightLeaf(false);
+    if (leaf) {
+      await leaf.setViewState({
+        type: TRIAGE_VIEW_TYPE,
+        active: true,
+      });
+      this.app.workspace.revealLeaf(leaf);
     }
   }
 }
