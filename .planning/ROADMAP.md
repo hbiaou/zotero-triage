@@ -103,12 +103,14 @@ Plans:
   6. User can modify their profile (re-select seed papers or update preferences)
   7. Recommended batches feel relevant to user's research interests
 
-**Plans**: TBD
+**Plans:** 5 plans
 
 Plans:
-- [ ] 04-01: TBD during planning
-- [ ] 04-02: TBD during planning
-- [ ] 04-03: TBD during planning
+- [ ] 04-01-PLAN.md — Profile service, keyword extraction, type definitions
+- [ ] 04-02-PLAN.md — Recommendation engine with multi-signal scoring, adaptive learning
+- [ ] 04-03-PLAN.md — Setup wizard modal, seed paper picker, profile initialization
+- [ ] 04-04-PLAN.md — Batch service enhancement, profile editor UI
+- [ ] 04-05-PLAN.md — Wizard trigger, learning integration, verification
 
 ### Phase 5: Polish
 **Goal**: Plugin is production-ready with optimized performance, comprehensive error handling, and cross-platform support
@@ -141,5 +143,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 1. Foundation | 4/4 | Complete | 2026-01-22 |
 | 2. Batch Workflow | 3/3 | Complete | 2026-01-23 |
 | 3. Quality Gates | 0/2 | Not started | - |
-| 4. Onboarding & Recommendations | 0/TBD | Not started | - |
+| 4. Onboarding & Recommendations | 0/5 | Not started | - |
 | 5. Polish | 0/TBD | Not started | - |
