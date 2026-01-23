@@ -57,7 +57,7 @@ export interface ZoteroItem {
 /**
  * Processing state for a single Zotero item
  */
-export type RegistryState = 'unseen' | 'proposed' | 'accepted' | 'rejected' | 'imported';
+export type RegistryState = 'unseen' | 'proposed' | 'accepted' | 'rejected' | 'deferred' | 'imported';
 
 /**
  * Registry entry tracking the state of a Zotero item

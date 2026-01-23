@@ -21,6 +21,8 @@ export interface RegistryStats {
   accepted: number;
   /** Items rejected by user */
   rejected: number;
+  /** Items deferred for later review */
+  deferred: number;
   /** Items successfully imported to vault */
   imported: number;
 }

@@ -120,6 +120,7 @@ export class RegistryService {
       proposed: 0,
       accepted: 0,
       rejected: 0,
+      deferred: 0,
       imported: 0
     };
 
@@ -143,6 +144,20 @@ export class RegistryService {
       if (entry.state === state) {
         result.push(id);
       }
+    }
+
+    return result;
+  }
+
+  /**
+   * Get all registry entries with their IDs
+   * @returns Array of objects with id and entry
+   */
+  getAllEntries(): Array<{ id: string, entry: RegistryEntry }> {
+    const result: Array<{ id: string, entry: RegistryEntry }> = [];
+
+    for (const [id, entry] of Object.entries(this.registry.entries)) {
+      result.push({ id, entry });
     }
 
     return result;
