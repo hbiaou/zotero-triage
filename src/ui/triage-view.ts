@@ -89,11 +89,27 @@ export class TriageView extends ItemView {
       // Store total item count
       this.totalZoteroItems = this.plugin.connector.getCachedItems().length;
 
+      // DEBUG: Log connector and registry state
+      console.log('ZotBridge DEBUG: Total items in connector:', this.totalZoteroItems);
+      const allItems = this.plugin.connector.getCachedItems();
+      const registryStats = this.plugin.registry.getStats();
+      console.log('ZotBridge DEBUG: Registry stats:', registryStats);
+      console.log('ZotBridge DEBUG: First 3 item states:',
+        allItems.slice(0, 3).map(item => ({
+          id: item.itemID,
+          title: item.title.substring(0, 50),
+          state: this.plugin.registry.getState(item.itemID)
+        }))
+      );
+
       // Generate batch
       const batch = await this.plugin.batchService.generateBatch({
         size: this.plugin.settings.batchSize,
         includeDeferred: false
       });
+
+      // DEBUG: Log batch result
+      console.log('ZotBridge DEBUG: Batch generated with', batch.items.length, 'items');
 
       if (batch.items.length === 0) {
         new Notice('No unprocessed items available');
