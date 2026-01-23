@@ -117,14 +117,14 @@ Which phases cover which requirements. Updated during roadmap creation.
 | ONBD-02 | Phase 4 | Pending |
 | ONBD-03 | Phase 4 | Pending |
 | ONBD-04 | Phase 4 | Pending |
-| BTCH-01 | Phase 2 | Pending |
-| BTCH-02 | Phase 2 | Pending |
+| BTCH-01 | Phase 2 | Complete |
+| BTCH-02 | Phase 2 | Complete |
 | BTCH-03 | Phase 4 | Pending |
-| BTCH-04 | Phase 2 | Pending |
-| TRIG-01 | Phase 2 | Pending |
-| TRIG-02 | Phase 2 | Pending |
-| TRIG-03 | Phase 2 | Pending |
-| TRIG-04 | Phase 2 | Pending |
+| BTCH-04 | Phase 2 | Complete |
+| TRIG-01 | Phase 2 | Complete |
+| TRIG-02 | Phase 2 | Complete |
+| TRIG-03 | Phase 2 | Complete |
+| TRIG-04 | Phase 2 | Complete |
 | QUAL-01 | Phase 3 | Pending |
 | QUAL-02 | Phase 3 | Pending |
 | QUAL-03 | Phase 3 | Pending |
@@ -136,11 +136,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | NOTE-04 | Phase 1 | Complete |
 | RGST-01 | Phase 1 | Complete |
 | RGST-02 | Phase 1 | Complete |
-| RGST-03 | Phase 2 | Pending |
-| RGST-04 | Phase 2 | Pending |
+| RGST-03 | Phase 2 | Complete |
+| RGST-04 | Phase 2 | Complete |
 | SETT-01 | Phase 1 | Complete |
 | SETT-02 | Phase 1 | Complete |
-| SETT-03 | Phase 2 | Pending |
+| SETT-03 | Phase 2 | Complete |
 | SETT-04 | Phase 3 | Pending |
 | SETT-05 | Phase 4 | Pending |
 
