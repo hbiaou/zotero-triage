@@ -13,7 +13,7 @@ This roadmap delivers a progressive literature processing plugin for researchers
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Foundation** - SQLite access, state management, basic note generation
-- [ ] **Phase 2: Batch Workflow** - Triage UI, batch generation, processing engine
+- [x] **Phase 2: Batch Workflow** - Triage UI, batch generation, processing engine
 - [ ] **Phase 3: Quality Gates** - Metadata validation, enhanced templates, annotations
 - [ ] **Phase 4: Onboarding & Recommendations** - Setup wizard, profile-based batch generation
 - [ ] **Phase 5: Polish** - Performance optimization, error handling, cross-platform testing
@@ -62,9 +62,9 @@ Plans:
 **Plans:** 3 plans
 
 Plans:
-- [ ] 02-01-PLAN.md — Batch service, registry deferred state, batch size setting
-- [ ] 02-02-PLAN.md — Triage view with cards, actions, and undo notices
-- [ ] 02-03-PLAN.md — Stats panel, session tracking, batch completion flow
+- [x] 02-01-PLAN.md — Batch service, registry deferred state, batch size setting
+- [x] 02-02-PLAN.md — Triage view with cards, actions, and undo notices
+- [x] 02-03-PLAN.md — Stats panel, session tracking, batch completion flow
 
 ### Phase 3: Quality Gates
 **Goal**: Plugin validates metadata completeness before import and enhances literature notes with configurable quality gates
@@ -81,11 +81,11 @@ Plans:
   5. Required fields are configurable per item type (journal article vs book vs conference paper)
   6. Imported notes have complete, structured YAML frontmatter with all available metadata
 
-**Plans**: TBD
+**Plans:** 2 plans
 
 Plans:
-- [ ] 03-01: TBD during planning
-- [ ] 03-02: TBD during planning
+- [ ] 03-01-PLAN.md — Validation service, quality gate settings, enhanced YAML
+- [ ] 03-02-PLAN.md — Validation UI, override modal, action handlers
 
 ### Phase 4: Onboarding & Recommendations
 **Goal**: New users can quickly set up their profile through a guided wizard, and batches are intelligently generated based on user interests
@@ -140,6 +140,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 |-------|----------------|--------|-----------|
 | 1. Foundation | 4/4 | Complete | 2026-01-22 |
 | 2. Batch Workflow | 3/3 | Complete | 2026-01-23 |
-| 3. Quality Gates | 0/TBD | Not started | - |
+| 3. Quality Gates | 0/2 | Not started | - |
 | 4. Onboarding & Recommendations | 0/TBD | Not started | - |
 | 5. Polish | 0/TBD | Not started | - |
