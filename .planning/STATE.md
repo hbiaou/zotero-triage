@@ -11,29 +11,29 @@ See: .planning/PROJECT.md (updated 2025-01-22)
 ## Current Position
 
 Phase: 2 of 5 (Batch Workflow)
-Plan: 02 of 04
+Plan: 03 of 04
 Status: In progress
-Last activity: 2026-01-23 — Completed 02-02-PLAN.md (Triage Dashboard UI)
+Last activity: 2026-01-23 — Completed 02-03-PLAN.md (Stats Dashboard and Session Tracking)
 
-Progress: [██░░░░░░░░] 30%
+Progress: [███░░░░░░░] 35%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 6
-- Average duration: 16 min
-- Total execution time: 1.7 hours
+- Total plans completed: 7
+- Average duration: 15 min
+- Total execution time: 1.8 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01-foundation | 4/4 | 28 min | 7 min |
-| 02-batch-workflow | 2/4 | 69 min | 35 min |
+| 02-batch-workflow | 3/4 | 74 min | 25 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-03 (7 min), 01-04 (8 min), 02-01 (65 min), 02-02 (4 min)
-- Trend: Phase 2 average higher due to 02-01 infrastructure work, but 02-02 fast execution
+- Last 5 plans: 01-04 (8 min), 02-01 (65 min), 02-02 (4 min), 02-03 (5 min)
+- Trend: Phase 2 stabilizing after 02-01 infrastructure work, recent plans fast execution
 
 *Updated after each plan completion*
 
@@ -64,6 +64,11 @@ Recent decisions affecting current work:
 - Plan 02-02: Card abstract truncated at 200 characters for layout balance
 - Plan 02-02: Button hierarchy: Accept (accent), Defer (neutral), Reject (text with border)
 - Plan 02-02: Triage view in right sidebar for accessible workflow
+- Plan 02-03: SessionTracker lives in plugin instance (persists across view opens/closes)
+- Plan 02-03: Velocity calculated from registry entry timestamps (last 24h and 7d)
+- Plan 02-03: Pending count calculated as total minus all processed states
+- Plan 02-03: Batch completion checks for more items to show appropriate next step
+- Plan 02-03: Stats panel uses Obsidian CSS variables for full theme compatibility
 
 ### Pending Todos
 
@@ -85,5 +90,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-01-23
-Stopped at: Completed 02-02-PLAN.md (Triage Dashboard UI)
+Stopped at: Completed 02-03-PLAN.md (Stats Dashboard and Session Tracking)
 Resume file: None
