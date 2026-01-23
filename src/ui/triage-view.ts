@@ -76,11 +76,13 @@ export class TriageView extends ItemView {
    * Generate a new batch and display it
    */
   async generateAndShowBatch(): Promise<void> {
+    let loadingNotice: Notice | null = null;
     try {
       // Ensure items are loaded
       if (!this.plugin.connector.itemsLoaded) {
-        new Notice('Loading Zotero library...', 0);
+        loadingNotice = new Notice('Loading Zotero library...', 0);
         await this.plugin.connector.connect(this.plugin.settings.zoteroDbPath);
+        loadingNotice.hide();
         new Notice('Library loaded');
       }
 
@@ -106,6 +108,10 @@ export class TriageView extends ItemView {
       this.refresh();
 
     } catch (err) {
+      // Dismiss loading notice if it's still showing
+      if (loadingNotice) {
+        loadingNotice.hide();
+      }
       const message = err instanceof Error ? err.message : String(err);
       new Notice(`Failed to generate batch: ${message}`);
       console.error('Batch generation error:', err);
