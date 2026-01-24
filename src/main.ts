@@ -17,6 +17,8 @@ import { AdaptiveLearner } from './recommendations/adaptive-learner';
 import { ProfileInitializer } from './profile/profile-initializer';
 import { SetupWizardModal } from './ui/setup-wizard-modal';
 import { extractKeywordsFromMultiple } from './profile/keyword-extractor';
+import { MemoryMonitor } from './performance/memory-monitor';
+import { ConnectionError } from './error/app-error';
 
 /**
  * ZotBridge Plugin
@@ -28,6 +30,7 @@ import { extractKeywordsFromMultiple } from './profile/keyword-extractor';
 export default class ZotBridgePlugin extends Plugin {
   settings: ZotBridgeSettings = DEFAULT_SETTINGS;
   connector!: ZoteroConnector;
+  private connectorInitialized = false;
   registry!: RegistryService;
   noteGenerator!: NoteGenerator;
   batchService!: BatchService;
@@ -37,13 +40,21 @@ export default class ZotBridgePlugin extends Plugin {
   recommendationEngine!: RecommendationEngine;
   adaptiveLearner!: AdaptiveLearner;
   profileInitializer!: ProfileInitializer;
+  private memoryMonitor: MemoryMonitor;
 
   async onload(): Promise<void> {
+    // Start memory monitoring in dev mode
+    this.memoryMonitor = new MemoryMonitor();
+    if (this.isDev()) {
+      this.memoryMonitor.start();
+    }
+
     await this.loadSettings();
 
-    // Initialize connector with plugin directory path (for WASM file location)
+    // Initialize connector WITHOUT connecting to database (lazy initialization)
     const pluginDir = this.getPluginDir();
     this.connector = new ZoteroConnector(pluginDir);
+    // DO NOT call connector.connect() here - deferred until first use
 
     // Initialize registry service
     this.registry = new RegistryService(this);
@@ -120,12 +131,47 @@ export default class ZotBridgePlugin extends Plugin {
       registryEntries: Object.keys((await this.loadData())?.registry?.entries || {}).length
     });
 
+    if (this.isDev()) {
+      this.memoryMonitor.check('after onload');
+    }
+
     // Check for first-time setup (show wizard if no profile)
     if (!this.profileService.hasProfile()) {
       // Delay wizard slightly to allow UI to fully load
       setTimeout(() => {
         this.showSetupWizard();
       }, 1000);
+    }
+  }
+
+  /**
+   * Ensure database connection established before first use
+   * Called by TriageView before first database operation
+   */
+  async ensureConnected(): Promise<void> {
+    if (this.connectorInitialized) {
+      return;
+    }
+
+    if (!this.settings.zoteroDbPath) {
+      throw new ConnectionError(
+        'Zotero database path not configured. Please configure in settings.',
+        'No database path in settings'
+      );
+    }
+
+    try {
+      await this.connector.connect(this.settings.zoteroDbPath);
+      this.connectorInitialized = true;
+
+      if (this.isDev()) {
+        this.memoryMonitor.check('after database connection');
+      }
+    } catch (err) {
+      throw new ConnectionError(
+        'Failed to connect to Zotero database.',
+        err instanceof Error ? err.message : String(err)
+      );
     }
   }
 
@@ -144,11 +190,23 @@ export default class ZotBridgePlugin extends Plugin {
     }
 
     // Close database connection if open
-    if (this.connector) {
+    if (this.connectorInitialized && this.connector) {
       this.connector.close();
     }
 
+    if (this.isDev()) {
+      console.log(`[MemoryMonitor] Final: ${this.memoryMonitor.summary()}`);
+    }
+
     console.log('ZotBridge plugin unloaded');
+  }
+
+  /**
+   * Check if running in development mode
+   */
+  private isDev(): boolean {
+    // Check if NODE_ENV is set to development
+    return process.env.NODE_ENV === 'development';
   }
 
   async loadSettings(): Promise<void> {
