@@ -254,6 +254,11 @@ export class ZoteroConnector {
       const countResult = this.db.exec(ITEM_COUNT_QUERY);
       const totalItems = countResult[0]?.values[0]?.[0] as number || 0;
 
+      // Call progress callback initially
+      if (onProgress) {
+        onProgress(0, totalItems);
+      }
+
       // Execute main items query
       const itemsResult = this.db.exec(ITEMS_QUERY);
       if (itemsResult.length === 0) {
