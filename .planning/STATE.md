@@ -11,18 +11,18 @@ See: .planning/PROJECT.md (updated 2025-01-22)
 ## Current Position
 
 Phase: 4 of 5 (Onboarding & Recommendations)
-Plan: 01 of 03
+Plan: 02 of 03
 Status: In progress
-Last activity: 2026-01-24 — Completed 04-01-PLAN.md
+Last activity: 2026-01-24 — Completed 04-02-PLAN.md
 
-Progress: [███████░░░] 61%
+Progress: [████████░░] 67%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 11
-- Average duration: 95 min
-- Total execution time: 17.7 hours
+- Total plans completed: 12
+- Average duration: 88 min
+- Total execution time: 17.8 hours
 
 **By Phase:**
 
@@ -31,11 +31,11 @@ Progress: [███████░░░] 61%
 | 01-foundation | 4/4 | 28 min | 7 min |
 | 02-batch-workflow | 3/3 | 74 min | 25 min |
 | 03-quality-gates | 3/3 | 945 min | 315 min |
-| 04-onboarding-and-recommendations | 1/3 | 6 min | 6 min |
+| 04-onboarding-and-recommendations | 2/3 | 11 min | 6 min |
 
 **Recent Trend:**
-- Last 5 plans: 02-03 (5 min), 03-01 (6 min), 03-02 (936 min), 03-03 (3 min), 04-01 (6 min)
-- Trend: Phase 4 started; profile infrastructure completed quickly
+- Last 5 plans: 03-01 (6 min), 03-02 (936 min), 03-03 (3 min), 04-01 (6 min), 04-02 (5 min)
+- Trend: Phase 4 maintaining fast velocity; recommendation engine completed
 
 *Updated after each plan completion*
 
@@ -87,6 +87,11 @@ Recent decisions affecting current work:
 - Plan 04-01: Simple frequency-based keyword extraction with 50+ stopword list (no external NLP for MVP)
 - Plan 04-01: Profile stored in plugin settings (not separate file) for vault portability
 - Plan 04-01: ProfileService uses 2000ms debounce delay matching RegistryService pattern
+- Plan 04-02: Default relevance-only mode (relevanceVsDiversity: 0) for MVP simplicity
+- Plan 04-02: 3-year recency window with 1.5x multiplier for recent papers
+- Plan 04-02: 20 keywords extracted per item for scoring
+- Plan 04-02: Normalize scores to 0-100 range for UI presentation
+- Plan 04-02: Tag extraction deferred (ZoteroItem schema doesn't include tags yet)
 
 ### Pending Todos
 
@@ -112,12 +117,13 @@ Recent decisions affecting current work:
 
 **Phase 4 (Onboarding & Recommendations):** IN PROGRESS
 - Profile infrastructure: COMPLETE - Types, service, and keyword extraction implemented
-- Recommendation engine: Next task - similarity scoring and batch generation
-- Setup wizard: Pending - will use profile service to create initial profiles from seed papers
+- Recommendation engine: COMPLETE - Multi-signal scoring with adaptive learning
+- Setup wizard: Next task - UI for creating initial profiles from seed papers
+- Known limitation: Tag scoring returns 0 (ZoteroItem schema missing tags field)
 
 ## Session Continuity
 
-Last session: 2026-01-24T18:24:11Z
-Stopped at: Completed 04-01-PLAN.md
+Last session: 2026-01-24T18:34:49Z
+Stopped at: Completed 04-02-PLAN.md
 Resume file: None
-Next plan: 04-02-recommendation-engine
+Next plan: 04-03-setup-wizard
