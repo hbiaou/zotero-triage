@@ -16,16 +16,16 @@ Requirements for MVP release. Each maps to roadmap phases.
 
 ### Onboarding
 
-- [ ] **ONBD-01**: Plugin provides multi-step setup wizard Modal for first-time users
-- [ ] **ONBD-02**: User can select 10 seed papers to establish interest profile
-- [ ] **ONBD-03**: Plugin extracts tags and authors from seed papers for profile
-- [ ] **ONBD-04**: User can skip wizard and configure manually via settings
+- [x] **ONBD-01**: Plugin provides multi-step setup wizard Modal for first-time users
+- [x] **ONBD-02**: User can select 10 seed papers to establish interest profile
+- [x] **ONBD-03**: Plugin extracts tags and authors from seed papers for profile
+- [x] **ONBD-04**: User can skip wizard and configure manually via settings
 
 ### Batch Generation
 
 - [ ] **BTCH-01**: Plugin can generate a batch of N candidate items on demand (default: 5)
 - [ ] **BTCH-02**: User can request new batch at any time via command or button
-- [ ] **BTCH-03**: Batch ranking uses profile similarity (matching tags and authors)
+- [x] **BTCH-03**: Batch ranking uses profile similarity (matching tags and authors)
 - [ ] **BTCH-04**: Batch generator never proposes items already in registry (dedup)
 
 ### Triage Dashboard
@@ -63,7 +63,7 @@ Requirements for MVP release. Each maps to roadmap phases.
 - [ ] **SETT-02**: User can configure output folder for literature notes
 - [ ] **SETT-03**: User can configure batch size (default: 5)
 - [ ] **SETT-04**: User can configure required fields per item type for quality gate
-- [ ] **SETT-05**: User can modify profile (re-select seed papers, update preferences)
+- [x] **SETT-05**: User can modify profile (re-select seed papers, update preferences)
 
 ## v2 Requirements
 
@@ -113,13 +113,13 @@ Which phases cover which requirements. Updated during roadmap creation.
 | ZCON-02 | Phase 1 | Complete |
 | ZCON-03 | Phase 1 | Complete |
 | ZCON-04 | Phase 1 | Complete |
-| ONBD-01 | Phase 4 | Pending |
-| ONBD-02 | Phase 4 | Pending |
-| ONBD-03 | Phase 4 | Pending |
-| ONBD-04 | Phase 4 | Pending |
+| ONBD-01 | Phase 4 | Complete |
+| ONBD-02 | Phase 4 | Complete |
+| ONBD-03 | Phase 4 | Complete |
+| ONBD-04 | Phase 4 | Complete |
 | BTCH-01 | Phase 2 | Complete |
 | BTCH-02 | Phase 2 | Complete |
-| BTCH-03 | Phase 4 | Pending |
+| BTCH-03 | Phase 4 | Complete |
 | BTCH-04 | Phase 2 | Complete |
 | TRIG-01 | Phase 2 | Complete |
 | TRIG-02 | Phase 2 | Complete |
@@ -142,7 +142,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SETT-02 | Phase 1 | Complete |
 | SETT-03 | Phase 2 | Complete |
 | SETT-04 | Phase 3 | Complete |
-| SETT-05 | Phase 4 | Pending |
+| SETT-05 | Phase 4 | Complete |
 
 **Coverage:**
 - v1 requirements: 34 total

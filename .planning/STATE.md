@@ -11,18 +11,18 @@ See: .planning/PROJECT.md (updated 2025-01-22)
 ## Current Position
 
 Phase: 4 of 5 (Onboarding & Recommendations)
-Plan: 04 of 04
-Status: Phase complete
-Last activity: 2026-01-24 — Completed 04-04-PLAN.md
+Plan: 05 of 05
+Status: Phase complete, verified
+Last activity: 2026-01-24 — Completed 04-05-PLAN.md
 
-Progress: [█████████░] 78%
+Progress: [█████████░] 80%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 14
-- Average duration: 77 min
-- Total execution time: 18.0 hours
+- Total plans completed: 15
+- Average duration: 75 min
+- Total execution time: 18.2 hours
 
 **By Phase:**
 
@@ -31,11 +31,11 @@ Progress: [█████████░] 78%
 | 01-foundation | 4/4 | 28 min | 7 min |
 | 02-batch-workflow | 3/3 | 74 min | 25 min |
 | 03-quality-gates | 3/3 | 945 min | 315 min |
-| 04-onboarding-and-recommendations | 4/4 | 26 min | 7 min |
+| 04-onboarding-and-recommendations | 5/5 | 38 min | 8 min |
 
 **Recent Trend:**
-- Last 5 plans: 03-03 (3 min), 04-01 (6 min), 04-02 (5 min), 04-03 (8 min), 04-04 (7 min)
-- Trend: Phase 4 completed with consistent fast velocity; recommendation system fully integrated
+- Last 5 plans: 04-01 (6 min), 04-02 (5 min), 04-03 (8 min), 04-04 (7 min), 04-05 (12 min)
+- Trend: Phase 4 complete, verified; onboarding and recommendation system operational
 
 *Updated after each plan completion*
 
@@ -102,6 +102,10 @@ Recent decisions affecting current work:
 - Plan 04-04: Map deserialization in getProfile for proper data structure restoration
 - Plan 04-04: Weight adjustment delta of 0.5 for manual editing
 - Plan 04-04: Top 10 signals displayed per type in profile editor
+- Plan 04-05: 1-second delay for wizard trigger (allows UI to load)
+- Plan 04-05: Wizard is skippable (supports manual configuration)
+- Plan 04-05: Learning happens after registry update but before undo window
+- Plan 04-05: Defer actions skip learning (neutral, doesn't indicate interest)
 
 ### Pending Todos
 
@@ -109,12 +113,6 @@ Recent decisions affecting current work:
    - Area: validation
    - Context: Phase 3 validation system fully implemented but not tested with incomplete items (user's library has 100% complete metadata)
    - Files: src/ui/triage-card.ts, src/ui/override-modal.ts, src/ui/triage-view.ts
-
-2. **Wire adaptive learning into triage actions** (2026-01-24)
-   - Area: recommendations
-   - Context: BatchService has recordAccept/recordReject methods but they're not called from triage-view.ts
-   - Files: src/ui/triage-view.ts
-   - Action: Call batchService.recordAccept/recordReject on user actions
 
 ### Blockers/Concerns
 
@@ -131,18 +129,19 @@ Recent decisions affecting current work:
 - Publisher field validation complete
 - Quality gate system fully functional
 
-**Phase 4 (Onboarding & Recommendations):** COMPLETE
-- Profile infrastructure: COMPLETE - Types, service, and keyword extraction implemented
-- Recommendation engine: COMPLETE - Multi-signal scoring with adaptive learning
-- Setup wizard: COMPLETE - Multi-step onboarding with seed paper selection
-- Profile integration: COMPLETE - BatchService uses recommendation scoring, settings UI provides full profile control
-- Integration gap: recordAccept/recordReject not wired from triage-view.ts (see Pending Todos)
-- Known limitation: Tag scoring returns 0 (ZoteroItem schema missing tags field)
+**Phase 4 (Onboarding & Recommendations):** COMPLETE ✓
+- All 5 plans executed successfully
+- Verification passed: 7/7 success criteria verified
+- Profile infrastructure: Types, service, keyword extraction
+- Recommendation engine: Multi-signal scoring with adaptive learning
+- Setup wizard: Multi-step onboarding with seed paper selection (5-15 papers)
+- Profile integration: Batch scoring, settings UI, learning from user feedback
+- Known limitation: Tag scoring returns 0 (ZoteroItem schema missing tags field - documented, acceptable)
 
 ## Session Continuity
 
-Last session: 2026-01-24T19:36:11Z
-Stopped at: Completed 04-04-PLAN.md (Phase 4 complete)
+Last session: 2026-01-24T20:15:00Z
+Stopped at: Completed Phase 4 (Onboarding & Recommendations), verified
 Resume file: None
 Next phase: 05-polish
 

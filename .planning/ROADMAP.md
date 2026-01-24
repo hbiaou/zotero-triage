@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Foundation** - SQLite access, state management, basic note generation
 - [x] **Phase 2: Batch Workflow** - Triage UI, batch generation, processing engine
 - [x] **Phase 3: Quality Gates** - Metadata validation, enhanced templates, annotations
-- [ ] **Phase 4: Onboarding & Recommendations** - Setup wizard, profile-based batch generation
+- [x] **Phase 4: Onboarding & Recommendations** - Setup wizard, profile-based batch generation
 - [ ] **Phase 5: Polish** - Performance optimization, error handling, cross-platform testing
 
 ## Phase Details
@@ -150,5 +150,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 1. Foundation | 4/4 | Complete | 2026-01-22 |
 | 2. Batch Workflow | 3/3 | Complete | 2026-01-23 |
 | 3. Quality Gates | 3/3 | Complete | 2026-01-24 |
-| 4. Onboarding & Recommendations | 0/5 | Not started | - |
+| 4. Onboarding & Recommendations | 5/5 | Complete | 2026-01-24 |
 | 5. Polish | 0/8 | Not started | - |
