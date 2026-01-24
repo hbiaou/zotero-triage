@@ -25,6 +25,7 @@ SELECT version FROM version WHERE schema = 'userdata'
  * - Items in deletedItems table
  * - Attachments (itemType = 'attachment')
  * - Notes (itemType = 'note')
+ * - Annotations (itemType = 'annotation')
  *
  * Returns: itemID, itemKey, dateAdded, dateModified, itemType,
  *          title, doi, date, journal, volume, issue, pages, abstract, publisher, isbn
@@ -47,6 +48,7 @@ WITH itemFields AS (
   WHERE i.itemID NOT IN (SELECT itemID FROM deletedItems)
     AND it.typeName != 'attachment'
     AND it.typeName != 'note'
+    AND it.typeName != 'annotation'
 )
 SELECT
   itemID,
