@@ -13,6 +13,9 @@ import { createTriageCard } from './triage-card';
 import { showUndoNotice } from './undo-notice';
 import { renderStatsPanel } from './stats-panel';
 import { OverrideConfirmModal } from './override-modal';
+import { ProgressTracker } from '../performance/progress-tracker';
+import { getErrorContext } from '../error/error-handler';
+import { ErrorModal } from './error-modal';
 
 export const TRIAGE_VIEW_TYPE = 'zotbridge-triage';
 
@@ -76,37 +79,43 @@ export class TriageView extends ItemView {
    * Generate a new batch and display it
    */
   async generateAndShowBatch(): Promise<void> {
-    let loadingNotice: Notice | null = null;
+    const progress = new ProgressTracker();
+
     try {
-      // Ensure items are loaded - always reload to get fresh items
-      loadingNotice = new Notice('Loading Zotero library...', 0);
+      // Connect to database
       await this.plugin.connector.connect(this.plugin.settings.zoteroDbPath);
 
-      // Load items from database
-      await this.plugin.connector.loadItems();
-      loadingNotice.hide();
+      // Start progress tracking
+      progress.start('Loading Zotero library...', 5000); // Estimate 5000 items
+
+      // Load items with progress callback
+      const items = await this.plugin.connector.loadItems((loaded, total) => {
+        progress.update(loaded, `Loading items from database...`);
+        // Update estimate if total differs
+        if (total !== progress['state'].total) {
+          progress['state'].total = total;
+        }
+      });
 
       // Verify items were loaded
-      const itemCount = this.plugin.connector.getCachedItems().length;
-      console.log('ZotBridge DEBUG: Loaded', itemCount, 'items from Zotero');
+      console.log('ZotBridge DEBUG: Loaded', items.length, 'items from Zotero');
 
-      if (itemCount === 0) {
-        new Notice('No items found in Zotero library');
+      if (items.length === 0) {
+        progress.error('No items found in Zotero library');
         return;
       }
 
-      new Notice(`Library loaded: ${itemCount} items`);
-
       // Store total item count
-      this.totalZoteroItems = this.plugin.connector.getCachedItems().length;
+      this.totalZoteroItems = items.length;
+
+      progress.update(items.length, 'Generating batch...');
 
       // DEBUG: Log connector and registry state
       console.log('ZotBridge DEBUG: Total items in connector:', this.totalZoteroItems);
-      const allItems = this.plugin.connector.getCachedItems();
       const registryStats = this.plugin.registry.getStats();
       console.log('ZotBridge DEBUG: Registry stats:', registryStats);
       console.log('ZotBridge DEBUG: First 3 item states:',
-        allItems.slice(0, 3).map(item => ({
+        items.slice(0, 3).map(item => ({
           id: item.itemID,
           title: item.title.substring(0, 50),
           state: this.plugin.registry.getState(item.itemID)
@@ -123,9 +132,11 @@ export class TriageView extends ItemView {
       console.log('ZotBridge DEBUG: Batch generated with', batch.items.length, 'items');
 
       if (batch.items.length === 0) {
-        new Notice('No unprocessed items available');
+        progress.error('No unprocessed items available');
         return;
       }
+
+      progress.complete(`Generated batch of ${batch.items.length} items`);
 
       // Store batch and reset processed count
       this.currentBatch = batch;
@@ -135,13 +146,10 @@ export class TriageView extends ItemView {
       this.refresh();
 
     } catch (err) {
-      // Dismiss loading notice if it's still showing
-      if (loadingNotice) {
-        loadingNotice.hide();
-      }
-      const message = err instanceof Error ? err.message : String(err);
-      new Notice(`Failed to generate batch: ${message}`);
-      console.error('Batch generation error:', err);
+      const context = getErrorContext(err as Error);
+      progress.error(context.message);
+      // Show error modal for detailed actions
+      new ErrorModal(this.app, context).open();
     }
   }
 
