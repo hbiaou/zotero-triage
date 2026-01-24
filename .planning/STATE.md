@@ -11,11 +11,11 @@ See: .planning/PROJECT.md (updated 2025-01-22)
 ## Current Position
 
 Phase: 5 of 5 (Polish)
-Plan: 03 of 06
+Plan: 06 of 06
 Status: In progress
-Last activity: 2026-01-24 — Completed 05-03-PLAN.md
+Last activity: 2026-01-24 — Completed 05-06-PLAN.md
 
-Progress: [█████████░] 85%
+Progress: [█████████░] 90%
 
 ## Performance Metrics
 
@@ -32,10 +32,10 @@ Progress: [█████████░] 85%
 | 02-batch-workflow | 3/3 | 74 min | 25 min |
 | 03-quality-gates | 3/3 | 945 min | 315 min |
 | 04-onboarding-and-recommendations | 5/5 | 38 min | 8 min |
-| 05-polish | 2/6 | 9 min | 5 min |
+| 05-polish | 3/6 | 15 min | 5 min |
 
 **Recent Trend:**
-- Last 5 plans: 04-03 (8 min), 04-04 (7 min), 04-05 (12 min), 05-02 (4 min), 05-03 (5 min)
+- Last 5 plans: 04-04 (7 min), 04-05 (12 min), 05-02 (4 min), 05-03 (5 min), 05-06 (6 min)
 - Trend: Phase 5 in progress; retry handler and progress infrastructure complete
 
 *Updated after each plan completion*
@@ -115,6 +115,9 @@ Recent decisions affecting current work:
 - Plan 05-03: Jitter of 0-50ms to prevent thundering herd when multiple operations retry simultaneously
 - Plan 05-03: Fail-fast for non-retryable errors (only retry SQLITE_BUSY)
 - Plan 05-03: 5 retry attempts by default with 100ms initial delay
+- Plan 05-06: Use lowercase + forward slash normalization for all path and key comparisons
+- Plan 05-06: Normalize item keys before registry lookups to prevent case-sensitivity bugs
+- Plan 05-06: Preserve original paths for file operations; only normalize for comparison
 
 ### Pending Todos
 
@@ -153,11 +156,37 @@ Recent decisions affecting current work:
 - Pattern established: Notice-based progress with persistent display (0ms timeout)
 - Plan 05-03 complete: Exponential backoff retry handler for SQLITE_BUSY errors
 - Retry handler implements industry-standard pattern (exponential backoff + jitter)
-- Ready for integration into ZoteroConnector database operations
-
-## Session Continuity
-
-Last session: 2026-01-24T22:38:59Z
+**Phase 5 (Polish):** IN PROGRESS
+- Plan 05-02 complete: ProgressTracker infrastructure for non-blocking progress feedback
+- Plan 05-03 complete: Exponential backoff retry handler for SQLITE_BUSY errors
+- Plan 05-06 complete: Cross-platform path and key normalization
+- Cross-platform reliability: Case-insensitive comparisons prevent Linux-specific bugs
+Last session: 2026-01-24T20:26:07Z
+Stopped at: Completed 05-06-PLAN.md (Cross-Platform Normalization)
+Resume file: None
+Last session: 2026-01-24T20:26:07Z
+Stopped at: Completed 05-06-PLAN.md (Cross-Platform Normalization)
+Resume file: None
+Last session: 2026-01-24T20:26:07Z
+Stopped at: Completed 05-06-PLAN.md (Cross-Platform Normalization)
+Resume file: None
+- Plan 05-06 complete: Cross-platform path and key normalization
+- Cross-platform reliability: Case-insensitive comparisons prevent Linux-specific bugs
+**Phase 5 (Polish):** IN PROGRESS
+- Plan 05-02 complete: ProgressTracker infrastructure for non-blocking progress feedback
+- Plan 05-03 complete: Exponential backoff retry handler for SQLITE_BUSY errors
+- Plan 05-06 complete: Cross-platform path and key normalization
+- Cross-platform reliability: Case-insensitive comparisons prevent Linux-specific bugs
+**Phase 5 (Polish):** IN PROGRESS
+- Plan 05-02 complete: ProgressTracker infrastructure for non-blocking progress feedback
+- Plan 05-03 complete: Exponential backoff retry handler for SQLITE_BUSY errors
+- Plan 05-06 complete: Cross-platform path and key normalization
+- Cross-platform reliability: Case-insensitive comparisons prevent Linux-specific bugs
+**Phase 5 (Polish):** IN PROGRESS
+- Plan 05-02 complete: ProgressTracker infrastructure for non-blocking progress feedback
+- Plan 05-03 complete: Exponential backoff retry handler for SQLITE_BUSY errors
+- Plan 05-06 complete: Cross-platform path and key normalization
+- Cross-platform reliability: Case-insensitive comparisons prevent Linux-specific bugs
 Stopped at: Completed 05-03-PLAN.md (Database Retry Handler)
 Resume file: None
 Next plan: 05-04 or other polish plans
