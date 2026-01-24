@@ -8,6 +8,7 @@
 import { Plugin } from 'obsidian';
 import debounce from 'lodash.debounce';
 import type { Registry, RegistryEntry, RegistryState, RegistryStats } from './types';
+import { normalizeItemKey } from '../utils/normalization';
 
 /** Debounce delay for save operations in milliseconds */
 const SAVE_DEBOUNCE_MS = 2000;
@@ -80,8 +81,8 @@ export class RegistryService {
    * @returns Current state, defaults to 'unseen' if not tracked
    */
   getState(itemId: string | number): RegistryState {
-    const id = String(itemId);
-    return this.registry.entries[id]?.state ?? 'unseen';
+    const normalizedKey = normalizeItemKey(itemId);
+    return this.registry.entries[normalizedKey]?.state ?? 'unseen';
   }
 
   /**
@@ -90,9 +91,9 @@ export class RegistryService {
    * @param state - New state to set
    */
   markState(itemId: string | number, state: RegistryState): void {
-    const id = String(itemId);
+    const normalizedKey = normalizeItemKey(itemId);
 
-    this.registry.entries[id] = {
+    this.registry.entries[normalizedKey] = {
       state,
       timestamp: Date.now()
     };
