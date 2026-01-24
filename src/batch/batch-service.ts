@@ -10,6 +10,7 @@
  * - Learning from user feedback via AdaptiveLearner
  */
 
+import { Notice } from 'obsidian';
 import type { ZoteroConnector } from '../db/zotero-connector';
 import type { RegistryService } from '../registry/registry-service';
 import type { ProfileService } from '../profile/profile-service';
@@ -17,6 +18,7 @@ import type { RecommendationEngine } from '../recommendations/recommendation-eng
 import type { AdaptiveLearner } from '../recommendations/adaptive-learner';
 import type { BatchOptions, Batch } from './types';
 import type { ZoteroItem } from '../types';
+import { getErrorContext } from '../error/error-handler';
 
 /**
  * BatchService manages batch generation for the triage workflow
@@ -66,70 +68,76 @@ export class BatchService {
    * @returns Generated batch with items and metadata
    */
   async generateBatch(options: BatchOptions): Promise<Batch> {
-    // Get all items from connector cache
-    const allItems = this.connector.getCachedItems();
+    try {
+      // Get all items from connector cache
+      const allItems = this.connector.getCachedItems();
 
-    // Filter items based on registry state
-    const availableItems = allItems.filter(item => {
-      const state = this.registry.getState(item.itemID);
+      // Filter items based on registry state
+      const availableItems = allItems.filter(item => {
+        const state = this.registry.getState(item.itemID);
 
-      // Always exclude imported and rejected items
-      if (state === 'imported' || state === 'rejected') {
-        return false;
-      }
+        // Always exclude imported and rejected items
+        if (state === 'imported' || state === 'rejected') {
+          return false;
+        }
 
-      // Optionally exclude deferred items
-      if (!options.includeDeferred && state === 'deferred') {
-        return false;
-      }
+        // Optionally exclude deferred items
+        if (!options.includeDeferred && state === 'deferred') {
+          return false;
+        }
 
-      return true;
-    });
+        return true;
+      });
 
-    // Sort items based on whether profile exists
-    let sortedItems: ZoteroItem[];
+      // Sort items based on whether profile exists
+      let sortedItems: ZoteroItem[];
 
-    if (this.profileService.hasProfile()) {
-      // Profile exists: Use recommendation scoring
-      const profile = this.profileService.getProfile();
-      if (profile) {
-        const config = {
-          relevanceVsDiversity: profile.relevanceVsDiversity,
-          recencyBoost: profile.recencyBoost
-        };
+      if (this.profileService.hasProfile()) {
+        // Profile exists: Use recommendation scoring
+        const profile = this.profileService.getProfile();
+        if (profile) {
+          const config = {
+            relevanceVsDiversity: profile.relevanceVsDiversity,
+            recencyBoost: profile.recencyBoost
+          };
 
-        const scoredItems = this.recommendationEngine.scoreItems(availableItems, config);
-        const normalizedScores = this.recommendationEngine.normalizeScores(scoredItems);
+          const scoredItems = this.recommendationEngine.scoreItems(availableItems, config);
+          const normalizedScores = this.recommendationEngine.normalizeScores(scoredItems);
 
-        // Extract items sorted by score (already sorted by scoreItems method)
-        sortedItems = normalizedScores.map(s => s.item);
+          // Extract items sorted by score (already sorted by scoreItems method)
+          sortedItems = normalizedScores.map(s => s.item);
+        } else {
+          // Fallback if profile somehow missing
+          sortedItems = this.dateSortedItems(availableItems);
+        }
       } else {
-        // Fallback if profile somehow missing
+        // No profile: Use date-based sorting (original behavior)
         sortedItems = this.dateSortedItems(availableItems);
       }
-    } else {
-      // No profile: Use date-based sorting (original behavior)
-      sortedItems = this.dateSortedItems(availableItems);
+
+      // Take N items
+      const selectedItems = sortedItems.slice(0, options.size);
+
+      // Check if any deferred items were included
+      const includesDeferred = selectedItems.some(item => {
+        return this.registry.getState(item.itemID) === 'deferred';
+      });
+
+      // Mark selected items as 'proposed' in registry
+      for (const item of selectedItems) {
+        this.registry.markState(item.itemID, 'proposed');
+      }
+
+      return {
+        items: selectedItems,
+        generatedAt: Date.now(),
+        includesDeferred
+      };
+    } catch (err) {
+      const context = getErrorContext(err);
+      new Notice(`${context.title}: ${context.message}`);
+      throw err; // Re-throw for upstream handling
     }
-
-    // Take N items
-    const selectedItems = sortedItems.slice(0, options.size);
-
-    // Check if any deferred items were included
-    const includesDeferred = selectedItems.some(item => {
-      return this.registry.getState(item.itemID) === 'deferred';
-    });
-
-    // Mark selected items as 'proposed' in registry
-    for (const item of selectedItems) {
-      this.registry.markState(item.itemID, 'proposed');
-    }
-
-    return {
-      items: selectedItems,
-      generatedAt: Date.now(),
-      includesDeferred
-    };
   }
 
   /**
