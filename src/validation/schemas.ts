@@ -46,9 +46,9 @@ export const BookSchema = z.object({
   title: z.string().min(1, 'Title is required'),
   authors: z.array(z.string()).min(1, 'At least one author or editor is required'),
   year: z.string().min(1, 'Publication year is required').nullable(),
-  // Publisher will be added to ZoteroItem interface in Task 3
-  // For now, mark as optional to avoid breaking compilation
-  // Will be enforced once the field is extracted from database
+  publisher: z.string().min(1, 'Publisher is required').nullable(),
+  // Optional fields that can be validated if present
+  isbn: z.string().nullable().optional()
 });
 
 /**
