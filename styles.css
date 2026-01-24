@@ -434,6 +434,76 @@
 }
 
 /* ==========================================================================
+   Seed Paper Picker
+   ========================================================================== */
+
+.seed-picker {
+  display: flex;
+  flex-direction: column;
+  height: 400px;
+}
+
+.seed-picker-filters {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.seed-picker-filters select {
+  flex: 1;
+  padding: 4px 8px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  background: var(--background-primary);
+  color: var(--text-normal);
+}
+
+.seed-picker-list {
+  flex: 1;
+  overflow-y: auto;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+}
+
+.seed-paper-item {
+  padding: 10px;
+  border-bottom: 1px solid var(--background-modifier-border);
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.seed-paper-item:hover {
+  background: var(--background-modifier-hover);
+}
+
+.seed-paper-item.selected {
+  background: var(--background-secondary-alt);
+}
+
+.seed-paper-item input[type="checkbox"] {
+  margin-right: 8px;
+  pointer-events: none;
+}
+
+.seed-paper-title {
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+.seed-paper-meta {
+  font-size: 0.9em;
+  color: var(--text-muted);
+}
+
+.seed-picker-status {
+  margin-top: 10px;
+  font-size: 0.9em;
+  color: var(--text-muted);
+}
+
+/* ==========================================================================
    Utility Classes
    ========================================================================== */
 
