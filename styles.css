@@ -504,6 +504,82 @@
 }
 
 /* ==========================================================================
+   Profile Editor
+   ========================================================================== */
+
+.profile-editor {
+  margin-top: 20px;
+}
+
+.profile-section {
+  margin-bottom: 30px;
+  padding: 15px;
+  background: var(--background-secondary);
+  border-radius: 4px;
+}
+
+.profile-section h3 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  border-bottom: 1px solid var(--background-modifier-border);
+  padding-bottom: 8px;
+}
+
+.profile-stats {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 10px;
+  font-size: 0.9em;
+  color: var(--text-muted);
+}
+
+.profile-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.profile-table th,
+.profile-table td {
+  padding: 8px;
+  text-align: left;
+  border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.profile-table th {
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.profile-table td.actions {
+  display: flex;
+  gap: 5px;
+}
+
+.weight-display {
+  font-family: monospace;
+  color: var(--text-accent);
+}
+
+.profile-add-signal {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.profile-add-signal input {
+  flex: 1;
+  padding: 4px 8px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  background: var(--background-primary);
+  color: var(--text-normal);
+}
+
+.profile-add-signal button {
+  padding: 4px 12px;
+}
+
+/* ==========================================================================
    Utility Classes
    ========================================================================== */
 
