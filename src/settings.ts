@@ -4,11 +4,17 @@
  * Provides UI for configuring:
  * - Zotero database path (with auto-detect and test connection)
  * - Output folder for literature notes
+ * - Batch settings
+ * - Quality gates
+ * - Research profile (with wizard and editor)
  */
 
 import { App, Notice, PluginSettingTab, Setting } from 'obsidian';
 import * as fs from 'fs';
 import { detectZoteroPath } from './utils/paths';
+import { SetupWizardModal } from './ui/setup-wizard-modal';
+import { ProfileEditor } from './ui/profile-editor';
+import { ProfileInitializer } from './profile/profile-initializer';
 import type ZotBridgePlugin from './main';
 
 /**
@@ -240,6 +246,121 @@ export class ZotBridgeSettingTab extends PluginSettingTab {
             await this.plugin.saveSettings();
           }));
     });
+
+    // Research Profile Section
+    containerEl.createEl('h2', { text: 'Research Profile' });
+
+    const profileService = (this.plugin as any).profileService;
+
+    if (!profileService) {
+      containerEl.createDiv({
+        cls: 'setting-item-description',
+        text: 'Profile service not initialized'
+      });
+    } else if (!profileService.hasProfile()) {
+      // No profile configured - show wizard button
+      const profileStatus = new Setting(containerEl)
+        .setName('Profile Status')
+        .setDesc('No profile configured — using date-based batch generation');
+
+      profileStatus.addButton(button => button
+        .setButtonText('Run Setup Wizard')
+        .setCta()
+        .onClick(async () => {
+          // Check that connector has items loaded
+          if (!(this.plugin as any).connector.itemsLoaded) {
+            new Notice('Please configure database and load items first');
+            return;
+          }
+
+          const profileInitializer = new ProfileInitializer(
+            profileService,
+            (this.plugin as any).connector
+          );
+
+          const wizard = new SetupWizardModal(
+            this.app,
+            this.plugin,
+            async (profile) => {
+              await profileInitializer.initializeProfile(profile.seedPaperIds, profile.preferences);
+              new Notice('Profile created successfully');
+              this.display(); // Refresh settings
+            },
+            () => {
+              new Notice('Setup skipped — you can configure manually later');
+            }
+          );
+          wizard.open();
+        }));
+    } else {
+      // Profile exists - show management buttons and editor
+      const profile = profileService.getProfile();
+      const seedCount = profile ? profile.seedPaperIds.length : 0;
+
+      const profileStatus = new Setting(containerEl)
+        .setName('Profile Status')
+        .setDesc(`Profile configured with ${seedCount} seed papers`);
+
+      profileStatus.addButton(button => button
+        .setButtonText('Re-run Wizard')
+        .onClick(async () => {
+          // Check that connector has items loaded
+          if (!(this.plugin as any).connector.itemsLoaded) {
+            new Notice('Please configure database and load items first');
+            return;
+          }
+
+          const profileInitializer = new ProfileInitializer(
+            profileService,
+            (this.plugin as any).connector
+          );
+
+          const wizard = new SetupWizardModal(
+            this.app,
+            this.plugin,
+            async (newProfile) => {
+              // Clear existing profile first
+              profileService.clearProfile();
+
+              // Initialize new profile
+              await profileInitializer.initializeProfile(
+                newProfile.seedPaperIds,
+                newProfile.preferences
+              );
+
+              new Notice('Profile updated successfully');
+              this.display(); // Refresh settings
+            },
+            () => {
+              new Notice('Wizard cancelled');
+            }
+          );
+          wizard.open();
+        }));
+
+      profileStatus.addButton(button => button
+        .setButtonText('Clear Profile')
+        .setWarning()
+        .onClick(async () => {
+          if (confirm('This will delete your profile and reset to date-based batch generation. Continue?')) {
+            profileService.clearProfile();
+            await this.plugin.saveSettings();
+            new Notice('Profile cleared');
+            this.display(); // Refresh settings
+          }
+        }));
+
+      // Embed ProfileEditor component
+      const editorContainer = containerEl.createDiv({ cls: 'profile-editor-container' });
+      new ProfileEditor(
+        editorContainer,
+        profileService,
+        () => {
+          // onProfileChange callback
+          this.plugin.saveSettings();
+        }
+      );
+    }
   }
 
   /**

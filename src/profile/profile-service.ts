@@ -49,7 +49,31 @@ export class ProfileService {
    */
   getProfile(): UserProfile | null {
     const settings = (this.plugin as any).settings;
-    return settings?.userProfile || null;
+    const rawProfile = settings?.userProfile;
+
+    if (!rawProfile) {
+      return null;
+    }
+
+    // Deserialize Maps from plain objects
+    return this.deserializeProfile(rawProfile);
+  }
+
+  /**
+   * Deserialize profile from JSON storage
+   * Converts plain objects back to Maps
+   */
+  private deserializeProfile(raw: any): UserProfile {
+    return {
+      tags: new Map(Object.entries(raw.tags || {})),
+      authors: new Map(Object.entries(raw.authors || {})),
+      keywords: new Map(Object.entries(raw.keywords || {})),
+      seedPaperIds: raw.seedPaperIds || [],
+      relevanceVsDiversity: raw.relevanceVsDiversity || 0,
+      recencyBoost: raw.recencyBoost !== undefined ? raw.recencyBoost : true,
+      createdAt: raw.createdAt || Date.now(),
+      updatedAt: raw.updatedAt || Date.now()
+    };
   }
 
   /**

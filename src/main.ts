@@ -11,6 +11,9 @@ import { ItemSearchModal } from './ui/search-modal';
 import { PreviewModal } from './ui/preview-modal';
 import { TriageView, TRIAGE_VIEW_TYPE } from './ui/triage-view';
 import { ValidationService } from './validation/validation-service';
+import { ProfileService } from './profile/profile-service';
+import { RecommendationEngine } from './recommendations/recommendation-engine';
+import { AdaptiveLearner } from './recommendations/adaptive-learner';
 
 /**
  * ZotBridge Plugin
@@ -27,6 +30,9 @@ export default class ZotBridgePlugin extends Plugin {
   batchService!: BatchService;
   sessionTracker!: SessionTracker;
   validationService!: ValidationService;
+  profileService!: ProfileService;
+  recommendationEngine!: RecommendationEngine;
+  adaptiveLearner!: AdaptiveLearner;
 
   async onload(): Promise<void> {
     await this.loadSettings();
@@ -42,8 +48,26 @@ export default class ZotBridgePlugin extends Plugin {
     // Initialize note generator
     this.noteGenerator = new NoteGenerator(this.app, this.settings.outputFolder);
 
-    // Initialize batch service
-    this.batchService = new BatchService(this.connector, this.registry);
+    // Initialize profile service
+    this.profileService = new ProfileService(this);
+
+    // Initialize recommendation engine
+    this.recommendationEngine = new RecommendationEngine(
+      this.profileService,
+      this.connector
+    );
+
+    // Initialize adaptive learner
+    this.adaptiveLearner = new AdaptiveLearner(this.profileService);
+
+    // Initialize batch service with recommendation support
+    this.batchService = new BatchService(
+      this.connector,
+      this.registry,
+      this.profileService,
+      this.recommendationEngine,
+      this.adaptiveLearner
+    );
 
     // Initialize session tracker
     this.sessionTracker = new SessionTracker();
@@ -93,6 +117,11 @@ export default class ZotBridgePlugin extends Plugin {
     // Flush registry to ensure all pending saves complete
     if (this.registry) {
       await this.registry.flush();
+    }
+
+    // Flush profile service to ensure all pending saves complete
+    if (this.profileService) {
+      await this.profileService.flush();
     }
 
     // Close database connection if open
