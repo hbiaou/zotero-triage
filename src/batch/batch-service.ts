@@ -3,13 +3,18 @@
  *
  * Handles:
  * - Generating batches of N items based on registry state
- * - Prioritizing recent items (sorted by dateAdded descending)
+ * - Profile-aware scoring when profile exists (uses RecommendationEngine)
+ * - Fallback to date-based sorting when no profile configured
  * - Optionally including deferred items when insufficient unprocessed items
  * - Marking selected items as 'proposed' in registry
+ * - Learning from user feedback via AdaptiveLearner
  */
 
 import type { ZoteroConnector } from '../db/zotero-connector';
 import type { RegistryService } from '../registry/registry-service';
+import type { ProfileService } from '../profile/profile-service';
+import type { RecommendationEngine } from '../recommendations/recommendation-engine';
+import type { AdaptiveLearner } from '../recommendations/adaptive-learner';
 import type { BatchOptions, Batch } from './types';
 import type { ZoteroItem } from '../types';
 
@@ -19,15 +24,30 @@ import type { ZoteroItem } from '../types';
 export class BatchService {
   private connector: ZoteroConnector;
   private registry: RegistryService;
+  private profileService: ProfileService;
+  private recommendationEngine: RecommendationEngine;
+  private adaptiveLearner: AdaptiveLearner;
 
   /**
    * Create a new BatchService
    * @param connector - ZoteroConnector instance for accessing items
    * @param registry - RegistryService instance for state tracking
+   * @param profileService - ProfileService instance for profile access
+   * @param recommendationEngine - RecommendationEngine for profile-based scoring
+   * @param adaptiveLearner - AdaptiveLearner for learning from user feedback
    */
-  constructor(connector: ZoteroConnector, registry: RegistryService) {
+  constructor(
+    connector: ZoteroConnector,
+    registry: RegistryService,
+    profileService: ProfileService,
+    recommendationEngine: RecommendationEngine,
+    adaptiveLearner: AdaptiveLearner
+  ) {
     this.connector = connector;
     this.registry = registry;
+    this.profileService = profileService;
+    this.recommendationEngine = recommendationEngine;
+    this.adaptiveLearner = adaptiveLearner;
   }
 
   /**
@@ -37,7 +57,8 @@ export class BatchService {
    * 1. Get all items from connector cache
    * 2. Filter out imported and rejected items
    * 3. If includeDeferred is false, also filter out deferred items
-   * 4. Sort by dateAdded descending (most recent first)
+   * 4. If profile exists: Score items and sort by relevance (highest first)
+   *    If no profile: Fall back to date-based sorting (most recent first)
    * 5. Take N items based on options.size
    * 6. Mark selected items as 'proposed' in registry
    *
@@ -65,13 +86,34 @@ export class BatchService {
       return true;
     });
 
-    // Sort by dateAdded descending (most recent first)
-    availableItems.sort((a, b) => {
-      return new Date(b.dateAdded).getTime() - new Date(a.dateAdded).getTime();
-    });
+    // Sort items based on whether profile exists
+    let sortedItems: ZoteroItem[];
+
+    if (this.profileService.hasProfile()) {
+      // Profile exists: Use recommendation scoring
+      const profile = this.profileService.getProfile();
+      if (profile) {
+        const config = {
+          relevanceVsDiversity: profile.relevanceVsDiversity,
+          recencyBoost: profile.recencyBoost
+        };
+
+        const scoredItems = this.recommendationEngine.scoreItems(availableItems, config);
+        const normalizedScores = this.recommendationEngine.normalizeScores(scoredItems);
+
+        // Extract items sorted by score (already sorted by scoreItems method)
+        sortedItems = normalizedScores.map(s => s.item);
+      } else {
+        // Fallback if profile somehow missing
+        sortedItems = this.dateSortedItems(availableItems);
+      }
+    } else {
+      // No profile: Use date-based sorting (original behavior)
+      sortedItems = this.dateSortedItems(availableItems);
+    }
 
     // Take N items
-    const selectedItems = availableItems.slice(0, options.size);
+    const selectedItems = sortedItems.slice(0, options.size);
 
     // Check if any deferred items were included
     const includesDeferred = selectedItems.some(item => {
@@ -88,6 +130,17 @@ export class BatchService {
       generatedAt: Date.now(),
       includesDeferred
     };
+  }
+
+  /**
+   * Sort items by dateAdded descending (most recent first)
+   * @param items - Items to sort
+   * @returns Sorted items array
+   */
+  private dateSortedItems(items: ZoteroItem[]): ZoteroItem[] {
+    return [...items].sort((a, b) => {
+      return new Date(b.dateAdded).getTime() - new Date(a.dateAdded).getTime();
+    });
   }
 
   /**
@@ -119,5 +172,27 @@ export class BatchService {
    */
   hasEnoughItems(size: number): boolean {
     return this.getUnprocessedCount() >= size;
+  }
+
+  /**
+   * Record user accepting an item
+   * Triggers adaptive learning if profile exists
+   * @param item - Accepted Zotero item
+   */
+  recordAccept(item: ZoteroItem): void {
+    if (this.profileService.hasProfile()) {
+      this.adaptiveLearner.learnFromAccept(item);
+    }
+  }
+
+  /**
+   * Record user rejecting an item
+   * Triggers adaptive learning if profile exists
+   * @param item - Rejected Zotero item
+   */
+  recordReject(item: ZoteroItem): void {
+    if (this.profileService.hasProfile()) {
+      this.adaptiveLearner.learnFromReject(item);
+    }
   }
 }
