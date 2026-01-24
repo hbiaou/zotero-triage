@@ -6,7 +6,7 @@
  */
 
 import { ZodError } from 'zod';
-import { generateErrorMessage } from 'zod-validation-error';
+import { fromZodError } from 'zod-validation-error';
 import { ITEM_TYPE_SCHEMAS } from './schemas';
 import type { ValidationResult, QualityGateConfig } from './types';
 import type { ZoteroItem } from '../db/zotero-connector';
@@ -78,13 +78,13 @@ export class ValidationService {
     // Validation failed - format errors for display
     const zodError = result.error as ZodError;
 
-    // Use zod-validation-error to generate user-friendly error messages
-    const errorMessage = generateErrorMessage(zodError.issues, {
-      delimiter: { error: '\n' },
-      path: { enabled: true, type: 'objectNotation' },
-      code: { enabled: false },
-      message: { enabled: true }
+    // Use zod-validation-error v3 to generate user-friendly error messages
+    const validationError = fromZodError(zodError, {
+      prefix: null,
+      prefixSeparator: '',
+      issueSeparator: '\n'
     });
+    const errorMessage = validationError.toString();
 
     // Split into individual error strings
     const errors = errorMessage
