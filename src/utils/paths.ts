@@ -10,6 +10,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
+import { normalizePath } from './normalization';
 
 /**
  * Platform type from process.platform
@@ -113,8 +114,11 @@ export function resolvePdfPath(
     return null;
   }
 
-  // Handle storage: prefix (imported files)
-  if (attachmentPath.startsWith('storage:')) {
+  // Normalize path for case-insensitive prefix comparison
+  const normalizedPath = normalizePath(attachmentPath);
+
+  // Handle storage: prefix (imported files) - case-insensitive check
+  if (normalizedPath.startsWith('storage:')) {
     const filename = attachmentPath.substring('storage:'.length);
     const resolved = path.join(dataDir, 'storage', itemKey, filename);
 
@@ -126,8 +130,8 @@ export function resolvePdfPath(
     return resolved;
   }
 
-  // Handle attachments: prefix (linked files with base directory)
-  if (attachmentPath.startsWith('attachments:')) {
+  // Handle attachments: prefix (linked files with base directory) - case-insensitive check
+  if (normalizedPath.startsWith('attachments:')) {
     // This requires knowing the base attachment directory from Zotero settings
     // Return the relative path - caller may need to resolve further
     return attachmentPath.substring('attachments:'.length);
