@@ -6,23 +6,23 @@ See: .planning/PROJECT.md (updated 2025-01-22)
 
 **Core value:** Users can progressively process their Zotero backlog without overwhelm, ensuring every imported literature note meets quality standards.
 
-**Current focus:** Phase 3 - Quality Gates
+**Current focus:** Phase 4 - Onboarding & Recommendations
 
 ## Current Position
 
-Phase: 3 of 5 (Quality Gates)
-Plan: 03 of 03
-Status: Phase complete
-Last activity: 2026-01-24 — Completed 03-03-PLAN.md
+Phase: 4 of 5 (Onboarding & Recommendations)
+Plan: 01 of 03
+Status: In progress
+Last activity: 2026-01-24 — Completed 04-01-PLAN.md
 
-Progress: [██████░░░░] 55%
+Progress: [███████░░░] 61%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 10
-- Average duration: 105 min
-- Total execution time: 17.6 hours
+- Total plans completed: 11
+- Average duration: 95 min
+- Total execution time: 17.7 hours
 
 **By Phase:**
 
@@ -31,10 +31,11 @@ Progress: [██████░░░░] 55%
 | 01-foundation | 4/4 | 28 min | 7 min |
 | 02-batch-workflow | 3/3 | 74 min | 25 min |
 | 03-quality-gates | 3/3 | 945 min | 315 min |
+| 04-onboarding-and-recommendations | 1/3 | 6 min | 6 min |
 
 **Recent Trend:**
-- Last 5 plans: 02-02 (4 min), 02-03 (5 min), 03-01 (6 min), 03-02 (936 min), 03-03 (3 min)
-- Trend: Phase 3 complete; gap closure plan executed quickly
+- Last 5 plans: 02-03 (5 min), 03-01 (6 min), 03-02 (936 min), 03-03 (3 min), 04-01 (6 min)
+- Trend: Phase 4 started; profile infrastructure completed quickly
 
 *Updated after each plan completion*
 
@@ -81,6 +82,11 @@ Recent decisions affecting current work:
 - Plan 03-02: zotero://select deep links enable external metadata fixes
 - Plan 03-03: Publisher and isbn fields added to ZoteroItem interface (were missing despite extraction)
 - Plan 03-03: BookSchema publisher validation uses .min(1).nullable() pattern matching JournalArticleSchema
+- Plan 04-01: Map-based signal storage for profile (tags, authors, keywords) with JSON serialization
+- Plan 04-01: Profile weight constraints (min: 0.1, max: 5.0, accept boost: +0.2, reject penalty: -0.1)
+- Plan 04-01: Simple frequency-based keyword extraction with 50+ stopword list (no external NLP for MVP)
+- Plan 04-01: Profile stored in plugin settings (not separate file) for vault portability
+- Plan 04-01: ProfileService uses 2000ms debounce delay matching RegistryService pattern
 
 ### Pending Todos
 
@@ -104,12 +110,14 @@ Recent decisions affecting current work:
 - Publisher field validation complete
 - Quality gate system fully functional
 
-**Phase 4 (Onboarding):**
-- Recommendation algorithm: Need to design similarity scoring (tag matching, author overlap, citation signals)
+**Phase 4 (Onboarding & Recommendations):** IN PROGRESS
+- Profile infrastructure: COMPLETE - Types, service, and keyword extraction implemented
+- Recommendation engine: Next task - similarity scoring and batch generation
+- Setup wizard: Pending - will use profile service to create initial profiles from seed papers
 
 ## Session Continuity
 
-Last session: 2026-01-24T19:00:00Z
-Stopped at: Completed 03-03-PLAN.md (Phase 3 complete)
+Last session: 2026-01-24T18:24:11Z
+Stopped at: Completed 04-01-PLAN.md
 Resume file: None
-Next phase: 04-onboarding
+Next plan: 04-02-recommendation-engine
