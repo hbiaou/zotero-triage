@@ -125,11 +125,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | TRIG-02 | Phase 2 | Complete |
 | TRIG-03 | Phase 2 | Complete |
 | TRIG-04 | Phase 2 | Complete |
-| QUAL-01 | Phase 3 | Pending |
-| QUAL-02 | Phase 3 | Pending |
-| QUAL-03 | Phase 3 | Pending |
-| QUAL-04 | Phase 3 | Pending |
-| QUAL-05 | Phase 3 | Pending |
+| QUAL-01 | Phase 3 | Complete |
+| QUAL-02 | Phase 3 | Complete |
+| QUAL-03 | Phase 3 | Complete |
+| QUAL-04 | Phase 3 | Complete |
+| QUAL-05 | Phase 3 | Complete |
 | NOTE-01 | Phase 1 | Complete |
 | NOTE-02 | Phase 1 | Complete |
 | NOTE-03 | Phase 1 | Complete |
@@ -141,7 +141,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SETT-01 | Phase 1 | Complete |
 | SETT-02 | Phase 1 | Complete |
 | SETT-03 | Phase 2 | Complete |
-| SETT-04 | Phase 3 | Pending |
+| SETT-04 | Phase 3 | Complete |
 | SETT-05 | Phase 4 | Pending |
 
 **Coverage:**
