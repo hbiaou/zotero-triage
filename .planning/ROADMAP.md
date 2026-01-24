@@ -14,7 +14,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Foundation** - SQLite access, state management, basic note generation
 - [x] **Phase 2: Batch Workflow** - Triage UI, batch generation, processing engine
-- [ ] **Phase 3: Quality Gates** - Metadata validation, enhanced templates, annotations
+- [x] **Phase 3: Quality Gates** - Metadata validation, enhanced templates, annotations
 - [ ] **Phase 4: Onboarding & Recommendations** - Setup wizard, profile-based batch generation
 - [ ] **Phase 5: Polish** - Performance optimization, error handling, cross-platform testing
 
@@ -128,11 +128,17 @@ Plans:
   5. Memory usage remains stable during extended sessions (no leaks)
   6. Database operations handle concurrent Zotero access gracefully (no SQLITE_BUSY errors)
 
-**Plans**: TBD
+**Plans:** 8 plans
 
 Plans:
-- [ ] 05-01: TBD during planning
-- [ ] 05-02: TBD during planning
+- [ ] 05-01-PLAN.md — Error handling infrastructure (Result pattern, AppError, error context)
+- [ ] 05-02-PLAN.md — Progress tracking infrastructure (ProgressTracker, Notice updates)
+- [ ] 05-03-PLAN.md — Retry handler with exponential backoff (SQLITE_BUSY handling)
+- [ ] 05-04-PLAN.md — Error integration (apply to connector, batch, validation)
+- [ ] 05-05-PLAN.md — Progress integration (add to loadItems, generateBatch)
+- [ ] 05-06-PLAN.md — Cross-platform normalization (path/key case-insensitive)
+- [ ] 05-07-PLAN.md — Lazy initialization and memory monitoring
+- [ ] 05-08-PLAN.md — End-to-end verification and testing
 
 ## Progress
 
@@ -145,4 +151,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 2. Batch Workflow | 3/3 | Complete | 2026-01-23 |
 | 3. Quality Gates | 3/3 | Complete | 2026-01-24 |
 | 4. Onboarding & Recommendations | 0/5 | Not started | - |
-| 5. Polish | 0/TBD | Not started | - |
+| 5. Polish | 0/8 | Not started | - |
