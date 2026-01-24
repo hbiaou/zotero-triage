@@ -5,6 +5,7 @@
  */
 
 import type { QualityGateConfig } from './validation/types';
+import type { UserProfile } from './profile/types';
 
 /**
  * Plugin settings stored in data.json
@@ -18,6 +19,8 @@ export interface ZotBridgeSettings {
   batchSize: number;
   /** Quality gate validation configuration */
   qualityGate: QualityGateConfig;
+  /** User profile for personalized recommendations (null if not configured) */
+  userProfile: UserProfile | null;
 }
 
 import { DEFAULT_QUALITY_GATE_CONFIG } from './validation/types';
@@ -29,7 +32,8 @@ export const DEFAULT_SETTINGS: ZotBridgeSettings = {
   zoteroDbPath: '',
   outputFolder: '10_Literature',
   batchSize: 5,
-  qualityGate: DEFAULT_QUALITY_GATE_CONFIG
+  qualityGate: DEFAULT_QUALITY_GATE_CONFIG,
+  userProfile: null
 };
 
 /**
