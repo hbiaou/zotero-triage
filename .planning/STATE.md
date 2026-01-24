@@ -11,18 +11,18 @@ See: .planning/PROJECT.md (updated 2025-01-22)
 ## Current Position
 
 Phase: 4 of 5 (Onboarding & Recommendations)
-Plan: 02 of 03
-Status: In progress
-Last activity: 2026-01-24 — Completed 04-02-PLAN.md
+Plan: 03 of 03
+Status: Phase complete
+Last activity: 2026-01-24 — Completed 04-03-PLAN.md
 
-Progress: [████████░░] 67%
+Progress: [█████████░] 72%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 12
-- Average duration: 88 min
-- Total execution time: 17.8 hours
+- Total plans completed: 13
+- Average duration: 81 min
+- Total execution time: 17.9 hours
 
 **By Phase:**
 
@@ -31,11 +31,11 @@ Progress: [████████░░] 67%
 | 01-foundation | 4/4 | 28 min | 7 min |
 | 02-batch-workflow | 3/3 | 74 min | 25 min |
 | 03-quality-gates | 3/3 | 945 min | 315 min |
-| 04-onboarding-and-recommendations | 2/3 | 11 min | 6 min |
+| 04-onboarding-and-recommendations | 3/3 | 19 min | 6 min |
 
 **Recent Trend:**
-- Last 5 plans: 03-01 (6 min), 03-02 (936 min), 03-03 (3 min), 04-01 (6 min), 04-02 (5 min)
-- Trend: Phase 4 maintaining fast velocity; recommendation engine completed
+- Last 5 plans: 03-02 (936 min), 03-03 (3 min), 04-01 (6 min), 04-02 (5 min), 04-03 (8 min)
+- Trend: Phase 4 completed with consistent fast velocity; onboarding system ready
 
 *Updated after each plan completion*
 
@@ -92,6 +92,11 @@ Recent decisions affecting current work:
 - Plan 04-02: 20 keywords extracted per item for scoring
 - Plan 04-02: Normalize scores to 0-100 range for UI presentation
 - Plan 04-02: Tag extraction deferred (ZoteroItem schema doesn't include tags yet)
+- Plan 04-03: Three-step wizard (database → preferences → seed papers) for onboarding
+- Plan 04-03: Min 5 / max 15 seed papers for profile initialization
+- Plan 04-03: Frequency-based weighting (signal in N papers gets weight N)
+- Plan 04-03: Skippable wizard allows manual configuration via settings tab
+- Plan 04-03: Load items before seed picker step for smooth UX
 
 ### Pending Todos
 
@@ -115,15 +120,16 @@ Recent decisions affecting current work:
 - Publisher field validation complete
 - Quality gate system fully functional
 
-**Phase 4 (Onboarding & Recommendations):** IN PROGRESS
+**Phase 4 (Onboarding & Recommendations):** COMPLETE
 - Profile infrastructure: COMPLETE - Types, service, and keyword extraction implemented
 - Recommendation engine: COMPLETE - Multi-signal scoring with adaptive learning
-- Setup wizard: Next task - UI for creating initial profiles from seed papers
+- Setup wizard: COMPLETE - Multi-step onboarding with seed paper selection
+- Integration needed: Wire wizard into plugin onload (check if profile exists)
 - Known limitation: Tag scoring returns 0 (ZoteroItem schema missing tags field)
 
 ## Session Continuity
 
-Last session: 2026-01-24T18:34:49Z
-Stopped at: Completed 04-02-PLAN.md
+Last session: 2026-01-24T18:48:47Z
+Stopped at: Completed 04-03-PLAN.md (Phase 4 complete)
 Resume file: None
-Next plan: 04-03-setup-wizard
+Next phase: 05-polish
