@@ -341,6 +341,9 @@ export class TriageView extends ItemView {
       // Mark as imported
       this.plugin.registry.markState(item.itemID, 'imported');
 
+      // Record accept for adaptive learning
+      this.plugin.batchService.recordAccept(item);
+
       // Increment processed count
       this.processedCount++;
 
@@ -372,6 +375,9 @@ export class TriageView extends ItemView {
 
     // Mark as rejected
     this.plugin.registry.markState(item.itemID, 'rejected');
+
+    // Record reject for adaptive learning
+    this.plugin.batchService.recordReject(item);
 
     // Increment processed count
     this.processedCount++;
