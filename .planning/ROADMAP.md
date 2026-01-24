@@ -81,11 +81,12 @@ Plans:
   5. Required fields are configurable per item type (journal article vs book vs conference paper)
   6. Imported notes have complete, structured YAML frontmatter with all available metadata
 
-**Plans:** 2 plans
+**Plans:** 3 plans
 
 Plans:
-- [ ] 03-01-PLAN.md — Validation service, quality gate settings, enhanced YAML
-- [ ] 03-02-PLAN.md — Validation UI, override modal, action handlers
+- [x] 03-01-PLAN.md — Validation service, quality gate settings, enhanced YAML
+- [x] 03-02-PLAN.md — Validation UI, override modal, action handlers
+- [ ] 03-03-PLAN.md — Complete publisher validation for books (gap closure)
 
 ### Phase 4: Onboarding & Recommendations
 **Goal**: New users can quickly set up their profile through a guided wizard, and batches are intelligently generated based on user interests
@@ -142,6 +143,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 |-------|----------------|--------|-----------|
 | 1. Foundation | 4/4 | Complete | 2026-01-22 |
 | 2. Batch Workflow | 3/3 | Complete | 2026-01-23 |
-| 3. Quality Gates | 0/2 | Not started | - |
+| 3. Quality Gates | 2/3 | In progress | - |
 | 4. Onboarding & Recommendations | 0/5 | Not started | - |
 | 5. Polish | 0/TBD | Not started | - |
