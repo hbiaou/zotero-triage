@@ -82,8 +82,8 @@ export class TriageView extends ItemView {
     const progress = new ProgressTracker();
 
     try {
-      // Connect to database
-      await this.plugin.connector.connect(this.plugin.settings.zoteroDbPath);
+      // Ensure database connected before first operation
+      await this.plugin.ensureConnected();
 
       // Start progress tracking
       progress.start('Loading Zotero library...', 5000); // Estimate 5000 items

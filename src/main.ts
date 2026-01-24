@@ -276,10 +276,8 @@ export default class ZotBridgePlugin extends Plugin {
     const notice = new Notice('Loading Zotero library...', 0);
 
     try {
-      // Connect to database if not already connected
-      if (!this.connector.itemsLoaded) {
-        await this.connector.connect(this.settings.zoteroDbPath);
-      }
+      // Ensure database connected before first access
+      await this.ensureConnected();
 
       // Load items with progress callback
       const items = await this.connector.loadItems((loaded, total) => {
