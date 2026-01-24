@@ -19,6 +19,7 @@ import type { AdaptiveLearner } from '../recommendations/adaptive-learner';
 import type { BatchOptions, Batch } from './types';
 import type { ZoteroItem } from '../types';
 import { getErrorContext } from '../error/error-handler';
+import { ProgressTracker } from '../performance/progress-tracker';
 
 /**
  * BatchService manages batch generation for the triage workflow
@@ -68,7 +69,11 @@ export class BatchService {
    * @returns Generated batch with items and metadata
    */
   async generateBatch(options: BatchOptions): Promise<Batch> {
+    const progress = new ProgressTracker();
+
     try {
+      progress.start('Filtering candidates...', 100); // Arbitrary estimate
+
       // Get all items from connector cache
       const allItems = this.connector.getCachedItems();
 
@@ -88,6 +93,8 @@ export class BatchService {
 
         return true;
       });
+
+      progress.update(50, 'Scoring candidates...');
 
       // Sort items based on whether profile exists
       let sortedItems: ZoteroItem[];
@@ -115,6 +122,8 @@ export class BatchService {
         sortedItems = this.dateSortedItems(availableItems);
       }
 
+      progress.update(75, 'Selecting batch...');
+
       // Take N items
       const selectedItems = sortedItems.slice(0, options.size);
 
@@ -128,14 +137,15 @@ export class BatchService {
         this.registry.markState(item.itemID, 'proposed');
       }
 
+      progress.complete();
+
       return {
         items: selectedItems,
         generatedAt: Date.now(),
         includesDeferred
       };
     } catch (err) {
-      const context = getErrorContext(err);
-      new Notice(`${context.title}: ${context.message}`);
+      progress.error('Failed to generate batch');
       throw err; // Re-throw for upstream handling
     }
   }
