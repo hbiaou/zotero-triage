@@ -14,6 +14,9 @@ import { ValidationService } from './validation/validation-service';
 import { ProfileService } from './profile/profile-service';
 import { RecommendationEngine } from './recommendations/recommendation-engine';
 import { AdaptiveLearner } from './recommendations/adaptive-learner';
+import { ProfileInitializer } from './profile/profile-initializer';
+import { SetupWizardModal } from './ui/setup-wizard-modal';
+import { extractKeywordsFromMultiple } from './profile/keyword-extractor';
 
 /**
  * ZotBridge Plugin
@@ -33,6 +36,7 @@ export default class ZotBridgePlugin extends Plugin {
   profileService!: ProfileService;
   recommendationEngine!: RecommendationEngine;
   adaptiveLearner!: AdaptiveLearner;
+  profileInitializer!: ProfileInitializer;
 
   async onload(): Promise<void> {
     await this.loadSettings();
@@ -59,6 +63,13 @@ export default class ZotBridgePlugin extends Plugin {
 
     // Initialize adaptive learner
     this.adaptiveLearner = new AdaptiveLearner(this.profileService);
+
+    // Initialize profile initializer
+    this.profileInitializer = new ProfileInitializer(
+      this.connector,
+      this.profileService,
+      extractKeywordsFromMultiple
+    );
 
     // Initialize batch service with recommendation support
     this.batchService = new BatchService(
@@ -108,6 +119,14 @@ export default class ZotBridgePlugin extends Plugin {
       outputFolder: this.settings.outputFolder,
       registryEntries: Object.keys((await this.loadData())?.registry?.entries || {}).length
     });
+
+    // Check for first-time setup (show wizard if no profile)
+    if (!this.profileService.hasProfile()) {
+      // Delay wizard slightly to allow UI to fully load
+      setTimeout(() => {
+        this.showSetupWizard();
+      }, 1000);
+    }
   }
 
   async onunload(): Promise<void> {
@@ -279,6 +298,33 @@ export default class ZotBridgePlugin extends Plugin {
         new Notice(`Failed to create note: ${message}`);
       }
     }
+  }
+
+  /**
+   * Show the setup wizard modal
+   * Used for first-time configuration or manual re-runs
+   */
+  private showSetupWizard(): void {
+    const wizard = new SetupWizardModal(
+      this.app,
+      this,
+      async (wizardData) => {
+        // Initialize profile from wizard data
+        await this.profileInitializer.initializeProfile(
+          wizardData.seedPaperIds,
+          {
+            relevanceVsDiversity: wizardData.relevanceVsDiversity,
+            recencyBoost: wizardData.recencyBoost
+          }
+        );
+        new Notice('Setup complete! Your profile is ready.');
+      },
+      () => {
+        // User skipped wizard
+        new Notice('Setup skipped. Configure manually via settings.');
+      }
+    );
+    wizard.open();
   }
 
   /**
