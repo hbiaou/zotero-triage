@@ -11,18 +11,18 @@ See: .planning/PROJECT.md (updated 2025-01-22)
 ## Current Position
 
 Phase: 4 of 5 (Onboarding & Recommendations)
-Plan: 03 of 03
+Plan: 04 of 04
 Status: Phase complete
-Last activity: 2026-01-24 — Completed 04-03-PLAN.md
+Last activity: 2026-01-24 — Completed 04-04-PLAN.md
 
-Progress: [█████████░] 72%
+Progress: [█████████░] 78%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 13
-- Average duration: 81 min
-- Total execution time: 17.9 hours
+- Total plans completed: 14
+- Average duration: 77 min
+- Total execution time: 18.0 hours
 
 **By Phase:**
 
@@ -31,11 +31,11 @@ Progress: [█████████░] 72%
 | 01-foundation | 4/4 | 28 min | 7 min |
 | 02-batch-workflow | 3/3 | 74 min | 25 min |
 | 03-quality-gates | 3/3 | 945 min | 315 min |
-| 04-onboarding-and-recommendations | 3/3 | 19 min | 6 min |
+| 04-onboarding-and-recommendations | 4/4 | 26 min | 7 min |
 
 **Recent Trend:**
-- Last 5 plans: 03-02 (936 min), 03-03 (3 min), 04-01 (6 min), 04-02 (5 min), 04-03 (8 min)
-- Trend: Phase 4 completed with consistent fast velocity; onboarding system ready
+- Last 5 plans: 03-03 (3 min), 04-01 (6 min), 04-02 (5 min), 04-03 (8 min), 04-04 (7 min)
+- Trend: Phase 4 completed with consistent fast velocity; recommendation system fully integrated
 
 *Updated after each plan completion*
 
@@ -97,6 +97,11 @@ Recent decisions affecting current work:
 - Plan 04-03: Frequency-based weighting (signal in N papers gets weight N)
 - Plan 04-03: Skippable wizard allows manual configuration via settings tab
 - Plan 04-03: Load items before seed picker step for smooth UX
+- Plan 04-04: Profile-aware scoring only when profile exists, fallback to date-based sorting
+- Plan 04-04: Adaptive learning calls only when profile exists (backward compatibility)
+- Plan 04-04: Map deserialization in getProfile for proper data structure restoration
+- Plan 04-04: Weight adjustment delta of 0.5 for manual editing
+- Plan 04-04: Top 10 signals displayed per type in profile editor
 
 ### Pending Todos
 
@@ -104,6 +109,12 @@ Recent decisions affecting current work:
    - Area: validation
    - Context: Phase 3 validation system fully implemented but not tested with incomplete items (user's library has 100% complete metadata)
    - Files: src/ui/triage-card.ts, src/ui/override-modal.ts, src/ui/triage-view.ts
+
+2. **Wire adaptive learning into triage actions** (2026-01-24)
+   - Area: recommendations
+   - Context: BatchService has recordAccept/recordReject methods but they're not called from triage-view.ts
+   - Files: src/ui/triage-view.ts
+   - Action: Call batchService.recordAccept/recordReject on user actions
 
 ### Blockers/Concerns
 
@@ -124,12 +135,27 @@ Recent decisions affecting current work:
 - Profile infrastructure: COMPLETE - Types, service, and keyword extraction implemented
 - Recommendation engine: COMPLETE - Multi-signal scoring with adaptive learning
 - Setup wizard: COMPLETE - Multi-step onboarding with seed paper selection
-- Integration needed: Wire wizard into plugin onload (check if profile exists)
+- Profile integration: COMPLETE - BatchService uses recommendation scoring, settings UI provides full profile control
+- Integration gap: recordAccept/recordReject not wired from triage-view.ts (see Pending Todos)
 - Known limitation: Tag scoring returns 0 (ZoteroItem schema missing tags field)
 
 ## Session Continuity
 
-Last session: 2026-01-24T18:48:47Z
-Stopped at: Completed 04-03-PLAN.md (Phase 4 complete)
+Last session: 2026-01-24T19:36:11Z
+Stopped at: Completed 04-04-PLAN.md (Phase 4 complete)
 Resume file: None
 Next phase: 05-polish
+
+Config (if exists):
+{
+  "mode": "yolo",
+  "depth": "standard",
+  "parallelization": true,
+  "commit_docs": true,
+  "model_profile": "budget",
+  "workflow": {
+    "research": true,
+    "plan_check": true,
+    "verifier": true
+  }
+}
