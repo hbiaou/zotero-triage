@@ -56,6 +56,10 @@ export interface ZoteroItem {
   pages: string | null;
   /** Abstract text */
   abstract: string | null;
+  /** Publisher name (for books, reports, etc.) */
+  publisher: string | null;
+  /** ISBN identifier (for books) */
+  isbn: string | null;
   /** Path to attached PDF file */
   pdfPath: string | null;
   /** Zotero item type (journalArticle, book, etc.) */
