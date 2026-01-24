@@ -193,6 +193,14 @@ export class TriageView extends ItemView {
       // Run validation
       const validationResult = this.plugin.validationService.validate(item);
 
+      // DEBUG: Log validation results
+      console.log('ZotBridge DEBUG: Validation for', item.title.substring(0, 50), {
+        itemType: item.itemType,
+        valid: validationResult.valid,
+        missingFields: validationResult.missingFields,
+        errors: validationResult.errors
+      });
+
       createTriageCard(cardContainer, {
         item,
         validationResult,
