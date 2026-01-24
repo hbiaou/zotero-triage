@@ -29,6 +29,7 @@ import {
 import { SUPPORTED_SCHEMA_VERSIONS, SchemaCheckResult } from './schema';
 import { processInChunks } from '../utils/async';
 import { getZoteroDataDir, resolvePdfPath } from '../utils/paths';
+import { retryWithBackoff } from './retry-handler';
 
 /**
  * Zotero item with metadata extracted from the EAV schema
@@ -141,29 +142,34 @@ export class ZoteroConnector {
    * @throws Error if database doesn't exist, can't be read, or has unsupported schema
    */
   async connect(dbPath: string): Promise<void> {
-    if (!this.SQL) {
-      await this.initialize();
-    }
+    return await retryWithBackoff(async () => {
+      if (!this.SQL) {
+        await this.initialize();
+      }
 
-    if (!fs.existsSync(dbPath)) {
-      throw new Error(`Zotero database not found at: ${dbPath}`);
-    }
+      if (!fs.existsSync(dbPath)) {
+        throw new Error(`Zotero database not found at: ${dbPath}`);
+      }
 
-    // Read database file into memory (sql.js operates on in-memory copy)
-    const dbBuffer = fs.readFileSync(dbPath);
-    this.db = new this.SQL!.Database(new Uint8Array(dbBuffer));
-    this.dbPath = dbPath;
+      // Read database file into memory (sql.js operates on in-memory copy)
+      const dbBuffer = fs.readFileSync(dbPath);
+      this.db = new this.SQL!.Database(new Uint8Array(dbBuffer));
+      this.dbPath = dbPath;
 
-    // Verify schema version is supported
-    const schemaCheck = await this.checkSchemaVersion();
-    if (!schemaCheck.supported) {
-      this.close();
-      throw new Error(schemaCheck.message);
-    }
+      // Verify schema version is supported
+      const schemaCheck = await this.checkSchemaVersion();
+      if (!schemaCheck.supported) {
+        this.close();
+        throw new Error(schemaCheck.message);
+      }
 
-    // Clear cached items on new connection
-    this.items = [];
-    this.isLoaded = false;
+      // Clear cached items on new connection
+      this.items = [];
+      this.isLoaded = false;
+    }, {
+      maxAttempts: 5,
+      initialDelayMs: 100
+    });
   }
 
   /**
@@ -239,140 +245,145 @@ export class ZoteroConnector {
    * @returns Array of ZoteroItem objects
    */
   async loadItems(onProgress?: LoadProgressCallback): Promise<ZoteroItem[]> {
-    if (!this.db || !this.dbPath) {
-      throw new Error('Database not connected. Call connect() first.');
-    }
+    return await retryWithBackoff(async () => {
+      if (!this.db || !this.dbPath) {
+        throw new Error('Database not connected. Call connect() first.');
+      }
 
-    // Get total count for progress reporting
-    const countResult = this.db.exec(ITEM_COUNT_QUERY);
-    const totalItems = countResult[0]?.values[0]?.[0] as number || 0;
+      // Get total count for progress reporting
+      const countResult = this.db.exec(ITEM_COUNT_QUERY);
+      const totalItems = countResult[0]?.values[0]?.[0] as number || 0;
 
-    // Execute main items query
-    const itemsResult = this.db.exec(ITEMS_QUERY);
-    if (itemsResult.length === 0) {
-      this.items = [];
-      this.isLoaded = true;
-      return this.items;
-    }
+      // Execute main items query
+      const itemsResult = this.db.exec(ITEMS_QUERY);
+      if (itemsResult.length === 0) {
+        this.items = [];
+        this.isLoaded = true;
+        return this.items;
+      }
 
-    const columns = itemsResult[0].columns;
-    const rows = itemsResult[0].values;
+      const columns = itemsResult[0].columns;
+      const rows = itemsResult[0].values;
 
-    // Get column indices
-    const colIndex = {
-      itemID: columns.indexOf('itemID'),
-      itemKey: columns.indexOf('itemKey'),
-      dateAdded: columns.indexOf('dateAdded'),
-      dateModified: columns.indexOf('dateModified'),
-      itemType: columns.indexOf('itemType'),
-      title: columns.indexOf('title'),
-      doi: columns.indexOf('doi'),
-      date: columns.indexOf('date'),
-      journal: columns.indexOf('journal'),
-      volume: columns.indexOf('volume'),
-      issue: columns.indexOf('issue'),
-      pages: columns.indexOf('pages'),
-      abstract: columns.indexOf('abstract'),
-      publisher: columns.indexOf('publisher'),
-      isbn: columns.indexOf('isbn')
-    };
+      // Get column indices
+      const colIndex = {
+        itemID: columns.indexOf('itemID'),
+        itemKey: columns.indexOf('itemKey'),
+        dateAdded: columns.indexOf('dateAdded'),
+        dateModified: columns.indexOf('dateModified'),
+        itemType: columns.indexOf('itemType'),
+        title: columns.indexOf('title'),
+        doi: columns.indexOf('doi'),
+        date: columns.indexOf('date'),
+        journal: columns.indexOf('journal'),
+        volume: columns.indexOf('volume'),
+        issue: columns.indexOf('issue'),
+        pages: columns.indexOf('pages'),
+        abstract: columns.indexOf('abstract'),
+        publisher: columns.indexOf('publisher'),
+        isbn: columns.indexOf('isbn')
+      };
 
-    const dataDir = getZoteroDataDir(this.dbPath);
-    const items: ZoteroItem[] = [];
-    let loadedCount = 0;
+      const dataDir = getZoteroDataDir(this.dbPath);
+      const items: ZoteroItem[] = [];
+      let loadedCount = 0;
 
-    // Process items in chunks to avoid UI blocking
-    await processInChunks(
-      rows,
-      async (row) => {
-        const itemID = row[colIndex.itemID] as number;
-        const itemKey = row[colIndex.itemKey] as string;
+      // Process items in chunks to avoid UI blocking
+      await processInChunks(
+        rows,
+        async (row) => {
+          const itemID = row[colIndex.itemID] as number;
+          const itemKey = row[colIndex.itemKey] as string;
 
-        // Get creators for this item
-        const creatorsResult = this.db!.exec(CREATORS_QUERY, [itemID]);
-        const authors: string[] = [];
-        if (creatorsResult.length > 0) {
-          const creatorCols = creatorsResult[0].columns;
-          for (const creatorRow of creatorsResult[0].values) {
-            const creator: CreatorRow = {
-              firstName: creatorRow[creatorCols.indexOf('firstName')] as string | null,
-              lastName: creatorRow[creatorCols.indexOf('lastName')] as string,
-              fieldMode: creatorRow[creatorCols.indexOf('fieldMode')] as number,
-              creatorType: creatorRow[creatorCols.indexOf('creatorType')] as string,
-              orderIndex: creatorRow[creatorCols.indexOf('orderIndex')] as number
-            };
-            // Only include authors and editors, not translators etc.
-            if (creator.creatorType === 'author' || creator.creatorType === 'editor') {
-              authors.push(formatCreator(creator));
+          // Get creators for this item
+          const creatorsResult = this.db!.exec(CREATORS_QUERY, [itemID]);
+          const authors: string[] = [];
+          if (creatorsResult.length > 0) {
+            const creatorCols = creatorsResult[0].columns;
+            for (const creatorRow of creatorsResult[0].values) {
+              const creator: CreatorRow = {
+                firstName: creatorRow[creatorCols.indexOf('firstName')] as string | null,
+                lastName: creatorRow[creatorCols.indexOf('lastName')] as string,
+                fieldMode: creatorRow[creatorCols.indexOf('fieldMode')] as number,
+                creatorType: creatorRow[creatorCols.indexOf('creatorType')] as string,
+                orderIndex: creatorRow[creatorCols.indexOf('orderIndex')] as number
+              };
+              // Only include authors and editors, not translators etc.
+              if (creator.creatorType === 'author' || creator.creatorType === 'editor') {
+                authors.push(formatCreator(creator));
+              }
             }
           }
-        }
 
-        // Get PDF attachment for this item
-        const attachResult = this.db!.exec(ATTACHMENTS_QUERY, [itemID]);
-        let pdfPath: string | null = null;
-        if (attachResult.length > 0 && attachResult[0].values.length > 0) {
-          const attachCols = attachResult[0].columns;
-          const attachRow = attachResult[0].values[0];
-          const attachmentPath = attachRow[attachCols.indexOf('path')] as string | null;
-          if (attachmentPath) {
-            pdfPath = resolvePdfPath(attachmentPath, dataDir, itemKey);
+          // Get PDF attachment for this item
+          const attachResult = this.db!.exec(ATTACHMENTS_QUERY, [itemID]);
+          let pdfPath: string | null = null;
+          if (attachResult.length > 0 && attachResult[0].values.length > 0) {
+            const attachCols = attachResult[0].columns;
+            const attachRow = attachResult[0].values[0];
+            const attachmentPath = attachRow[attachCols.indexOf('path')] as string | null;
+            if (attachmentPath) {
+              pdfPath = resolvePdfPath(attachmentPath, dataDir, itemKey);
+            }
           }
-        }
 
-        // Get tags for this item
-        const tagsResult = this.db!.exec(ITEM_TAGS_QUERY, [itemID]);
-        const tags: string[] = [];
-        if (tagsResult.length > 0) {
-          for (const tagRow of tagsResult[0].values) {
-            tags.push(tagRow[0] as string);
+          // Get tags for this item
+          const tagsResult = this.db!.exec(ITEM_TAGS_QUERY, [itemID]);
+          const tags: string[] = [];
+          if (tagsResult.length > 0) {
+            for (const tagRow of tagsResult[0].values) {
+              tags.push(tagRow[0] as string);
+            }
           }
-        }
 
-        // Get collections for this item
-        const collectionsResult = this.db!.exec(ITEM_COLLECTIONS_QUERY, [itemID]);
-        const collections: string[] = [];
-        if (collectionsResult.length > 0) {
-          for (const collectionRow of collectionsResult[0].values) {
-            collections.push(collectionRow[0] as string);
+          // Get collections for this item
+          const collectionsResult = this.db!.exec(ITEM_COLLECTIONS_QUERY, [itemID]);
+          const collections: string[] = [];
+          if (collectionsResult.length > 0) {
+            for (const collectionRow of collectionsResult[0].values) {
+              collections.push(collectionRow[0] as string);
+            }
           }
-        }
 
-        const item: ZoteroItem = {
-          itemID,
-          itemKey,
-          title: (row[colIndex.title] as string) || 'Untitled',
-          authors,
-          year: parseYear(row[colIndex.date] as string | null),
-          doi: row[colIndex.doi] as string | null,
-          journal: row[colIndex.journal] as string | null,
-          volume: row[colIndex.volume] as string | null,
-          issue: row[colIndex.issue] as string | null,
-          pages: row[colIndex.pages] as string | null,
-          abstract: row[colIndex.abstract] as string | null,
-          publisher: row[colIndex.publisher] as string | null,
-          isbn: row[colIndex.isbn] as string | null,
-          pdfPath,
-          itemType: row[colIndex.itemType] as string,
-          tags,
-          collections,
-          dateAdded: row[colIndex.dateAdded] as string,
-          dateModified: row[colIndex.dateModified] as string
-        };
+          const item: ZoteroItem = {
+            itemID,
+            itemKey,
+            title: (row[colIndex.title] as string) || 'Untitled',
+            authors,
+            year: parseYear(row[colIndex.date] as string | null),
+            doi: row[colIndex.doi] as string | null,
+            journal: row[colIndex.journal] as string | null,
+            volume: row[colIndex.volume] as string | null,
+            issue: row[colIndex.issue] as string | null,
+            pages: row[colIndex.pages] as string | null,
+            abstract: row[colIndex.abstract] as string | null,
+            publisher: row[colIndex.publisher] as string | null,
+            isbn: row[colIndex.isbn] as string | null,
+            pdfPath,
+            itemType: row[colIndex.itemType] as string,
+            tags,
+            collections,
+            dateAdded: row[colIndex.dateAdded] as string,
+            dateModified: row[colIndex.dateModified] as string
+          };
 
-        items.push(item);
-        loadedCount++;
+          items.push(item);
+          loadedCount++;
 
-        if (onProgress) {
-          onProgress(loadedCount, totalItems);
-        }
-      },
-      50 // Process 50 items per chunk
-    );
+          if (onProgress) {
+            onProgress(loadedCount, totalItems);
+          }
+        },
+        50 // Process 50 items per chunk
+      );
 
-    this.items = items;
-    this.isLoaded = true;
-    return this.items;
+      this.items = items;
+      this.isLoaded = true;
+      return this.items;
+    }, {
+      maxAttempts: 5,
+      initialDelayMs: 100
+    });
   }
 
   /**
