@@ -123,7 +123,11 @@ export class ProfileInitializer {
       // Extract tags
       if (paper.tags && Array.isArray(paper.tags)) {
         for (const tag of paper.tags) {
-          tagCounts.set(tag, (tagCounts.get(tag) || 0) + 1);
+          // Defensive: verify tag is non-empty string
+          if (typeof tag === 'string' && tag.trim().length > 0) {
+            const normalized = tag.toLowerCase().trim();
+            tagCounts.set(normalized, (tagCounts.get(normalized) || 0) + 1);
+          }
         }
       }
 

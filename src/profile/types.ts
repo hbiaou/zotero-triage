@@ -10,7 +10,7 @@
  * Persists across Obsidian restarts via plugin settings
  */
 export interface UserProfile {
-  /** Tag -> weight mapping (tags from Zotero items) */
+  /** Tag -> weight mapping (user-created tags from Zotero items, annotation tags filtered) */
   tags: Map<string, number>;
 
   /** Author -> weight mapping (author names) */
