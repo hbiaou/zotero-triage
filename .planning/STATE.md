@@ -83,6 +83,7 @@ Carried forward to v1.1 planning:
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
 | 001 | Add visual status indicators for processed items in batch | 2026-01-25 | a3d13ec | [001-add-visual-status-indicators](./quick/001-add-visual-status-indicators/) |
+| 002 | Fix modal sizing and persistent settings warning | 2026-01-25 | 222f510 | [002-fix-modal-sizing-and-persistent-settings](./quick/002-fix-modal-sizing-and-persistent-settings/) |
 
 ### Blockers/Concerns
 
@@ -93,8 +94,8 @@ Carried forward to v1.1 planning:
 
 ## Session Continuity
 
-Last session: 2026-01-25 21:31:00Z
-Stopped at: Completed 06-03-PLAN.md (tag infrastructure & extraction verification)
+Last session: 2026-01-25 22:02:33Z
+Stopped at: Completed quick task 002 (modal sizing and settings warning fixes)
 Resume file: None
 
 **Next step:** Phase 6 COMPLETE. Ready for Phase 7 (tag recommendations scoring integration)
