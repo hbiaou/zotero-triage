@@ -141,6 +141,21 @@ Recent decisions affecting current work:
    - Context: Phase 3 validation system fully implemented but not tested with incomplete items (user's library has 100% complete metadata)
    - Files: src/ui/triage-card.ts, src/ui/override-modal.ts, src/ui/triage-view.ts
 
+2. **Enhanced error messages in ProfileInitializer** (2026-01-25)
+   - Area: onboarding
+   - Context: Show user warning notice when seed papers result in empty profile (falls back to date sorting)
+   - Files: src/profile/profile-initializer.ts:56-60
+
+3. **Granular progress during batch scoring** (2026-01-25)
+   - Area: performance
+   - Context: Add progress updates during recommendation engine scoring phase for large libraries (5000+ items)
+   - Files: src/batch/batch-service.ts:59-150, src/recommendations/recommendation-engine.ts:64-200
+
+4. **Override modal field explanations** (2026-01-25)
+   - Area: ui
+   - Context: Add text explaining why fields are required and how to fix them in Zotero
+   - Files: src/ui/override-modal.ts:76-81
+
 ### Quick Tasks Completed
 
 | # | Description | Date | Commit | Directory |
