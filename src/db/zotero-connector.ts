@@ -163,6 +163,13 @@ export class ZoteroConnector {
         throw new Error(schemaCheck.message);
       }
 
+      // Validate tag schema (non-blocking)
+      const tagSchemaCheck = await this.validateTagSchema();
+      if (!tagSchemaCheck.valid) {
+        console.warn('Tag schema validation issues:', tagSchemaCheck.issues);
+        // Continue anyway - tags are optional enhancement
+      }
+
       // Clear cached items on new connection
       this.items = [];
       this.isLoaded = false;
@@ -233,6 +240,51 @@ export class ZoteroConnector {
         supported: false,
         version: 0,
         message: `Error reading schema version: ${errorMessage}`
+      };
+    }
+  }
+
+  /**
+   * Validate tag schema integrity in database.
+   * Checks for itemTags and tags tables existence.
+   * Tags are optional - validation failure doesn't block connection.
+   *
+   * @returns Schema validation result with issues list
+   */
+  async validateTagSchema(): Promise<{ valid: boolean; issues: string[] }> {
+    if (!this.db) {
+      return {
+        valid: false,
+        issues: ['Database not connected']
+      };
+    }
+
+    const issues: string[] = [];
+
+    try {
+      // Check if itemTags table exists
+      const itemTagsResult = this.db.exec(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name='itemTags'"
+      );
+      if (itemTagsResult.length === 0 || itemTagsResult[0].values.length === 0) {
+        issues.push('itemTags table not found');
+      }
+
+      // Check if tags table exists
+      const tagsResult = this.db.exec(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name='tags'"
+      );
+      if (tagsResult.length === 0 || tagsResult[0].values.length === 0) {
+        issues.push('tags table not found');
+      }
+
+      return { valid: issues.length === 0, issues };
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      console.warn(`Could not validate tag schema: ${errorMessage}`);
+      return {
+        valid: false,
+        issues: [`Schema validation failed: ${errorMessage}`]
       };
     }
   }
