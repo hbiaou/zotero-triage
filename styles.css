@@ -307,9 +307,8 @@
 }
 
 .status-badge-accepted {
-  background: #22c55e !important;
-  color: white !important;
-  border: 2px solid #16a34a !important;
+  background: var(--interactive-success, #22c55e);
+  color: var(--text-on-accent, white);
 }
 
 .status-badge-deferred {

@@ -219,11 +219,9 @@ export class TriageView extends ItemView {
 
       // Apply status badge if item was previously processed
       const state = this.plugin.registry.getState(item.itemID);
-      console.log('ZotBridge STATUS DEBUG:', item.title.substring(0, 30), 'state:', state);
       if (state !== 'unseen' && state !== 'proposed') {
         // Map 'imported' state to 'accepted' for badge display
         const badgeState: RegistryState = state === 'imported' ? 'accepted' : state;
-        console.log('ZotBridge BADGE DEBUG: Applying badge:', badgeState);
         updateCardStatus(card, badgeState);
       }
     }
