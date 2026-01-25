@@ -13,7 +13,7 @@ See: .planning/PROJECT.md (updated 2025-01-22)
 Phase: 5 of 5 (Polish)
 Plan: 08 of 08
 Status: Phase complete, verified
-Last activity: 2026-01-25 — Completed 05-08-PLAN.md
+Last activity: 2026-01-25 — Completed quick task 001: Add visual status indicators
 
 Progress: [██████████] 100%
 
@@ -140,6 +140,12 @@ Recent decisions affecting current work:
    - Area: validation
    - Context: Phase 3 validation system fully implemented but not tested with incomplete items (user's library has 100% complete metadata)
    - Files: src/ui/triage-card.ts, src/ui/override-modal.ts, src/ui/triage-view.ts
+
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 001 | Add visual status indicators for processed items in batch | 2026-01-25 | a3d13ec | [001-add-visual-status-indicators](./quick/001-add-visual-status-indicators/) |
 
 ### Blockers/Concerns
 
