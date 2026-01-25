@@ -333,12 +333,35 @@ export class ZoteroConnector {
           }
 
           // Get tags for this item
-          const tagsResult = this.db!.exec(ITEM_TAGS_QUERY, [itemID]);
           const tags: string[] = [];
-          if (tagsResult.length > 0) {
-            for (const tagRow of tagsResult[0].values) {
-              tags.push(tagRow[0] as string);
+          try {
+            const tagsResult = this.db!.exec(ITEM_TAGS_QUERY, [itemID]);
+
+            // Defensive check: ensure result exists and has values
+            if (tagsResult && tagsResult.length > 0 && tagsResult[0].values && tagsResult[0].values.length > 0) {
+              for (const tagRow of tagsResult[0].values) {
+                // Check if tagRow is valid and has a value
+                if (tagRow && Array.isArray(tagRow) && tagRow[0] != null) {
+                  const tagValue = tagRow[0];
+                  // Ensure it's a string
+                  if (typeof tagValue === 'string') {
+                    const normalized = tagValue.trim();
+                    // Only add non-empty tags
+                    if (normalized.length > 0) {
+                      tags.push(normalized);
+                    }
+                  } else {
+                    console.warn(`Tag value for item ${itemID} is not a string, skipping:`, tagValue);
+                  }
+                } else {
+                  console.debug(`Tag row null for item ${itemID}, skipping`);
+                }
+              }
             }
+          } catch (err) {
+            const errorMessage = err instanceof Error ? err.message : String(err);
+            console.error(`Failed to extract tags for item ${itemID}: ${errorMessage}`);
+            // Return empty array on error (graceful degradation)
           }
 
           // Get collections for this item
