@@ -9,8 +9,8 @@ Requirements for v1.1 release. Each maps to roadmap phases.
 
 ### Tag Extraction & Recommendations
 
-- [ ] **TAG-01**: Extract tags from Zotero SQLite database (itemTags + tags tables)
-- [ ] **TAG-02**: Add tags field to ZoteroItem schema with proper NULL handling
+- [x] **TAG-01**: Extract tags from Zotero SQLite database (itemTags + tags tables)
+- [x] **TAG-02**: Add tags field to ZoteroItem schema with proper NULL handling
 - [ ] **TAG-03**: Populate user profile with tag frequencies from seed papers
 - [ ] **TAG-04**: Score items based on tag overlap with user profile
 - [ ] **TAG-05**: Update tag weights from accept/reject actions (adaptive learning)
@@ -27,8 +27,8 @@ Requirements for v1.1 release. Each maps to roadmap phases.
 
 ### Data Quality & Validation
 
-- [ ] **VAL-01**: Implement defensive NULL handling for tag queries (schema variations)
-- [ ] **VAL-02**: Ensure backward compatibility with empty tags Map in existing profiles
+- [x] **VAL-01**: Implement defensive NULL handling for tag queries (schema variations)
+- [x] **VAL-02**: Ensure backward compatibility with empty tags Map in existing profiles
 
 ## v2 Requirements
 
@@ -64,8 +64,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| TAG-01 | Phase 6 | Pending |
-| TAG-02 | Phase 6 | Pending |
+| TAG-01 | Phase 6 | Complete |
+| TAG-02 | Phase 6 | Complete |
 | TAG-03 | Phase 7 | Pending |
 | TAG-04 | Phase 7 | Pending |
 | TAG-05 | Phase 7 | Pending |
@@ -76,8 +76,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | UX-04 | Phase 8 | Pending |
 | UX-05 | Phase 8 | Pending |
 | UX-06 | Phase 8 | Pending |
-| VAL-01 | Phase 6 | Pending |
-| VAL-02 | Phase 6 | Pending |
+| VAL-01 | Phase 6 | Complete |
+| VAL-02 | Phase 6 | Complete |
 
 **Coverage:**
 - v1.1 requirements: 14 total

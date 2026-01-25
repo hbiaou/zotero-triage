@@ -128,6 +128,6 @@ Phases execute in numeric order: 6 → 7 → 8
 | 3. Recommendation Engine & Batch Generation | v1.0 | 5/5 | Complete | 2026-01-24 |
 | 4. Triage Workflow & Quality Gates | v1.0 | 5/5 | Complete | 2026-01-24 |
 | 5. Literature Note Generation & Polish | v1.0 | 5/5 | Complete | 2026-01-25 |
-| 6. Tag Infrastructure & Extraction | v1.1 | 0/3 | Not started | - |
+| 6. Tag Infrastructure & Extraction | v1.1 | 3/3 | Complete | 2026-01-25 |
 | 7. Tag-Based Recommendations | v1.1 | 0/TBD | Not started | - |
 | 8. UX Enhancements (Progress & Validation) | v1.1 | 0/TBD | Not started | - |
