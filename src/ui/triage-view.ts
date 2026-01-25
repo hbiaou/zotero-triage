@@ -58,11 +58,15 @@ export class TriageView extends ItemView {
     container.empty();
     container.addClass('zotero-triage-triage-container');
 
-    // Check if database is configured
-    if (!this.plugin.settings.zoteroDbPath) {
+    // Check if database is configured and connected
+    if (!this.plugin.settings.zoteroDbPath || !this.plugin.connector.itemsLoaded) {
+      const message = !this.plugin.settings.zoteroDbPath
+        ? 'Please configure Zotero database path in settings'
+        : 'Click "Generate Batch" to load items from Zotero';
+
       container.createDiv({
         cls: 'zotero-triage-empty-state',
-        text: 'Please configure Zotero database path in settings'
+        text: message
       });
       return;
     }
