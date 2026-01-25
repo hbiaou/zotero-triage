@@ -144,6 +144,8 @@ export function updateCardStatus(card: HTMLElement, state: RegistryState): void 
       badge.classList.add('status-badge-accepted');
       badge.textContent = 'Accepted';
       console.log('ZotBridge BADGE: Accepted badge created, classes:', badge.className);
+      console.log('ZotBridge BADGE: Accepted badge element:', badge);
+      console.log('ZotBridge BADGE: Header element:', header);
     } else if (state === 'rejected') {
       badge.classList.add('status-badge-rejected');
       badge.textContent = 'Rejected';
@@ -154,7 +156,9 @@ export function updateCardStatus(card: HTMLElement, state: RegistryState): void 
       console.log('ZotBridge BADGE: Deferred badge created, classes:', badge.className);
     }
 
+    console.log('ZotBridge BADGE: About to appendChild badge to header');
     header.appendChild(badge);
+    console.log('ZotBridge BADGE: Badge appended successfully, header children:', header.children.length);
   } else {
     console.log('ZotBridge BADGE: Skipping badge for state:', state);
   }
