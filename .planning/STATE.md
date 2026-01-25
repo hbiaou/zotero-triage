@@ -2,20 +2,20 @@
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2025-01-22)
+See: .planning/PROJECT.md (updated 2026-01-25)
 
 **Core value:** Users can progressively process their Zotero backlog without overwhelm, ensuring every imported literature note meets quality standards.
 
-**Current focus:** Phase 5 - Polish
+**Current focus:** v1.0 complete — ready for v1.1 planning
 
 ## Current Position
 
-Phase: 5 of 5 (Polish)
-Plan: 08 of 08
-Status: Phase complete, verified
-Last activity: 2026-01-25 — Completed quick task 001: Add visual status indicators
+Milestone: v1.0 MVP (SHIPPED)
+Phase: All 5 phases complete
+Status: Milestone archived, ready for v1.1 planning
+Last activity: 2026-01-25 — v1.0 milestone complete
 
-Progress: [██████████] 100%
+Progress: [██████████] 100% (v1.0)
 
 ## Performance Metrics
 
@@ -44,8 +44,8 @@ Progress: [██████████] 100%
 
 ### Decisions
 
-Decisions are logged in PROJECT.md Key Decisions table.
-Recent decisions affecting current work:
+All v1.0 decisions archived in PROJECT.md Key Decisions table with outcomes.
+Next milestone will add new decisions as needed.
 
 - Phase 1: Direct SQLite access (via sql.js) for performance with large libraries (VALIDATED in 01-02)
 - Phase 1: JSON registry over SQLite for simpler MVP state management (can migrate later if needed)
@@ -136,25 +136,19 @@ Recent decisions affecting current work:
 
 ### Pending Todos
 
-1. **Verify validation features with incomplete items** (2026-01-24)
-   - Area: validation
-   - Context: Phase 3 validation system fully implemented but not tested with incomplete items (user's library has 100% complete metadata)
-   - Files: src/ui/triage-card.ts, src/ui/override-modal.ts, src/ui/triage-view.ts
+Carried forward to v1.1 planning:
 
-2. **Enhanced error messages in ProfileInitializer** (2026-01-25)
-   - Area: onboarding
-   - Context: Show user warning notice when seed papers result in empty profile (falls back to date sorting)
-   - Files: src/profile/profile-initializer.ts:56-60
+1. **Enhanced error messages in ProfileInitializer**
+   - Show user warning notice when seed papers result in empty profile
 
-3. **Granular progress during batch scoring** (2026-01-25)
-   - Area: performance
-   - Context: Add progress updates during recommendation engine scoring phase for large libraries (5000+ items)
-   - Files: src/batch/batch-service.ts:59-150, src/recommendations/recommendation-engine.ts:64-200
+2. **Granular progress during batch scoring**
+   - Add progress updates during recommendation engine scoring for 5000+ item libraries
 
-4. **Override modal field explanations** (2026-01-25)
-   - Area: ui
-   - Context: Add text explaining why fields are required and how to fix them in Zotero
-   - Files: src/ui/override-modal.ts:76-81
+3. **Override modal field explanations**
+   - Add text explaining why fields are required and how to fix them in Zotero
+
+4. **Verify validation features with incomplete items**
+   - Runtime testing with real incomplete metadata (v1.0 tested with complete library)
 
 ### Quick Tasks Completed
 
@@ -164,48 +158,22 @@ Recent decisions affecting current work:
 
 ### Blockers/Concerns
 
-**Phase 1 (Foundation):** COMPLETE
-- SQLite locking: MITIGATED - sql.js reads database into memory
-- Schema changes: RESOLVED - Version detection implemented in 01-02
-- UI freezing: RESOLVED - processInChunks implemented in 01-02
+**v1.0:** All blockers resolved, all phases complete
 
-**Phase 2 (Batch Workflow):** COMPLETE
-- Card-based UI patterns: RESOLVED - Implemented in 02-02 with theme-compatible CSS
-
-**Phase 3 (Quality Gates):** COMPLETE
-- All verification gaps closed with 03-03 gap closure plan
-- Publisher field validation complete
-- Quality gate system fully functional
-
-**Phase 4 (Onboarding & Recommendations):** COMPLETE ✓
-- All 5 plans executed successfully
-- Verification passed: 7/7 success criteria verified
-- Profile infrastructure: Types, service, keyword extraction
-- Recommendation engine: Multi-signal scoring with adaptive learning
-- Setup wizard: Multi-step onboarding with seed paper selection (5-15 papers)
-- Profile integration: Batch scoring, settings UI, learning from user feedback
-- Known limitation: Tag scoring returns 0 (ZoteroItem schema missing tags field - documented, acceptable)
-
-**Phase 5 (Polish):** COMPLETE ✓
-- Plan 05-02 complete: ProgressTracker infrastructure for non-blocking progress feedback
-- Plan 05-03 complete: Exponential backoff retry handler for SQLITE_BUSY errors
-- Plan 05-04 complete: Error handling integrated into database and services
-- Plan 05-05 complete: Progress feedback for library loading and batch generation
-- Plan 05-06 complete: Cross-platform path and key normalization
-- Plan 05-07 complete: Startup performance optimization and memory monitoring
-- Progress feedback: Live item counts during library loading, visual progress bars for all operations over 500ms
-- Error handling: ErrorModal displays user-friendly messages, database operations auto-retry on SQLITE_BUSY
-- Cross-platform reliability: Case-insensitive comparisons prevent Linux-specific bugs
-- Startup performance: Lazy database initialization (< 50ms load time), dev-mode memory monitoring
+**v1.1 Candidates (from audit):**
+- Enhanced error messages in ProfileInitializer (low priority)
+- Granular batch scoring progress for large libraries (low priority)
+- Override modal field explanations (UX enhancement)
+- Tag extraction (requires ZoteroItem schema update)
 
 ## Session Continuity
 
-Last session: 2026-01-25T06:40:00Z
-Stopped at: Completed Phase 5 (Polish), verified
+Last session: 2026-01-25
+Stopped at: v1.0 milestone complete and archived
 Resume file: None
-Next phase: All 5 phases complete - milestone ready for completion
+Next milestone: v1.1 — run /gsd:new-milestone to begin planning
 
-Config (if exists):
+Config:
 {
   "mode": "yolo",
   "depth": "standard",
