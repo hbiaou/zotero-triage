@@ -218,9 +218,8 @@ export class TriageView extends ItemView {
       });
 
       // Apply status badge if item was previously processed
-      const registryEntry = this.plugin.registry.getEntry(item.itemID);
-      if (registryEntry) {
-        const state = registryEntry.state;
+      const state = this.plugin.registry.getState(item.itemID);
+      if (state !== 'unseen' && state !== 'proposed') {
         // Map 'imported' state to 'accepted' for badge display
         const badgeState = state === 'imported' ? 'accepted' : state;
         updateCardStatus(card, badgeState);
