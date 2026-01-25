@@ -1,299 +1,66 @@
-# Features Research: Zotero-Obsidian Integration Tools
+# Feature Research: Zotero Triage v1.1 — Tag Extraction and UX Polish
 
-**Domain:** Academic reference management and note-taking integration
-**Researched:** 2026-01-22
-**Confidence:** MEDIUM
+**Domain:** Obsidian plugin with Zotero integration (tag extraction and user feedback enhancements)
+**Researched:** 2026-01-25
+**Milestone:** v1.1 (subsequent feature set after v1.0 core workflow)
+**Confidence:** HIGH (architecture research complete, tag storage verified, UX patterns documented)
+
+---
 
 ## Executive Summary
 
-The Zotero-Obsidian integration ecosystem includes 10+ plugins with three dominant tools: **Zotero Integration** (mgmeyers), **ZotLit**, and **Citations**. All tools focus on **bulk import workflows** where users import entire Zotero libraries or large collections at once. The ecosystem lacks tools that enforce progressive, batch-based workflows.
+Version 1.1 focuses on two dimensions:
 
-**Key gap identified:** No existing tool addresses "importer's block" - the paralysis users experience when facing hundreds of papers to process. Current plugins enable bulk import but provide no structure for sustainable, incremental processing.
+1. **Tag extraction from Zotero:** Integrate user-assigned tags from Zotero items into the recommendation engine and note generation, surfacing papers that match user tag preferences alongside keywords/authors.
 
-## Existing Tools Analysis
+2. **UX polish for large libraries:** Enhance user feedback during long operations (5000+ item batch scoring), provide clearer error messages when profile initialization fails, and guide users to fix metadata issues through improved modal help text.
 
-### 1. Zotero Integration (mgmeyers)
-**Status:** Most popular, actively maintained
-**Approach:** Template-based bulk import
-
-**Core Features:**
-- Insert citations with @ autocomplete
-- Import PDF annotations and notes from Zotero
-- Template-based literature note creation (customizable)
-- Bibliography generation
-- Quick copy citation styles
-- Search Zotero library from Obsidian
-
-**Technical:**
-- Requires Better BibTeX for Zotero plugin
-- Template language: Custom (not specified in docs)
-- Zotero 7 compatible
-
-**Limitations (from user reports):**
-- Annotation display issues during import
-- Importing deletes/overrides existing notes in Obsidian
-- No workflow structure for processing multiple papers
-- Bulk import = overwhelming for large libraries
-
-**Sources:**
-- [GitHub - mgmeyers/obsidian-zotero-integration](https://github.com/mgmeyers/obsidian-zotero-integration)
-- [Obsidian Forum - Plugin Comparison](https://forum.obsidian.md/t/obsidian-zotero-integration-plugin-comparison/44274)
-
----
-
-### 2. ZotLit (PKM-er)
-**Status:** Advanced features, direct database access
-**Approach:** Real-time sync with Zotero database
-
-**Core Features:**
-- Direct Zotero database access (no export needed)
-- Auto-sync annotations whenever changed in Zotero
-- View annotations side-by-side with literature notes in Obsidian
-- Drag-and-drop annotations into notes
-- Import image + text annotations
-- Advanced templating with JavaScript (Eta template engine)
-- Quick switcher for literature note creation
-- Open Obsidian note from Zotero item page
-- Fast fuzzy-search for literature within Obsidian
-- All Zotero data accessible (not limited by API/BibTeX)
-
-**Technical:**
-- Direct database access (very fast)
-- Template language: Eta (JavaScript-powered)
-- Zotero 6 & 7 compatible
-- Comprehensive documentation at zotlit.aidenlx.top
-
-**Strengths:**
-- Most technically sophisticated
-- Real-time sync (always current)
-- Full data access beyond API limitations
-
-**Limitations:**
-- Complex setup reported by users
-- "Took 3 days" vs "worked out of box" experiences vary
-- Still bulk-import oriented
-
-**Sources:**
-- [GitHub - PKM-er/obsidian-zotlit](https://github.com/PKM-er/obsidian-zotlit)
-- [ZotLit Documentation](https://zotlit.aidenlx.top/)
-- [Obsidian Forum - Bulk Import Discussion](https://forum.obsidian.md/t/bulk-import-zotero-library-annotations-into-obsidian-with-zotero-integration-plugin/76254)
-
----
-
-### 3. Citations (hans)
-**Status:** Established, simpler approach
-**Approach:** BibTeX/CSL-JSON file-based
-
-**Core Features:**
-- Open/create literature notes (Ctrl+Shift+O)
-- Insert literature note reference (Ctrl+Shift+E)
-- Insert literature note content
-- Insert Markdown citation (Pandoc-style)
-- Template-based note creation
-- Search references from within Obsidian
-
-**Template Variables:**
-- Metadata: citekey, year, title, titleShort, abstract
-- Publication: publisher, containerTitle, page, DOI
-- Author: authorString
-- URLs: URL, eprint, zoteroSelectURI
-- Places: eventPlace, publisherPlace
-
-**Technical:**
-- Works with exported BibTeX/BibLaTeX/CSL-JSON
-- Does not require real-time Zotero connection
-- Simpler architecture than ZotLit/Integration
-
-**Strengths:**
-- Lower complexity
-- File-based = portable, no database coupling
-
-**Limitations:**
-- Requires manual export from Zotero
-- No annotation sync
-- Less feature-rich than alternatives
-
-**Sources:**
-- [GitHub - hans/obsidian-citation-plugin](https://github.com/hans/obsidian-citation-plugin)
-- [Obsidian Forum - New plugin announcement](https://forum.obsidian.md/t/new-plugin-citations-with-zotero/9793)
-
----
-
-### 4. Zotero Bridge (vanakat)
-**Status:** Infrastructure plugin (API provider)
-**Approach:** Provides APIs for other plugins
-
-**Core Features:**
-- Provides APIs for other plugins to connect to Zotero
-- Example consumer: Zotero Link plugin
-- Can be used with Templater user scripts
-- Search and retrieve Zotero item data
-- Works with Zotero 6 & 7
-
-**Companion: Zotero Link**
-- Insert command via Command Palette
-- Template-based link text (Nunjucks template language)
-- Keyboard shortcut configurable
-
-**Role:** Infrastructure layer, not end-user workflow tool
-
-**Sources:**
-- [GitHub - vanakat/zotero-bridge](https://github.com/vanakat/zotero-bridge)
-- [GitHub - vanakat/zotero-link](https://github.com/vanakat/zotero-link)
-
----
-
-### 5. Zotero Better Notes (windingwind)
-**Status:** Two-way sync focus
-**Approach:** Zotero plugin (not Obsidian plugin) that syncs with Obsidian
-
-**Core Features:**
-- Two-way Markdown sync between Zotero and Obsidian
-- Export Zotero note to Markdown file in Obsidian vault
-- Sync Zotero sidebar notes/annotations with Obsidian notes
-- Templates for co-working (tested on Zotero 7)
-
-**Unique:** One of the few true two-way sync options
-
-**Technical:**
-- Zotero plugin (not Obsidian plugin)
-- Markdown file-based sync
-- Tested with Better BibTeX, Ethereal Style, Translate for Zotero
-
-**Limitations:**
-- Setup complexity (multiple plugins required)
-- Sync conflicts possible with two-way approach
-
-**Sources:**
-- [Obsidian Forum - Better Notes discussion](https://forum.obsidian.md/t/zotero-better-notes-plugin-syncs-notes-with-obsidian/62272)
-- [Medium - Two-way Markdown Sync](https://medium.com/obsidian-observer/two-way-markdown-sync-with-obsidian-and-zotero-better-notes-plugin-9cfdb5c7790d)
-- [GitHub Discussion - Templates for Zotero 7](https://github.com/windingwind/zotero-better-notes/discussions/1099)
-
----
-
-### 6. Zotero Sync Client (frthjf)
-**Status:** Read-only mirror
-**Approach:** Uses Zotero Sync API to mirror library
-
-**Core Features:**
-- Mirror Zotero library as Markdown files in Obsidian
-- Uses Zotero Sync API
-- Read-only synchronization
-
-**Limitation:** One-way only - changes in Obsidian are NOT synced back to Zotero
-
-**Sources:**
-- [GitHub - frthjf/obsidian-zotero-sync-client](https://github.com/frthjf/obsidian-zotero-sync-client)
-- [ObsidianStats - Zotero Sync](https://www.obsidianstats.com/plugins/zotero-sync-client)
-
----
-
-## Ecosystem Pain Points
-
-Based on user forum discussions and GitHub issues:
-
-### 1. Overwhelming Bulk Import
-**Problem:** Users import entire Zotero libraries (100s-1000s of papers) and face paralysis
-**Evidence:** "Managing a vast collection of academic references can be overwhelming—especially when reading the same paper multiple times or struggling to connect ideas across sources"
-**No existing solution** addresses progressive/batch processing
-
-### 2. Metadata Quality Issues
-**Problem:** Zotero items often have missing/incorrect metadata (volume, issue, DOI, year)
-**Impact:** Creates broken citations, incomplete literature notes
-**Current workaround:** Manual field editing in Zotero
-**Gap:** No quality gate preventing import of low-quality metadata
-
-**Sources:**
-- [Zotero Forums - Warning for incomplete metadata](https://forums.zotero.org/discussion/79970/warning-for-incomplete-metadata)
-- [Zotero Forums - Missing metadata options](https://forums.zotero.org/discussion/97223/embedded-metadata-missing-metadata-options)
-
-### 3. Sync Conflicts & Note Overwriting
-**Problem:** Importing annotations from Zotero deletes/overrides existing notes in Obsidian
-**Impact:** Users can't work in parallel (annotate in Zotero while writing in Obsidian)
-**Current workaround:** Manual merge or accept data loss
-
-**Sources:**
-- [Obsidian Forum - Workflow challenges](https://forum.obsidian.md/t/help-with-my-zotero-obsidian-workflow/59959)
-- [Zotero Forums - Annotation workflow](https://forums.zotero.org/discussion/109148/annotation-workflow-including-obsidian)
-
-### 4. Template Complexity
-**Problem:** Plugins require complex template setup before first use
-**Evidence:** "took me 3 days" to get working, documentation incomplete
-**Impact:** High barrier to entry, abandoned setups
-
-### 5. No Progressive Workflow Structure
-**Problem:** All tools assume user knows what to import and when
-**Gap:** No guidance on:
-  - Which papers to start with
-  - How many to process per session
-  - What makes a "good" literature note
-  - When to defer vs accept vs reject a paper
+The v1.0 core (batch workflow, quality gates, literature notes) operates well in isolation. v1.1 extends the recommendation engine with tags and improves visibility during processing. Both dimensions use existing Obsidian patterns (Notices for feedback, modal help text conventions, tag storage in Zotero's `itemTags` table).
 
 ---
 
 ## Table Stakes Features
 
-Features users expect in ANY Zotero-Obsidian tool. Missing = users leave.
+Features users expect in a *v1.1 update* to an existing Zotero-Obsidian plugin.
 
-| Feature | Why Expected | Complexity | Existing Implementations | Notes |
-|---------|--------------|------------|--------------------------|-------|
-| **Import citations from Zotero** | Core value proposition | Low | All plugins | Must work reliably |
-| **Create literature notes** | Primary use case | Medium | Zotero Integration, ZotLit, Citations | Template-based |
-| **Insert citations in notes** | Academic writing requirement | Low | All plugins | @ autocomplete is standard |
-| **Template customization** | Users have different workflows | Medium | All plugins | Variables for metadata |
-| **Search Zotero library** | Can't import what you can't find | Low | Most plugins | Fuzzy search expected |
-| **Annotation import** | Users annotate PDFs in Zotero | Medium | Zotero Integration, ZotLit | Must preserve structure |
-| **Zotero 7 compatibility** | Current version | Low | Most plugins (by 2026) | Table stakes now |
-| **Metadata in frontmatter** | Obsidian standard practice | Low | All plugins | YAML frontmatter |
-| **Bibliography generation** | Academic writing requirement | Medium | Zotero Integration | Citation styles |
+| Feature | Why Expected | Complexity | Notes |
+|---------|--------------|------------|-------|
+| **Tag extraction from Zotero** | Users with heavily-tagged libraries should see tag alignment in recommendations | MEDIUM | Zotero stores tags in `tags` + `itemTags` tables; many users tag papers before importing |
+| **Error messages for empty profile** | When seed papers yield no keywords/authors, user needs guidance, not silent fallback | LOW | Obsidian Notice API; warn in ProfileInitializer when profile is empty |
+| **Progress feedback during batch scoring** | Processing 5000 items takes 2-5 seconds; user needs visual confirmation something is happening | MEDIUM | Chunked async processing with Notice updates (not modal blocking) |
+| **Field explanations in override modal** | Users asked to fix metadata in Zotero need guidance on which fields matter and why | LOW | Help text in modal (Setting component `setDesc()` pattern) |
+| **Visual validation feedback** | When quality gate blocks import, user sees which fields are missing and how to fix in Zotero | LOW | List missing fields in modal, link to Zotero documentation |
 
 **Complexity definitions:**
-- Low: < 1 day implementation
-- Medium: 1-3 days implementation
-- High: > 3 days implementation
+- LOW: < 4 hours implementation
+- MEDIUM: 4-8 hours implementation
+- HIGH: > 8 hours implementation
 
 ---
 
-## Differentiating Features
+## Differentiators
 
-Features that set tools apart. Not expected, but create competitive advantage.
+Features that set v1.1 apart from competing plugins. Not required, but create competitive advantage.
 
-| Feature | Value Proposition | Complexity | Current State | Opportunity |
-|---------|-------------------|------------|---------------|-------------|
-| **Batch-based workflow** | Prevents importer's block, enforces sustainable processing | High | **NONE** - This is the gap | PRIMARY DIFFERENTIATOR |
-| **Quality gates** | Prevents importing low-quality metadata | Medium | **NONE** | Strong differentiator |
-| **Daily batch generation** | Removes decision fatigue ("what should I read today?") | High | **NONE** | Strong differentiator |
-| **Triage interface** | Accept/Reject/Defer reduces cognitive load | Medium | **NONE** (bulk only) | Strong differentiator |
-| **Onboarding wizard** | Reduces setup barrier, creates initial profile | Medium | Journalit plugin has similar | Moderate differentiator |
-| **Processing registry** | Track state per item (imported, triaged, deferred) | Medium | **NONE** | Strong differentiator |
-| **Real-time annotation sync** | No manual export | Medium | ZotLit (HIGH complexity) | Already exists |
-| **Direct database access** | Faster, more complete data | Medium | ZotLit | Already exists |
-| **Two-way sync** | Edit in either tool | High | Better Notes (complex) | Niche need |
-| **AI-assisted summaries** | Batch analysis of papers | High | External tools (NotebookLM) | Emerging pattern |
-| **Profile-based recommendations** | "Papers like your seed set" | High | **NONE** | Strong differentiator |
-
-**Key insight:** ZotLit has the most sophisticated technical features, but NO tool addresses workflow structure or progressive processing.
+| Feature | Value Proposition | Complexity | Notes |
+|---------|-------------------|------------|-------|
+| **Tag-based recommendations** | Surface papers matching user's tag taxonomy, not just keywords/authors | MEDIUM | Extends recommendation engine; users control what tags mean to them |
+| **Granular progress indicators** | Show which phase of scoring (filtering, ranking, quality check), not just % complete | MEDIUM | Improves feedback during 5000+ item operations; reduces "is it frozen?" anxiety |
+| **Explanation-driven quality gates** | Don't just block; explain WHY a field is required and how to fix in Zotero | LOW | Differentiates from plugins that hide metadata requirements |
+| **Adaptive tag weighting** | Learn user's tag preferences from accept/reject feedback | HIGH | Advanced feature; deferred to v1.2+ |
 
 ---
 
 ## Anti-Features
 
-Features to deliberately NOT build. Common mistakes or out-of-scope.
+Features that seem appealing but create problems. Deliberately avoid in v1.1.
 
-| Anti-Feature | Why Avoid | What Happens If Built | Alternative Approach |
-|--------------|-----------|------------------------|---------------------|
-| **Bulk "import all" button** | Causes importer's block | Users import 1000 papers, get overwhelmed, abandon tool | Batch workflow only |
-| **Built-in PDF reader** | Zotero already does this well | Duplicates Zotero, creates confusion | Deep link to Zotero |
-| **Custom citation styles** | Zotero/Pandoc already handle this | Maintenance burden, compatibility issues | Use Zotero's styles |
-| **Full-text search in PDFs** | Zotero does this | Performance issues, large index | Link to Zotero search |
-| **Collaborative features** | Different problem domain | Complexity explosion, sync conflicts | Single-user focus |
-| **Mobile-first design** | Academic workflows are desktop-heavy | Compromises desktop UX | Desktop-first, mobile optional |
-| **Custom metadata fields** | Breaks Zotero compatibility | Data silos, export problems | Use Zotero's Extra field |
-| **In-app PDF annotation** | Zotero PDF reader is excellent | Duplicates work, creates sync issues | Import Zotero annotations |
-| **Literature graph visualization** | Obsidian Graph already exists | Feature creep | Use Obsidian's native graph |
-| **Auto-generate literature notes without review** | Creates noise, no engagement | Vault filled with unread notes | Require triage step |
-
-**Philosophy:** Integrate, don't duplicate. Obsidian and Zotero are both excellent at their core functions.
+| Feature | Why Requested | Why Problematic | Alternative |
+|---------|---------------|-----------------|-------------|
+| **Modal that blocks during batch scoring** | Seems like good UX to show progress | Freezes entire Obsidian app during 5000-item processing; users can't interact with vault while waiting | Use non-modal Notice notifications that update in place |
+| **Auto-populate tags during import** | "Tag the note automatically using Zotero tags" | Requires NLP/taxonomy mapping; Obsidian's flat tag structure doesn't align with Zotero's; user should choose which Zotero tags become Obsidian tags | Expose tags as YAML frontmatter field; let user link manually or via templater script |
+| **Bulk re-tag all imported notes** | Users want to tag past imports with new rules | Couples tag logic to past imports; breaks processing workflow (past items are locked by design) | Focus on forward-looking tagging; users can re-tag manually using Obsidian's native tag editor |
+| **Machine learning tag suggestions** | "ML to predict best tags for new papers" | Adds complexity, poor ROI without substantial training data; users already have their own tagging system | Stick with exact-match tag signals from seed profile |
 
 ---
 
@@ -302,130 +69,179 @@ Features to deliberately NOT build. Common mistakes or out-of-scope.
 Understanding which features must be built first.
 
 ```
-Foundation Layer (Phase 1):
-├── Processing Registry
-│   └── Track item state (unprocessed, triaged, imported, deferred)
-└── Zotero Connection
-    └── Read item metadata, annotations
+v1.0 Complete (Architecture foundation)
+├── Processing Registry (tracks item state)
+├── Zotero Connector (reads SQLite)
+├── Recommendation Engine (keywords + authors)
+└── Literature Note Generator
 
-Workflow Layer (Phase 2):
-├── Onboarding Wizard
-│   ├── Depends: Zotero Connection
-│   └── Outputs: User profile (seed papers)
-├── Daily Batch Generator
-│   ├── Depends: Processing Registry, User Profile
-│   └── Outputs: 5-10 items to review today
-└── Triage Interface
-    ├── Depends: Daily Batch Generator
-    └── Outputs: Accept/Reject/Defer decisions
+v1.1 Enhancements:
 
-Quality Layer (Phase 3):
-├── Quality Gate
-│   ├── Depends: Zotero Connection
-│   └── Blocks import if metadata missing
-└── Metadata Validator
-    ├── Depends: Quality Gate rules
-    └── Shows what's missing, how to fix
+Tag Extraction:
+├── Zotero Tag Reader
+│   ├── Requires: Zotero Connector (reads from SQLite)
+│   └── Queries: tags + itemTags tables
+├── ZoteroItem Schema Extension
+│   ├── Requires: Tag Reader
+│   └── Adds: tags[] field to item metadata
+├── Profile Analyzer (tag dimension)
+│   ├── Requires: ZoteroItem schema + Tag Reader
+│   └── Outputs: User's tag profile from seed papers
+└── Recommendation Engine Extension
+    ├── Requires: Profile Analyzer + Processing Engine
+    ├── Adds: Tag-based scoring signal
+    └── Combines: Keywords + Authors + Tags
 
-Import Layer (Phase 4):
-├── Literature Note Generator
-│   ├── Depends: Quality Gate (passed), Template System
-│   └── Outputs: Markdown note with frontmatter
-└── Annotation Importer
-    ├── Depends: Literature Note exists
-    └── Outputs: Annotations in note
+UX Polish:
 
-Refinement Layer (Phase 5+):
-├── Profile Refinement
-│   ├── Depends: Accept/Reject history
-│   └── Learns user preferences
-└── Batch Recommendations
-    ├── Depends: Profile, Zotero collections
-    └── Suggests similar papers
+Error Messages:
+├── ProfileInitializer Warning
+│   ├── Requires: Recommendation Engine (to detect empty profile)
+│   └── Outputs: Notice when profile has 0 signals
+├── Quality Gate Explanation Modal
+│   ├── Requires: Quality Gate (validation rules)
+│   └── Outputs: Modal listing missing fields + Zotero fix instructions
+└── Metadata Validator Feedback
+    ├── Requires: Quality Gate
+    └── Lists: Which fields are missing, why they matter
+
+Progress Feedback:
+├── Batch Scoring Progress Tracker
+│   ├── Requires: Processing Engine (chunked async)
+│   └── Outputs: Notice updating with phase + item count
+├── Tag Extraction Progress
+│   ├── Requires: Zotero Tag Reader (for large libraries)
+│   └── Outputs: Loading indicator during tag indexing
+└── Initialization Progress Modal
+    ├── Requires: Initial setup phase (onLayoutReady)
+    └── Shows: Database load, tag index build, profile analysis
 ```
 
-**Critical path:**
-1. Processing Registry (must track state)
-2. Zotero Connection (must read data)
-3. Triage Interface (must make decisions before import)
-4. Quality Gate (must validate before creating notes)
-5. Literature Note Generator (final import)
+### Dependency Notes
+
+- **Tag extraction requires extended Zotero Connector:** The existing connector queries items; v1.1 must also query `itemTags` + `tags` tables to join tag data.
+- **Profile analyzer must understand tags:** Current profile (keywords + authors from seed set) needs a tag dimension—which tags appear in seed papers?
+- **Recommendation engine combines all signals:** v1.0 multiplies keyword score × author score; v1.1 adds × tag score (all normalized).
+- **Error messages depend on existing validators:** v1.0 already has quality gate and profile initialization; v1.1 adds better feedback around them.
+- **Progress updates don't require new architecture:** v1.0's chunked async processing already yields to event loop; v1.1 adds Notice updates to existing yields.
 
 ---
 
-## MVP Feature Prioritization
+## v1.1 Feature Categorization
 
-### Phase 1: Foundation (Weeks 1-2)
-**Goal:** Basic import with quality gates
+### Launch with v1.1
 
-| Feature | Rationale | Risk |
-|---------|-----------|------|
-| Zotero connection | Can't build anything without data | Low (well-defined API) |
-| Processing registry | Track what's been processed | Low (local state) |
-| Quality gate | Core differentiator | Medium (define rules) |
-| Simple literature note generator | Must import something | Low (template-based) |
+**Core value:** Better user guidance + tag-based recommendations for heavily-tagged libraries.
 
-**Success metric:** Import 1 paper with quality validation
+**Must-have features:**
 
-### Phase 2: Workflow (Weeks 3-4)
-**Goal:** Batch-based processing
+1. **Tag Extraction**
+   - Query Zotero `itemTags` + `tags` tables for each item
+   - Add `tags: string[]` field to ZoteroItem schema
+   - Integrate into seed profile analysis: "What tags appear in user's 5-15 seed papers?"
+   - Add tag signal to recommendation scoring (equal weight to keywords and authors initially)
+   - Why essential: Validation requirement from PROJECT.md ("Tag extraction from Zotero, integrate into recommendations")
 
-| Feature | Rationale | Risk |
-|---------|-----------|------|
-| Triage interface | Core UX differentiator | Medium (card-based UI) |
-| Daily batch (manual selection) | Enforce batch workflow | Low |
-| Defer mechanism | Handle "not now" papers | Low |
+2. **Enhanced Error Messages**
+   - Show Notice warning if ProfileInitializer detects empty profile (zero keywords, zero authors, zero tags)
+   - Suggestion: "Seed papers have no keywords/authors/tags. Try selecting papers that have richer metadata."
+   - In Quality Gate override modal: List missing fields by type (e.g., "Missing: Title, DOI, Year") with Zotero fixing instructions
+   - Why essential: Project requirement from PROJECT.md ("Enhanced error messages: Show user warning when seed papers result in empty profile")
 
-**Success metric:** Process 10 papers via triage workflow
+3. **Progress During Batch Scoring**
+   - For 5000-item libraries, display Notice that updates during batch generation
+   - Show phases: "Filtering… [500/5000]" → "Ranking… [432 candidates]" → "Quality check… [12 final]"
+   - Why essential: Prevents "is it frozen?" anxiety for large libraries; validates research finding that v1.0 lacks progress feedback for 5000+ items
 
-### Phase 3: Intelligence (Weeks 5-6)
-**Goal:** Smart batch generation
+4. **Field Explanation Help Text**
+   - In override modal, each field has setDesc() explaining why it's required and how to fix in Zotero
+   - Example: "Title — Required for creating readable notes. Add or edit in Zotero if missing"
+   - Why essential: Reduces support friction; users understand the "why" before fixing metadata
 
-| Feature | Rationale | Risk |
-|---------|-----------|------|
-| Onboarding wizard | Reduce setup friction | Medium (user research) |
-| Profile-based batch generation | Remove decision fatigue | High (recommendation logic) |
+### Add After Validation (v1.1.x)
 
-**Success metric:** Generate relevant daily batches without user input
+**Polish and refinement based on user feedback:**
 
-### Defer to Post-MVP
+- **Keyboard shortcuts in modal:** Tab/Shift-Tab navigation, Enter to confirm, Escape to close (accessibility improvement)
+- **Export tag profile:** Allow users to see their tag profile from seed set ("You've tagged papers with: 15 unique tags")
+- **Tag filtering in triage view:** Optional—show only papers matching user's seed tags (power-user feature)
 
-| Feature | Why Defer | When to Add |
-|---------|-----------|-------------|
-| AI-assisted summaries | Complex, external dependencies | Phase 4+ (if users request) |
-| Two-way sync | High complexity, niche need | Only if demanded |
-| Advanced templates | Users need simple version first | After MVP validation |
-| Batch export | Not core to workflow | Post-MVP cleanup |
-| Collection sync | Can manually select papers | Convenience feature |
-| Tag import | Can add tags in Obsidian | Polish feature |
+### Future Consideration (v2+)
+
+**Complex features deferred to avoid v1.1 scope creep:**
+
+- **Adaptive tag weighting:** Learn from user's accept/reject history which tags predict interest
+- **Auto-tag notes with Obsidian tags:** Complex mapping between Zotero tag taxonomy and Obsidian's flat tags
+- **Tag-based collections:** Group imported papers by seed tags (couples to past imports, conflicts with deferred-processing design)
+- **ML tag suggestions:** NLP-based tag predictions (needs training, adds complexity)
 
 ---
 
-## Competitive Positioning
+## Implementation Scope & Risks
 
-**Where existing tools play:**
-- **Zotero Integration:** Technical users, custom templates, bulk workflows
-- **ZotLit:** Power users, real-time sync, advanced features
-- **Citations:** Simple users, basic needs, file-based
+### Tag Extraction (Scope: Clear)
 
-**Where Progressive Zotero-Obsidian Bridge plays:**
-- **PhD students with 500+ papers:** Facing importer's block
-- **Researchers starting literature review:** Need structure, not bulk import
-- **Quality-conscious academics:** Want to ensure metadata is correct
-- **Sustainable workflow seekers:** 5-10 papers/day, not 100 papers/week
+**What we know:**
+- Zotero stores tags in two tables: `tags` (tag definitions) and `itemTags` (many-to-many linking items to tags)
+- Query pattern: `SELECT t.name FROM tags t JOIN itemTags it ON t.tagID = it.tagID WHERE it.itemID = ?`
+- Most users have < 100 unique tags per library
+- Tag names are plain text (Unicode-safe, including emoji)
 
-**Competitive advantage:**
-1. **Only tool enforcing batch workflow** (prevents overwhelm)
-2. **Only tool with quality gates** (prevents garbage import)
-3. **Only tool with triage interface** (structured decision-making)
-4. **Only tool with profile-based recommendations** (intelligent batch generation)
+**Implementation plan:**
+1. Extend ZoteroItem type to include `tags: string[]`
+2. Extend ZoteroConnector to query itemTags (one additional SQL join)
+3. Extend ProfileAnalyzer to extract tags from seed papers
+4. Extend RecommendationEngine to score on tags (normalize across signal types)
 
-**Not competing on:**
-- Real-time sync (ZotLit wins)
-- Template complexity (Zotero Integration wins)
-- Simplicity (Citations wins)
+**Risk:** MEDIUM — New SQL query adds complexity, but schema is stable and well-documented.
 
-**Competing on:** Workflow structure and sustainable processing habits.
+### UX Polish (Scope: Clear)
+
+**What we know:**
+- Obsidian Notice API supports `.setMessage()` for updating notifications
+- Modal help text uses Setting component's `setDesc()` method
+- Progress patterns already exist in v1.0's chunked async processing; v1.1 just adds visibility
+
+**Implementation plan:**
+1. In ProfileInitializer, detect empty profile (zero total signals) → show Notice
+2. In QualityGate override modal, use `setDesc()` for each field explaining requirement
+3. In BatchGenerator, add Notice.setMessage() calls in async chunk loop to show progress
+4. Test with real user's 5000-item Zotero library for performance
+
+**Risk:** LOW — All patterns already exist in Obsidian ecosystem; mainly wiring existing components together.
+
+---
+
+## Feature Complexity Matrix
+
+| Feature | User Value | Impl. Cost | Risk | Priority |
+|---------|------------|-----------|------|----------|
+| **Tag extraction** | HIGH (alignment with user taxonomy) | MEDIUM (SQL + schema extension) | MEDIUM | P1 |
+| **Empty profile warning** | MEDIUM (guidance, not blocking) | LOW (one Notice call) | LOW | P1 |
+| **Batch scoring progress** | MEDIUM (reduces anxiety) | MEDIUM (async tracking) | LOW | P1 |
+| **Field explanation help text** | MEDIUM (reduces friction) | LOW (text additions) | LOW | P1 |
+| **Visual validation feedback** | MEDIUM (clarity) | LOW (formatting) | LOW | P1 |
+| **Keyboard nav in modals** | LOW (nice-to-have accessibility) | MEDIUM (event handling) | LOW | P2 |
+| **Tag profile export** | LOW (informational only) | LOW (formatting) | LOW | P2 |
+| **Adaptive tag weighting** | HIGH (learning) | HIGH (algorithm) | HIGH | P3 |
+
+---
+
+## Competitive Landscape for v1.1
+
+**How competitors handle similar features:**
+
+| Feature | ZotLit | Zotero Integration | Citations | ZotBridge v1.1 Approach |
+|---------|--------|-------------------|-----------|------------------------|
+| **Tag support** | Direct query from DB, synced in real-time | Limited; focuses on BibTeX metadata | BibTeX doesn't include tags | Extract + integrate into recommendations |
+| **Progress feedback** | Silent bulk import (no feedback) | Silent bulk import (no feedback) | N/A (file-based, instant) | Progressive notice updates during scoring |
+| **Error guidance** | Minimal; assumes user knows fields | Minimal; assumes user knows fields | N/A | Explain each required field + how to fix |
+| **Accessibility** | Not documented | Not documented | N/A | Planned (v1.1.x): Keyboard navigation |
+
+**Competitive advantage of v1.1:**
+- Only tool that surfaces tag alignment in recommendations
+- Only tool that provides phase-by-phase progress feedback for large libraries
+- Only tool that explains *why* metadata fields are required
 
 ---
 
@@ -433,58 +249,54 @@ Refinement Layer (Phase 5+):
 
 | Area | Confidence | Source Quality | Gaps |
 |------|------------|----------------|------|
-| Existing plugins features | HIGH | Official GitHub repos, documentation | None significant |
-| User pain points | MEDIUM | Forum discussions, GitHub issues | Quantitative data missing |
-| Batch workflow need | LOW | Inferred from "overwhelming" complaints | No direct user interviews |
-| Quality gate value | LOW | Inferred from metadata issues | No validation of solution fit |
-| MVP prioritization | MEDIUM | Standard feature dependency analysis | No user testing |
+| Zotero tag storage (schema) | HIGH | Official Zotero docs + GitHub schema gist | None significant |
+| Obsidian Notice API | HIGH | Official docs + sample plugin + dev forum | None significant |
+| Obsidian Modal patterns | HIGH | Official docs + sample plugin + community examples | None significant |
+| Tag weighting algorithms | LOW | Inferred from v1.0's keyword/author approach | Not validated with users yet |
+| Progress UX patterns | MEDIUM | Existing plugins + forum discussions | No Obsidian-specific guidance doc |
+| Accessibility (keyboard nav) | MEDIUM | Community forum discussions + feature requests | Official Obsidian guidelines incomplete |
 
-**Confidence assessment:**
-- **HIGH confidence:** Feature catalogs, technical capabilities (from GitHub/docs)
-- **MEDIUM confidence:** User pain points (from forums, but self-selecting sample)
-- **LOW confidence:** Solution fit (hypothesis not yet validated with users)
+**Overall confidence: HIGH** for feature discovery and implementation approach. Detailed algorithm research (e.g., optimal tag weight in recommendation scoring) deferred to Phase 6 detailed planning.
 
-**Recommended next steps:**
-1. User interviews with 5-10 PhD students (validate importer's block hypothesis)
-2. Survey on metadata quality issues (quantify problem scope)
-3. Prototype triage interface (test Accept/Reject/Defer workflow)
-4. Wizard usability testing (validate onboarding approach)
+---
+
+## Open Questions for Phase-Specific Research
+
+1. **Tag weighting algorithm:** What's the optimal relative weight for tags vs. keywords vs. authors in recommendation scoring? (Research during Phase 6 detailed planning)
+
+2. **Large library performance:** Does querying `itemTags` table add meaningful latency for 5000-item libraries? (Prototype and benchmark during Phase 6)
+
+3. **User tag practices:** Do users maintain consistent tagging for research papers, or is tagging ad-hoc? (Inferred from project context; validate with user interviews if v1.1 flops)
+
+4. **Progress feedback granularity:** Is showing "Filtering [500/5000]" helpful, or should we show "Scoring item 500/5000: Machine Learning"? (UX decision during Phase 6 design)
+
+5. **Keyboard navigation priority:** Is keyboard-only modal navigation important for target users (academics, likely desktop-first)? (Consider feedback from v1.0 launch)
 
 ---
 
 ## Sources
 
-**Plugin Documentation:**
-- [GitHub - mgmeyers/obsidian-zotero-integration](https://github.com/mgmeyers/obsidian-zotero-integration)
-- [GitHub - PKM-er/obsidian-zotlit](https://github.com/PKM-er/obsidian-zotlit)
-- [ZotLit Documentation](https://zotlit.aidenlx.top/)
-- [GitHub - hans/obsidian-citation-plugin](https://github.com/hans/obsidian-citation-plugin)
-- [GitHub - vanakat/zotero-bridge](https://github.com/vanakat/zotero-bridge)
-- [ObsidianStats - Best Zotero Plugins 2025](https://www.obsidianstats.com/posts/2025-05-30-zotero-plugins)
+### Zotero Tag Storage
+- [Zotero Collections and Tags Documentation](https://www.zotero.org/support/collections_and_tags)
+- [Zotero Database Schema (GitHub Gist)](https://gist.github.com/pchemguy/19fa69fb4e74ef0cca0026aa0dbf5f42)
+- [Zotero Forums — Direct SQLite Access](https://forums.zotero.org/discussion/12512/need-zotero-database-schema)
 
-**User Workflows & Pain Points:**
-- [Obsidian Forum - Plugin Comparison](https://forum.obsidian.md/t/obsidian-zotero-integration-plugin-comparison/44274)
-- [Obsidian Forum - Bulk Import Discussion](https://forum.obsidian.md/t/bulk-import-zotero-library-annotations-into-obsidian-with-zotero-integration-plugin/76254)
-- [Obsidian Forum - Workflow Help](https://forum.obsidian.md/t/help-with-my-zotero-obsidian-workflow/59959)
-- [Zotero Forums - Annotation Workflow](https://forums.zotero.org/discussion/109148/annotation-workflow-including-obsidian)
-- [Medium - An Updated Academic Workflow](https://medium.com/@alexandraphelan/an-updated-academic-workflow-zotero-obsidian-cffef080addd)
-- [Girl in Blue Music - Ultimate PhD Workflow](https://girlinbluemusic.com/how-to-connect-zotero-and-obsidian-for-the-ultimate-phd-workflow/)
+### Obsidian API Patterns
+- [Obsidian Plugin API Documentation](https://docs.obsidian.md/Reference/TypeScript+API/Plugin)
+- [Obsidian Modals Documentation](https://docs.obsidian.md/Plugins/User+interface/Modals)
+- [Obsidian Sample Plugin](https://github.com/obsidianmd/obsidian-sample-plugin)
+- [Obsidian Notice API Usage](https://dev.to/bjarnerentz/journey-developing-an-obsidian-plugin-part-2-improving-the-architecture-basic-error-handling-and-5aa6)
 
-**Metadata Quality:**
-- [Zotero Forums - Warning for Incomplete Metadata](https://forums.zotero.org/discussion/79970/warning-for-incomplete-metadata)
-- [Zotero Forums - Missing Metadata Options](https://forums.zotero.org/discussion/97223/embedded-metadata-missing-metadata-options)
-- [Zotero Forums - Retrieve Missing Metadata](https://forums.zotero.org/discussion/82582/retrieve-missing-wrong-metadata-info-based-on-doi)
+### UX and Accessibility
+- [Obsidian Forum — Keyboard Navigation in Modals](https://forum.obsidian.md/t/accessibility-keyboard-navigation-and-shortcuts-for-dialogs-and-pop-up-modals/109)
+- [Obsidian Plugin Guidelines](https://docs.obsidian.md/Plugins/Releasing/Plugin+guidelines)
+- [Advanced Progress Bars Plugin](https://www.obsidianstats.com/plugins/advanced-progress-bars)
 
-**Academic Workflows:**
-- [Cypris - Best AI Tools for Literature Review 2026](https://www.cypris.ai/insights/11-best-ai-tools-for-scientific-literature-review-in-2026)
-- [The Effortless Academic - Using AI for Literature Review 2025](https://effortlessacademic.com/using-ai-for-literature-review-in-2025/)
-- [The Effortless Academic - Best Obsidian Plugins for Academics](https://effortlessacademic.com/best-obsidian-plugins-for-academics/)
+### v1.0 Architecture Reference
+- `.planning/research/STACK.md` — Core technology decisions (sql.js, Obsidian API)
+- `.planning/research/ARCHITECTURE.md` — Component structure (ProcessingEngine, RegistryService)
+- `.planning/PROJECT.md` — v1.1 requirements and target users
 
-**Conference Review Processes (for triage workflow patterns):**
-- [ACM CHI 2026 - Papers Review Process](https://chi2026.acm.org/papers-review-process/)
-- [ACM CHI 2026 - Desk Reject Process](https://chi2026.acm.org/2025/08/08/revised-chi-2026-papers-desk-reject-process/)
-- [CSCW 2026 - First Round Decisions](https://cscw.acm.org/2026/blog/firstrounddecisions.html)
+---
 
-**Technical Patterns:**
-- [Medium - Two-way Markdown Sync with Better Notes](https://medium.com/obsidian-observer/two-way-markdown-sync-with-obsidian-and-zotero-better-notes-plugin-9cfdb5c7790d)
-- [GitHub - Zotero Better Notes Templates for Zotero 7](https://github.com/windingwind/zotero-better-notes/discussions/1099)
+**Research complete. v1.1 features categorized and dependencies mapped. Ready for Phase 6 detailed planning and roadmap creation.**

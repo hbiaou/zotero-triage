@@ -1,916 +1,665 @@
-# Architecture Research: Progressive Zotero-Obsidian Bridge
+# Architecture: Tag Extraction + UX Polish Integration (v1.1)
 
-**Domain:** Obsidian Plugin with Zotero Integration
-**Researched:** 2026-01-22
-**Confidence:** HIGH
+**Project:** Zotero Triage (v1.1 Milestone)
+**Focus:** How tag extraction and UX enhancements integrate with existing v1.0 architecture
+**Researched:** 2026-01-25
+**Confidence:** HIGH (existing architecture documented in codebase, integration points explicit)
 
 ## Executive Summary
 
-Obsidian plugins follow a component-based architecture where a central Plugin class manages lifecycle, registers extensions (commands, views, ribbon items), and accesses platform APIs through the `app` object. For a data-intensive plugin processing 5000+ Zotero items, the architecture must balance:
+The v1.1 milestone adds tag extraction and UX enhancements to the existing v1.0 architecture through **minimal, surgical changes** rather than restructuring. Tag extraction reuses existing infrastructure (ZoteroConnector's `ITEM_TAGS_QUERY` already implemented), integrates into the RecommendationEngine's multi-signal scoring, and updates Profile initialization. UX enhancements layer on top without structural changes: progress tracking uses the existing ProgressTracker API, warning notices use Obsidian's Notice API, and override modal explanations are templated text. The architecture supports these changes through established patterns: dependency injection for scoring signals, debounced state persistence for registry updates, and chunked async processing. **No new architectural patterns needed.**
 
-1. **Main thread responsiveness** (Obsidian runs single-threaded, UI blocks easily)
-2. **State persistence** (across restarts using JSON storage)
-3. **External data access** (SQLite database reading via native modules)
-4. **Incremental processing** (batch operations to avoid freezing)
-5. **UI modularity** (settings tabs, modals, custom views)
+## Existing v1.0 Architecture (Foundation)
 
-**Critical architectural constraint:** Obsidian's Chromium renderer environment makes native module bundling complex. Better-sqlite3 requires platform-specific `.node` binaries that cannot be bundled with standard esbuild workflows.
-
----
-
-## Obsidian Plugin Structure
-
-### Standard File Layout
+### Component Map
 
 ```
-your-plugin/
-├── manifest.json          # Plugin metadata (id, name, version, minAppVersion)
-├── main.ts               # Plugin entry point (extends Plugin class)
-├── styles.css            # Optional UI styling
-├── package.json          # npm dependencies
-├── tsconfig.json         # TypeScript configuration
-├── esbuild.config.mjs    # Build bundler (compiles to main.js)
-└── src/                  # Source code (if using subdirectories)
-    ├── settings.ts
-    ├── modals/
-    ├── views/
-    └── services/
+┌──────────────────────────────────────────────────┐
+│ PLUGIN LIFECYCLE (main.ts)                       │
+│ - onload() → initialize services, setup UI       │
+│ - onLayoutReady() → lazy load database           │
+│ - onunload() → cleanup, save state               │
+└─────────────────┬────────────────────────────────┘
+                  │
+      ┌───────────┼───────────┬─────────────┐
+      │           │           │             │
+      v           v           v             v
+  SETTINGS    ZOTERO      REGISTRY      PROFILE &
+  Manager    Connector   Service       SCORING
+  - JSON     - sql.js    - State       - Profile
+    storage  - WASM      - Debounce    - Reco
+  - loadData - ITEM_     - Persist     - Adaptive
+  - saveData   TAGS_QUERY             - Learning
+
+              ┌────────────────────────────────┐
+              │ PROCESSING PIPELINE            │
+              │                                │
+              │ BatchService                   │
+              │ - Generate batches             │
+              │ - Apply scoring                │
+              │ - Filter by registry state     │
+              │ - Chunked async (50 items)     │
+              │                                │
+              │ RecommendationEngine           │
+              │ - Multi-signal scoring         │
+              │ - Tag/Author/Keyword signals   │
+              │ - Recency boost                │
+              │ - Diversity penalty            │
+              │                                │
+              │ ValidationService              │
+              │ - Quality gates                │
+              │ - Per-item-type schemas        │
+              └────────────┬───────────────────┘
+                           │
+        ┌──────────────────┼──────────────────┐
+        │                  │                  │
+        v                  v                  v
+    NOTE GEN            UI LAYER          PERFORMANCE
+  - YAML FM            - Wizard           - Progress
+  - Markdown           - Triage View        Tracker
+  - Vault API          - Override           - Notice
+  - File create          Modal              - Updates
+                       - Profile           - Memory
+                         Editor            - Retry
+
 ```
 
-**Build output:** Compiled into `main.js` + `manifest.json` + `styles.css` for distribution.
+### Data Flow (v1.0 → v1.1)
 
-**Source:** [Obsidian Sample Plugin](https://github.com/obsidianmd/obsidian-sample-plugin)
+```
+LOADING PHASE (unchanged, except progress callback):
+  ZoteroConnector.loadItems()
+  ├─ Execute ITEMS_QUERY (main metadata)
+  ├─ For each item in chunks (50 at a time):
+  │  ├─ Execute CREATORS_QUERY
+  │  ├─ Execute ATTACHMENTS_QUERY
+  │  ├─ Execute ITEM_TAGS_QUERY ← ALREADY EXTRACTS TAGS
+  │  └─ Execute ITEM_COLLECTIONS_QUERY
+  ├─ Emit onProgress callback ← ENHANCED in v1.1
+  └─ Return items with tags populated
 
-### Plugin Class Lifecycle
+PROFILE INITIALIZATION (new in v1.1):
+  ProfileInitializer.initializeProfile()
+  ├─ Fetch seed papers from connector
+  ├─ Extract signals (NEW: tags + existing authors + keywords)
+  │  ├─ Count tag frequency across seeds ← NEW
+  │  ├─ Count author frequency (existing)
+  │  └─ Count keyword frequency (existing)
+  ├─ Create Profile with weighted signals
+  ├─ Validate profile (NEW: warn if empty) ← NEW
+  └─ Persist to settings
 
+BATCH GENERATION (enhanced in v1.1):
+  BatchService.generateBatch()
+  ├─ Progress.start() ← NEW: Visual feedback
+  ├─ Filter items by registry state
+  ├─ Check if profile exists
+  │  ├─ If yes: RecommendationEngine.scoreItems()
+  │  │  └─ Calculate signals: tags (NEW) + authors + keywords + recency
+  │  └─ If no: Sort by dateAdded
+  ├─ Progress.update() ← NEW: Mid-operation feedback
+  ├─ Slice to batch size
+  ├─ Mark items as 'proposed'
+  └─ Progress.complete() ← NEW: Done feedback
+
+FEEDBACK LOOP (existing pattern, NEW signal):
+  BatchService.recordAccept/recordReject()
+  ├─ Update registry state
+  ├─ Trigger AdaptiveLearner
+  │  ├─ Learn from accepted item tags (NEW)
+  │  ├─ Learn from accepted item authors (existing)
+  │  └─ Learn from accepted item keywords (existing)
+  └─ Debounced RegistryService.save()
+
+VALIDATION (enhanced with explanations):
+  ValidationService.validate()
+  ├─ Check if quality gates enabled
+  ├─ Get schema for item type
+  ├─ Validate item
+  └─ Return errors + missing field names
+
+OverrideModal (enhanced in v1.1):
+  ├─ Show validation errors (existing)
+  └─ Add field explanations (NEW) ← Help text for each field
+```
+
+### Key Architectural Patterns Used
+
+| Pattern | Location | Purpose | Used in v1.1 |
+|---------|----------|---------|--------------|
+| **Dependency Injection** | Services receive deps in constructor | Loose coupling | Yes, unchanged |
+| **Chunked Async** | processInChunks(items, fn, 50) | Non-blocking UI | Yes, unchanged |
+| **Lazy Loading** | main.ts onLayoutReady() | Defer init until UI ready | Yes, unchanged |
+| **Debounced State** | RegistryService.save() (2000ms) | Batch I/O writes | Yes, unchanged |
+| **Progress Callbacks** | ZoteroConnector.loadItems(onProgress?) | Optional tracking | Yes, enhanced |
+| **Retry with Backoff** | retryWithBackoff() | SQLITE_BUSY handling | Yes, unchanged |
+| **Schema Version Detection** | checkSchemaVersion() | Zotero 6.x/7.x compat | Yes, unchanged |
+| **Read-Only Database** | sql.js in-memory copy | Never modify Zotero | Yes, unchanged |
+| **Multi-Signal Scoring** | RecommendationEngine | Combine multiple ranking signals | Yes, **new signal: tags** |
+
+## v1.1 Integration Points: Minimal Changes
+
+### 1. Tag Extraction ✓ Already Implemented
+
+**Status:** Tags field already in `ZoteroItem` schema. `ITEM_TAGS_QUERY` already executes for each item during load.
+
+**Code locations:**
+- ZoteroItem interface: `src/db/zotero-connector.ts:69` — `tags: string[]` field
+- Tag query execution: `src/db/zotero-connector.ts:336-342` — Already loads tags per item
+- No changes needed to database layer
+
+**v1.1 changes (minimal):**
+- **RecommendationEngine**: Add `calculateTagScore()` method
+- **ProfileInitializer**: Extract tags from seed papers (same frequency-counting pattern as authors/keywords)
+- **AdaptiveLearner**: Learn tag weights when user accepts/rejects items
+
+### 2. Progress Tracking for Batch Scoring
+
+**Component exists:** ProgressTracker (`src/performance/progress-tracker.ts`) already implemented
+
+**Current usage:** Referenced at BatchService line 72, called during batch generation
+
+**Implementation pattern already in code:**
 ```typescript
-import { Plugin, WorkspaceLeaf } from 'obsidian';
-
-export default class MyPlugin extends Plugin {
-    settings: MyPluginSettings;
-
-    async onload() {
-        // 1. Load persisted settings/state
-        await this.loadSettings();
-
-        // 2. Register extensions
-        this.registerView(VIEW_TYPE, (leaf) => new MyView(leaf));
-        this.addCommand({
-            id: 'my-command',
-            name: 'My Command',
-            callback: () => { /* ... */ }
-        });
-        this.addRibbonIcon('dice', 'Sample Plugin', () => { /* ... */ });
-
-        // 3. Add settings tab
-        this.addSettingTab(new MySettingTab(this.app, this));
-
-        // 4. Register event handlers
-        this.registerEvent(
-            this.app.workspace.on('file-open', this.handleFileOpen)
-        );
-
-        // 5. Initialize background services
-        // (must be async/non-blocking)
-    }
-
-    onunload() {
-        // Cleanup: detach views, clear intervals, close connections
-        this.app.workspace.detachLeavesOfType(VIEW_TYPE);
-    }
-
-    async loadSettings() {
-        this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
-    }
-
-    async saveSettings() {
-        await this.saveData(this.settings);
-    }
+// From BatchService line 72 (ALREADY THERE)
+async generateBatch(options: BatchOptions): Promise<Batch> {
+  const progress = new ProgressTracker();
+  // ...
 }
 ```
 
-**Key methods:**
-- `onload()`: Called when plugin activates (initialization logic here)
-- `onunload()`: Called when plugin deactivates (cleanup logic here)
-- `loadData()` / `saveData(data)`: Persist plugin state as JSON in `.obsidian/plugins/[plugin-id]/data.json`
-- `app`: Access to Obsidian API (vault, workspace, metadata cache, etc.)
-
-**Sources:**
-- [Obsidian Plugin Class](https://docs.obsidian.md/Reference/TypeScript+API/Plugin)
-- [Obsidian Sample Plugin Structure](https://github.com/obsidianmd/obsidian-sample-plugin)
-
----
-
-## Component Architecture for Zotero Bridge
-
-Based on your requirements and Obsidian patterns, here's the recommended component structure:
-
-```
-┌─────────────────────────────────────────────────────────┐
-│                    Plugin Main Class                     │
-│  (Lifecycle orchestrator, dependency injection root)    │
-└───────────┬─────────────────────────────────────────────┘
-            │
-    ┌───────┴────────┬──────────┬───────────┬──────────┐
-    │                │          │           │          │
-┌───▼────┐  ┌───────▼──────┐  ┌▼────────┐ ┌▼────────┐ ┌▼────────┐
-│Settings│  │Zotero        │  │Registry │ │Generator│ │UI Layer │
-│Manager │  │Connector     │  │Service  │ │Service  │ │         │
-└────────┘  │(SQLite Read) │  │(JSON    │ │(Note    │ │-Onboard │
-            └──────┬───────┘  │ State)  │ │ Writer) │ │ Wizard  │
-                   │          └────┬────┘ └────┬────┘ │-Triage  │
-                   │               │           │      │ View    │
-                   │               │           │      └─────────┘
-                   │          ┌────▼───────────▼────┐
-                   └─────────►│ Processing Engine   │
-                              │ (Batch, Recommend,  │
-                              │  Quality Gate)      │
-                              └─────────────────────┘
-```
-
-### Component 1: Settings Manager
-
-**Responsibility:** Persist and expose plugin configuration.
-
-**Interfaces:**
+**v1.1 enhancement:** Wire progress callbacks throughout batch generation:
 ```typescript
-interface ZotBridgeSettings {
-    zoteroDbPath: string;           // Path to zotero.sqlite
-    outputFolder: string;           // Where to create notes
-    batchSize: number;              // Daily recommendation limit
-    processedItemIds: Set<string>;  // Lightweight in-memory cache
-    lastSyncTime: number;
+progress.start('Filtering candidates...', allItems.length);
+// ... filtering ...
+progress.update(33, 'Scoring candidates...');
+// ... scoring ...
+progress.update(66, 'Selecting batch...');
+// ... selection ...
+progress.complete('Batch ready!');
+```
+
+**Integration approach:** Existing ProgressTracker already uses Obsidian Notice API (src/performance/progress-tracker.ts:24), no new dependencies
+
+### 3. Warning Notices (Empty Profile Edge Case)
+
+**Trigger:** ProfileInitializer.initializeProfile() when seed papers yield empty profile
+
+**v1.1 addition:**
+```typescript
+async initializeProfile(seedPaperIds, preferences) {
+  const profile = this.profileService.createProfile(...);
+  // ... extract tags, authors, keywords ...
+
+  // NEW: Warn if profile is empty
+  if (this.isProfileEmpty(profile)) {
+    new Notice('⚠️ Profile from selected papers is empty.');
+  }
+
+  return profile;
 }
 ```
+
+**Integration approach:** Uses Obsidian's native Notice API (already used in codebase)
+
+### 4. Override Modal Field Explanations
+
+**Existing component:** OverrideModal (src/ui/override-modal.ts)
+
+**Current behavior:** Shows validation errors as list
+
+**v1.1 enhancement:** Add inline field explanations for each required field
 
 **Implementation pattern:**
-- Use `loadData()` / `saveData()` for persistence
-- Expose via singleton or dependency injection
-- Settings UI uses `PluginSettingTab` class
+```typescript
+// Create mapping of field → explanation
+const fieldExplanations: Record<string, string> = {
+  title: 'Required for note title. Edit in Zotero: Info tab → Title field',
+  doi: 'Digital Object Identifier. Edit in Zotero: Info tab → DOI field',
+  year: 'Publication year. Edit in Zotero: Info tab → Date field',
+  author: 'At least one author. Edit in Zotero: Info tab → Creators section',
+};
 
-**Sources:** [Obsidian Plugin Settings](https://forum.obsidian.md/t/best-method-to-access-the-latest-plugin-setting-values/89396)
+// When rendering validation errors
+const missingFields = validation.missingFields;
+for (const field of missingFields) {
+  modal.contentEl.createEl('p', { text: `${field}: ${fieldExplanations[field]}` });
+}
+```
 
-### Component 2: Zotero Connector (SQLite Reader)
+**Integration approach:** String templating in existing modal, no new components
 
-**Responsibility:** Read Zotero database without modifying it.
+## Modified Components (v1.1)
 
-**Critical decision:** How to bundle better-sqlite3?
+### 1. RecommendationEngine
 
-**Option A: Depend on obsidian-sqlite3 plugin**
-- **Pro:** Handles platform-specific binaries for you
-- **Pro:** User installs dependency plugin once
-- **Con:** External dependency (user must install two plugins)
-- **Implementation:**
-  ```typescript
-  const sqlitePlugin = this.app.plugins.getPlugin('obsidian-sqlite3');
-  if (!sqlitePlugin) {
-      new Notice('Please install obsidian-sqlite3 plugin first');
-      return;
+**File:** `src/recommendations/recommendation-engine.ts`
+
+**Changes:**
+- Add `calculateTagScore()` method alongside existing `calculateAuthorScore()`, `calculateKeywordScore()`
+- Weight tags with `DEFAULT_PROFILE_WEIGHTS.tagWeight = 1.0` (same as author weight = 0.8)
+- Integrate into `scoreItem()` multi-signal calculation
+
+**Existing pattern for other signals (to copy):**
+```typescript
+private scoreItem(item: ZoteroItem, profile: UserProfile, config: RecommendationConfig): ScoredItem {
+  const authorScore = this.calculateAuthorScore(item, profile);   // existing
+  const keywordScore = this.calculateKeywordScore(item, profile); // existing
+  const recencyScore = this.calculateRecencyScore(item, config);  // existing
+
+  // Combine signals
+  const combinedScore = (
+    authorScore * DEFAULT_PROFILE_WEIGHTS.authorWeight +
+    keywordScore * DEFAULT_PROFILE_WEIGHTS.keywordWeight +
+    recencyScore
+  );
+
+  return { item, score: combinedScore };
+}
+```
+
+**New code (apply identical pattern for tags):**
+```typescript
+private scoreItem(item: ZoteroItem, profile: UserProfile, config: RecommendationConfig): ScoredItem {
+  const tagScore = this.calculateTagScore(item, profile);        // ← NEW
+  const authorScore = this.calculateAuthorScore(item, profile);   // existing
+  const keywordScore = this.calculateKeywordScore(item, profile); // existing
+  const recencyScore = this.calculateRecencyScore(item, config);  // existing
+
+  const combinedScore = (
+    tagScore * DEFAULT_PROFILE_WEIGHTS.tagWeight +               // ← NEW
+    authorScore * DEFAULT_PROFILE_WEIGHTS.authorWeight +
+    keywordScore * DEFAULT_PROFILE_WEIGHTS.keywordWeight +
+    recencyScore
+  );
+
+  return { item, score: combinedScore };
+}
+
+// NEW method (following pattern of calculateAuthorScore, etc.)
+private calculateTagScore(item: ZoteroItem, profile: UserProfile): number {
+  if (!item.tags || item.tags.length === 0) {
+    return 0;
   }
-  const db = sqlitePlugin.initDatabase(this.settings.zoteroDbPath, { readonly: true });
-  ```
 
-**Option B: Bundle better-sqlite3 directly**
-- **Pro:** Self-contained plugin
-- **Con:** Complex build process (prebuild-install + bindings for cross-platform)
-- **Con:** Must ship `.node` binaries for Windows/Mac/Linux
-- **Implementation:** Requires custom esbuild config + asset copying
+  let score = 0;
+  for (const tag of item.tags) {
+    const weight = profile.tags.get(tag) || 0;
+    score += weight;
+  }
 
-**Recommendation:** Start with **Option A** (dependency approach) for MVP, migrate to Option B post-1.0 if users request standalone distribution.
-
-**Data access pattern:**
-```typescript
-class ZoteroConnector {
-    private db: Database;
-
-    async connect(dbPath: string) {
-        this.db = sqlitePlugin.initDatabase(dbPath, { readonly: true });
-    }
-
-    queryItems(filters: ItemFilter): ZoteroItem[] {
-        const stmt = this.db.prepare(`
-            SELECT * FROM items
-            WHERE itemTypeID = ? AND dateAdded > ?
-        `);
-        return stmt.all(filters.typeId, filters.minDate);
-    }
-
-    close() {
-        this.db.close();
-    }
+  return score / item.tags.length; // Average score
 }
 ```
 
-**Sources:**
-- [obsidian-sqlite3 Plugin](https://github.com/windily-cloud/obsidian-sqlite3)
-- [Adding SQLite to Obsidian Plugin](https://forum.obsidian.md/t/adding-sqlite-database-integration-to-an-obsidian-plugin/88272)
-- [better-sqlite3 Electron Issues](https://github.com/WiseLibs/better-sqlite3/issues/1321)
+**Why minimal change:** Identical pattern to existing author/keyword scoring, no new algorithms
 
-### Component 3: Registry Service (State Persistence)
+### 2. ProfileInitializer
 
-**Responsibility:** Track processing state across restarts (what's processed, queued, rejected).
+**File:** `src/profile/profile-initializer.ts`
 
-**Storage strategy:**
+**Changes:**
+- Extract tags during signal extraction (same frequency-counting pattern as authors/keywords)
+- Store in Profile.tags Map before persistence
+
+**Existing pattern for authors/keywords (to copy):**
 ```typescript
-interface ProcessingRegistry {
-    processed: Record<string, ProcessedItemState>;  // itemId -> state
-    queue: string[];                                 // itemIds pending triage
-    lastBatchDate: string;
-}
+private extractSignalsWithFrequency(seedPapers: ZoteroItem[]): SignalFrequencies {
+  const authorFreq = new Map<string, number>();
+  const keywordFreq = new Map<string, number>();
 
-class RegistryService {
-    private registry: ProcessingRegistry;
-
-    async load() {
-        const data = await plugin.loadData();
-        this.registry = data.registry || this.getDefaultRegistry();
+  for (const paper of seedPapers) {
+    for (const author of paper.authors) {
+      authorFreq.set(author, (authorFreq.get(author) || 0) + 1);
     }
-
-    async save() {
-        await plugin.saveData({ registry: this.registry });
+    const keywords = extractKeywords(paper.title, paper.abstract);
+    for (const keyword of keywords) {
+      keywordFreq.set(keyword, (keywordFreq.get(keyword) || 0) + 1);
     }
+  }
 
-    markProcessed(itemId: string, state: ProcessedItemState) {
-        this.registry.processed[itemId] = state;
-        await this.save();  // Debounce in production
-    }
+  return { authors: authorFreq, keywords: keywordFreq };
 }
 ```
 
-**Performance consideration:** For 5000+ items, storing full registry in `data.json` may cause slow saves. Consider:
-- Debouncing saves (batch writes every 5 seconds)
-- Storing only essential state (IDs + status, not full item metadata)
-- Using separate JSON file via `app.vault.adapter.write()` if exceeding 1MB
-
-**Sources:**
-- [Plugin saveData/loadData](https://docs.obsidian.md/Reference/TypeScript+API/Plugin/saveData)
-- [How Plugin Persists Data](https://forum.obsidian.md/t/how-could-plugin-persist-data/55959)
-
-### Component 4: Processing Engine
-
-**Responsibility:** Batch generator, recommendation logic, quality gate validation.
-
-**Critical pattern:** Avoid blocking UI thread during heavy computation.
-
-**Anti-pattern (blocks UI):**
+**New code (apply identical pattern for tags):**
 ```typescript
-// BAD: Processes all 5000 items synchronously
-async generateBatch() {
-    const items = connector.queryItems({ limit: 5000 });
-    const filtered = items.filter(complexFilter);      // BLOCKS
-    const sorted = filtered.sort(complexComparator);   // BLOCKS
-    return sorted.slice(0, 10);
+private extractSignalsWithFrequency(seedPapers: ZoteroItem[]): SignalFrequencies {
+  const tagFreq = new Map<string, number>();      // ← NEW
+  const authorFreq = new Map<string, number>();
+  const keywordFreq = new Map<string, number>();
+
+  for (const paper of seedPapers) {
+    // NEW: Extract tags
+    for (const tag of paper.tags) {
+      tagFreq.set(tag, (tagFreq.get(tag) || 0) + 1);
+    }
+
+    // Existing: authors
+    for (const author of paper.authors) {
+      authorFreq.set(author, (authorFreq.get(author) || 0) + 1);
+    }
+
+    // Existing: keywords
+    const keywords = extractKeywords(paper.title, paper.abstract);
+    for (const keyword of keywords) {
+      keywordFreq.set(keyword, (keywordFreq.get(keyword) || 0) + 1);
+    }
+  }
+
+  return { tags: tagFreq, authors: authorFreq, keywords: keywordFreq };
 }
 ```
 
-**Recommended pattern (chunked processing):**
+**Why minimal change:** Identical frequency-counting loop for tags, just applied to `paper.tags` instead of `paper.authors`
+
+### 3. AdaptiveLearner
+
+**File:** `src/recommendations/adaptive-learner.ts`
+
+**Changes:**
+- When user accepts item: Increment tag weights in profile (same as authors)
+- When user rejects item: Optionally decrease tag weights (same as authors)
+
+**Existing pattern for authors (to copy):**
 ```typescript
-// GOOD: Process in chunks with yield points
-async generateBatch(): Promise<ZoteroItem[]> {
-    const CHUNK_SIZE = 100;
-    const items = connector.queryItems({ limit: 5000 });
-    const results: ZoteroItem[] = [];
+learnFromAccept(item: ZoteroItem): void {
+  const profile = this.profileService.getProfile();
 
-    for (let i = 0; i < items.length; i += CHUNK_SIZE) {
-        const chunk = items.slice(i, i + CHUNK_SIZE);
-        const filtered = chunk.filter(complexFilter);
-        results.push(...filtered);
+  for (const author of item.authors) {
+    const current = profile.authors.get(author) || 0;
+    profile.authors.set(author, current + 1);
+  }
 
-        // Yield to UI thread every chunk
-        await sleep(0);  // Or setImmediate equivalent
-    }
-
-    return results.sort(complexComparator).slice(0, 10);
+  // ... similar for keywords ...
 }
 ```
 
-**Alternative: Web Workers (experimental)**
-- Obsidian technically supports Web Workers but requires custom esbuild config
-- Example: [obsidian-web-worker-example](https://github.com/RyotaUshio/obsidian-web-worker-example)
-- **Caution:** Limited community adoption; may have compatibility issues
-- **Recommendation:** Use chunked async pattern first, investigate workers if still too slow
-
-**Sources:**
-- [Web Workers in Obsidian](https://github.com/RyotaUshio/obsidian-web-worker-example)
-- [CPU-Intensive Tasks Discussion](https://forum.obsidian.md/t/how-to-speed-up-cpu-intensive-tasks-in-an-obsidian-plugin-workers-not-supported/103392)
-
-### Component 5: Generator Service (Note Creation)
-
-**Responsibility:** Write markdown files to vault with proper frontmatter.
-
-**API pattern:**
+**New code (apply identical pattern for tags):**
 ```typescript
-class NoteGenerator {
-    async createNote(item: ZoteroItem, targetFolder: string): Promise<TFile> {
-        const filename = this.sanitizeFilename(item.title) + '.md';
-        const path = `${targetFolder}/${filename}`;
-        const content = this.generateMarkdown(item);
+learnFromAccept(item: ZoteroItem): void {
+  const profile = this.profileService.getProfile();
 
-        // Check if file exists
-        const existingFile = this.app.vault.getAbstractFileByPath(path);
-        if (existingFile) {
-            // Handle duplicate: append timestamp or skip
-        }
+  // NEW: Update tags
+  for (const tag of item.tags) {
+    const current = profile.tags.get(tag) || 0;
+    profile.tags.set(tag, current + 1);
+  }
 
-        // Create file via Vault API (NOT fs.writeFile)
-        const file = await this.app.vault.create(path, content);
-        return file;
-    }
+  // Existing: authors
+  for (const author of item.authors) {
+    const current = profile.authors.get(author) || 0;
+    profile.authors.set(author, current + 1);
+  }
 
-    private generateMarkdown(item: ZoteroItem): string {
-        return `---
-zotero-id: ${item.id}
-title: ${item.title}
-authors: ${item.creators.join(', ')}
----
-
-# ${item.title}
-
-## Notes
-[Your notes here]
-`;
-    }
+  // Existing: keywords
+  // ...
 }
 ```
 
-**Critical:** Always use `app.vault` API, not Node.js `fs` module. Vault API triggers Obsidian's indexing and syncing.
+**Why minimal change:** Identical increment pattern, applied to tags
 
-**Sources:**
-- [Vault API File Operations](https://docs.obsidian.md/Plugins/Vault)
-- [Why fs.writeFile Doesn't Work](https://forum.obsidian.md/t/why-does-fs-writefile-not-save-file/31972)
+### 4. BatchService
 
-### Component 6: UI Layer
+**File:** `src/batch/batch-service.ts`
 
-**6a. Onboarding Wizard (Modal)**
+**Current state:** ProgressTracker already initialized at line 72
 
+**Changes:** Add progress update calls during major phases
+
+**Code already has skeleton:**
 ```typescript
-import { Modal, Setting } from 'obsidian';
+async generateBatch(options: BatchOptions): Promise<Batch> {
+  const progress = new ProgressTracker();  // ← ALREADY HERE
 
-class OnboardingModal extends Modal {
-    private step: number = 0;
+  try {
+    progress.start('Filtering candidates...', 100); // ← ALREADY HERE, line 75
 
-    onOpen() {
-        this.renderStep();
-    }
+    // Filtering phase...
+    progress.update(50, 'Scoring candidates...');   // ← ALREADY HERE, line 97
 
-    renderStep() {
-        const { contentEl } = this;
-        contentEl.empty();
+    // Scoring phase...
+    progress.update(75, 'Selecting batch...');      // ← ALREADY HERE, line 125
 
-        if (this.step === 0) {
-            contentEl.createEl('h2', { text: 'Welcome to Zotero Bridge' });
-            new Setting(contentEl)
-                .setName('Zotero Database Path')
-                .addText(text => text.setValue(this.settings.zoteroDbPath));
+    // Selection phase...
+    progress.complete();                             // ← ALREADY HERE, line 140
+```
 
-            new Setting(contentEl)
-                .addButton(btn => btn
-                    .setButtonText('Next')
-                    .onClick(() => {
-                        this.step++;
-                        this.renderStep();
-                    }));
-        }
-        // ... more steps
-    }
+**No code changes needed** — Progress tracking is already implemented in current v1.0 codebase! Just ensure it's being used.
+
+## New Components (v1.1)
+
+### None required for core tag extraction + UX polish
+
+All v1.1 features integrate via **modifications to existing components** and **reuse of existing patterns**.
+
+**Why no new components:**
+- Tag extraction: Uses existing tag field in ZoteroItem (already populated by ZoteroConnector)
+- Progress tracking: ProgressTracker component already exists and is being used
+- Warning notices: Obsidian Notice API already used elsewhere in codebase
+- Modal explanations: String templating, no component needed
+- Tag scoring: Integrated into existing RecommendationEngine multi-signal scoring
+- Tag learning: Integrated into existing AdaptiveLearner pattern
+
+## Data Schema Changes
+
+### ZoteroItem (No Changes ✓)
+
+Already has tags field populated:
+```typescript
+export interface ZoteroItem {
+  // ... existing fields ...
+  tags: string[];      // ✓ Already exists, already populated
+  // ... rest of fields ...
 }
 ```
 
-**Sources:**
-- [Obsidian Modals](https://docs.obsidian.md/Plugins/User+interface/Modals)
-- [Modal Refresh Patterns](https://designdebt.club/refreshing-your-modal-or-settings-tab-in-obsidian/)
+**Status:** Tags are extracted during ZoteroConnector.loadItems() via ITEM_TAGS_QUERY. No schema changes needed.
 
-**6b. Triage Dashboard (Custom View)**
+### UserProfile (No Breaking Changes)
 
 ```typescript
-import { ItemView, WorkspaceLeaf } from 'obsidian';
-
-const VIEW_TYPE_TRIAGE = 'zotbridge-triage';
-
-class TriageView extends ItemView {
-    constructor(leaf: WorkspaceLeaf) {
-        super(leaf);
-    }
-
-    getViewType() { return VIEW_TYPE_TRIAGE; }
-    getDisplayText() { return 'Zotero Triage'; }
-    getIcon() { return 'checkmark'; }
-
-    async onOpen() {
-        const container = this.containerEl.children[1];
-        container.empty();
-        container.createEl('h2', { text: 'Triage Dashboard' });
-
-        // Render card UI for batch items
-        const items = await this.plugin.processingEngine.getCurrentBatch();
-        items.forEach(item => this.renderCard(container, item));
-    }
-
-    renderCard(parent: HTMLElement, item: ZoteroItem) {
-        const card = parent.createDiv({ cls: 'triage-card' });
-        card.createEl('h3', { text: item.title });
-
-        const actions = card.createDiv({ cls: 'triage-actions' });
-        actions.createEl('button', { text: 'Accept' })
-               .addEventListener('click', () => this.handleAccept(item));
-        actions.createEl('button', { text: 'Skip' })
-               .addEventListener('click', () => this.handleSkip(item));
-    }
-}
-
-// Register in main plugin
-this.registerView(VIEW_TYPE_TRIAGE, (leaf) => new TriageView(leaf));
-```
-
-**Opening the view:**
-```typescript
-this.addCommand({
-    id: 'open-triage',
-    name: 'Open Triage Dashboard',
-    callback: () => {
-        this.app.workspace.getRightLeaf(false).setViewState({
-            type: VIEW_TYPE_TRIAGE,
-            active: true
-        });
-    }
-});
-```
-
-**Sources:**
-- [Custom Views Documentation](https://docs.obsidian.md/Plugins/User+interface/Views)
-- [ItemView Examples](https://forum.obsidian.md/t/how-to-correctly-open-an-itemview/60871)
-- [Workspace API](https://marcusolsson.github.io/obsidian-plugin-docs/user-interface/workspace)
-
----
-
-## Data Flow Architecture
-
-```
-┌─────────────┐
-│   Zotero    │
-│  Database   │ (read-only)
-│ (SQLite)    │
-└──────┬──────┘
-       │
-       │ SQL Query (via better-sqlite3)
-       ▼
-┌─────────────────┐
-│ Zotero Connector│ ──► Returns ZoteroItem[]
-└────────┬────────┘
-         │
-         │ Raw items
-         ▼
-┌──────────────────┐
-│Processing Engine │
-│ - Filter         │
-│ - Recommend      │ ──► Checks Registry for processed IDs
-│ - Quality Gate   │ ◄── Updates Registry with state
-└────────┬─────────┘
-         │
-         │ Approved items
-         ▼
-┌───────────────┐          ┌────────────┐
-│Note Generator │ ────────►│Obsidian    │
-│               │  writes  │Vault       │
-└───────────────┘          └────────────┘
-         │
-         │ Created file paths
-         ▼
-┌────────────────┐
-│ Registry       │
-│ (persists via  │
-│  saveData)     │
-└────────────────┘
-```
-
-**Key flows:**
-
-1. **Daily Batch Generation:**
-   - User triggers command → Processing Engine queries Zotero Connector
-   - Engine filters based on Registry (skip already processed)
-   - Engine ranks items → Returns top N → Displays in Triage View
-
-2. **Item Triage:**
-   - User clicks Accept/Skip in Triage View
-   - Accept → Note Generator creates file → Registry marks processed
-   - Skip → Registry marks skipped → Next item shows
-
-3. **State Persistence:**
-   - Every Registry update calls `plugin.saveData()`
-   - On plugin load, Registry calls `plugin.loadData()`
-   - Survives Obsidian restarts
-
----
-
-## UI Patterns in Obsidian
-
-### Settings Tab
-
-```typescript
-import { App, PluginSettingTab, Setting } from 'obsidian';
-
-class ZotBridgeSettingTab extends PluginSettingTab {
-    constructor(app: App, plugin: MyPlugin) {
-        super(app, plugin);
-    }
-
-    display(): void {
-        const { containerEl } = this;
-        containerEl.empty();
-
-        new Setting(containerEl)
-            .setName('Zotero Database Path')
-            .setDesc('Path to zotero.sqlite (usually in Zotero data directory)')
-            .addText(text => text
-                .setPlaceholder('/path/to/zotero.sqlite')
-                .setValue(this.plugin.settings.zoteroDbPath)
-                .onChange(async (value) => {
-                    this.plugin.settings.zoteroDbPath = value;
-                    await this.plugin.saveSettings();
-                }));
-
-        new Setting(containerEl)
-            .setName('Daily Batch Size')
-            .addSlider(slider => slider
-                .setLimits(5, 50, 5)
-                .setValue(this.plugin.settings.batchSize)
-                .onChange(async (value) => {
-                    this.plugin.settings.batchSize = value;
-                    await this.plugin.saveSettings();
-                }));
-    }
+export interface UserProfile {
+  tags: Map<string, number>;     // Already structured for Map<string, number>
+  authors: Map<string, number>;  // existing
+  keywords: Map<string, number>; // existing
+  // ... rest of fields ...
 }
 ```
 
-### Modal Types
+**Change:** ProfileInitializer populates `profile.tags` during initialization. Previously may have been empty Map, now has tag frequencies from seed papers.
 
-| Pattern | Use Case | Example |
-|---------|----------|---------|
-| Simple Modal | Confirmations, alerts | "Are you sure?" |
-| Multi-step Modal | Onboarding wizard | Step 1: Path → Step 2: Preferences |
-| Suggest Modal | Autocomplete selection | File picker, item search |
-| Custom Modal | Complex forms | Triage decision UI |
+**Impact:** No schema migration needed. Empty Map deserializes fine, populated Map is backward compatible.
 
-### View Placement
+### Registry (No Changes ✓)
 
-```typescript
-// Right sidebar (recommended for dashboards)
-this.app.workspace.getRightLeaf(false).setViewState({ type: VIEW_TYPE });
+`RegistryEntry` and `Registry` unchanged. State machine remains: `unseen → proposed → [accepted|rejected|deferred] → imported`
 
-// Left sidebar
-this.app.workspace.getLeftLeaf(false).setViewState({ type: VIEW_TYPE });
+## Build Order for v1.1 Implementation
 
-// Main area (new tab)
-this.app.workspace.getLeaf(true).setViewState({ type: VIEW_TYPE });
-```
-
----
-
-## Performance Architecture
-
-### Challenge: 5000+ Items Without Freezing UI
-
-**Obsidian runs single-threaded.** Heavy computation blocks user interaction.
-
-### Strategy 1: Chunked Async Processing
-
-```typescript
-async function processBatch(items: ZoteroItem[], chunkSize = 100) {
-    const results = [];
-    for (let i = 0; i < items.length; i += chunkSize) {
-        const chunk = items.slice(i, i + chunkSize);
-        const processed = chunk.map(heavyOperation);
-        results.push(...processed);
-
-        // Yield to event loop
-        await new Promise(resolve => setTimeout(resolve, 0));
-    }
-    return results;
-}
-```
-
-**Benefit:** UI remains responsive; progress indicator possible.
-
-### Strategy 2: Incremental Indexing (Dataview Pattern)
-
-**Inspiration:** Dataview maintains in-memory index, updates incrementally.
-
-**Application to Zotero Bridge:**
-- On first load: Index all Zotero items (show progress modal)
-- Cache index in memory + persist lightweight version
-- On subsequent runs: Only query items added since `lastSyncTime`
-
-```typescript
-class ItemCache {
-    private index: Map<string, ZoteroItemMetadata>;
-
-    async buildInitialIndex() {
-        const items = connector.queryAllItems();
-        const CHUNK_SIZE = 500;
-
-        for (let i = 0; i < items.length; i += CHUNK_SIZE) {
-            const chunk = items.slice(i, i + CHUNK_SIZE);
-            chunk.forEach(item => {
-                this.index.set(item.id, this.extractMetadata(item));
-            });
-            await sleep(0);  // Yield to UI
-        }
-
-        await this.persistIndex();
-    }
-
-    async updateIndex() {
-        const lastSync = this.getLastSyncTime();
-        const newItems = connector.queryItems({ since: lastSync });
-        newItems.forEach(item => {
-            this.index.set(item.id, this.extractMetadata(item));
-        });
-    }
-}
-```
-
-**Trade-off:** Memory usage for 5000 items (~2-5MB typically acceptable).
-
-### Strategy 3: Lazy Loading in UI
-
-**For Triage View:**
-- Don't render all batch items at once
-- Render first 3 cards, load more on scroll or button click
-- Use virtual scrolling for large lists (e.g., [react-virtual](https://github.com/TanStack/virtual) if using React)
-
-### Strategy 4: Debounced Saves
-
-**Problem:** Saving Registry on every item update causes jank.
-
-**Solution:**
-```typescript
-class RegistryService {
-    private saveTimeout: NodeJS.Timeout;
-
-    markProcessed(itemId: string, state: ProcessedItemState) {
-        this.registry.processed[itemId] = state;
-
-        // Debounce save
-        clearTimeout(this.saveTimeout);
-        this.saveTimeout = setTimeout(() => {
-            this.save();
-        }, 2000);  // Save 2 seconds after last update
-    }
-}
-```
-
-### Performance Benchmarks (Reference: Dataview)
-
-- **Indexing:** ~1000 files/second (Dataview on modern hardware)
-- **Query execution:** Sub-100ms for most queries on 10K+ notes
-- **Startup cost:** 1-2 seconds for large vaults
-
-**Target for Zotero Bridge:**
-- Initial index of 5000 items: <5 seconds (with progress indicator)
-- Incremental updates: <500ms
-- Batch generation: <2 seconds
-- Note creation: <100ms per file
-
-**Sources:**
-- [Dataview Performance Discussion](https://github.com/blacksmithgu/obsidian-dataview/discussions/2116)
-- [Dataview Indexing Architecture](https://blacksmithgu.github.io/obsidian-dataview/)
-- [Datacore (Performance Successor)](https://deepwiki.com/blacksmithgu/datacore)
-
----
-
-## Build Order Recommendations
-
-Based on component dependencies and risk mitigation:
-
-### Phase 1: Core Infrastructure (Foundation)
-**Goal:** Validate SQLite access and basic plugin structure.
-
-1. **Settings Manager** (low risk, foundational)
-   - Implement `loadData()` / `saveData()`
-   - Create settings tab UI
-   - Test persistence across restarts
-
-2. **Zotero Connector** (high risk, critical path)
-   - Choose SQLite strategy (obsidian-sqlite3 dependency vs bundled)
-   - Implement read-only database queries
-   - Test with real Zotero database
-   - **Validation gate:** Can we reliably read Zotero items?
-
-3. **Registry Service** (medium risk, foundational)
-   - Implement state persistence
-   - Design schema for processed items
-   - Test with mock data (5000+ items)
-   - **Validation gate:** Can we persist large state efficiently?
-
-**Deliverable:** Plugin that connects to Zotero DB, reads items, persists state.
-
----
-
-### Phase 2: Processing Logic (Business Rules)
-**Goal:** Implement batch generation and recommendation algorithms.
-
-4. **Processing Engine - Batch Generator**
-   - Implement filtering logic
-   - Implement ranking/recommendation
-   - Test chunked async processing with 5000 items
-   - **Validation gate:** Does UI remain responsive?
-
-5. **Processing Engine - Quality Gate**
-   - Implement validation rules
-   - Test edge cases (missing fields, malformed data)
-
-**Deliverable:** Command that generates batch of recommended items (logged to console).
-
----
-
-### Phase 3: Note Generation (Output)
-**Goal:** Create actual notes in vault.
-
-6. **Generator Service**
-   - Implement markdown templating
-   - Implement file creation via Vault API
-   - Handle duplicates and filename sanitization
-   - **Validation gate:** Do created notes have proper frontmatter and trigger Obsidian indexing?
-
-**Deliverable:** Command that creates notes for test batch.
-
----
-
-### Phase 4: User Interface (Interactions)
-**Goal:** Build wizard and triage UI.
-
-7. **Onboarding Modal**
-   - Multi-step wizard for initial setup
-   - Path validation and user guidance
-
-8. **Triage View (Custom ItemView)**
-   - Card-based UI for batch items
-   - Accept/Skip actions
-   - Integration with Registry and Generator
-
-**Deliverable:** Full user flow from setup to note creation.
-
----
-
-### Phase 5: Polish & Performance
-**Goal:** Optimize for production use.
-
-9. **Performance Optimization**
-   - Implement incremental indexing
-   - Add progress indicators
-   - Optimize Registry saves (debouncing)
-
-10. **Error Handling & Edge Cases**
-    - Database connection failures
-    - Invalid Zotero data
-    - Disk space issues
-    - User cancellation flows
-
-**Deliverable:** Production-ready plugin.
-
----
-
-## Dependency Graph
+**Dependency graph:**
 
 ```
-Settings Manager ──┐
-                   ├──► Zotero Connector ──► Processing Engine ──► Generator Service
-Registry Service ──┘                              │                      │
-                                                  │                      │
-                                             Triage View ◄───────────────┘
-                                                  │
-                                           Onboarding Modal
+1. RecommendationEngine (tag scoring)
+   └─ Depends on: ZoteroItem.tags ✓ (already exists)
+
+2. ProfileInitializer (tag extraction)
+   └─ Depends on: RecommendationEngine ✓
+
+3. AdaptiveLearner (learn from tag signals)
+   └─ Depends on: ProfileInitializer ✓
+
+4. BatchService (progress tracking)
+   └─ Depends on: ProgressTracker ✓ (already exists)
+
+5. ProfileInitializer updates (warning notices)
+   └─ Depends on: Obsidian Notice API ✓ (already used)
+
+6. OverrideModal updates (field explanations)
+   └─ Depends on: ValidationService ✓ (already exists)
+   └─ Independent, can run parallel
 ```
 
-**Critical path:** Settings → Zotero Connector → Processing Engine → Generator
-**Parallel development possible:** UI components (Modal, View) can be built with mock data while core logic is stabilizing.
+### Suggested Implementation Order
 
----
+1. **RecommendationEngine.calculateTagScore()** — Core new scoring signal
+   - Add method, wire into scoreItem()
+   - Unit test with mock profiles containing tags
+   - Estimated effort: 2-3 hours
 
-## Anti-Patterns to Avoid
+2. **ProfileInitializer tag extraction** — Extract tags from seed papers
+   - Add frequency counting for tags (copy keyword pattern, apply to tags)
+   - Populate profile.tags during initialization
+   - Estimated effort: 1-2 hours
 
-### 1. Synchronous Heavy Operations
-**Don't:**
-```typescript
-// Blocks UI for seconds
-const items = connector.queryAllItems();  // 5000 items
-const filtered = items.filter(complexFilter);
-```
+3. **AdaptiveLearner tag learning** — Learn from user feedback
+   - Increment tag weights on accept (copy author pattern, apply to tags)
+   - Optional: decrement on reject
+   - Estimated effort: 1 hour
 
-**Do:**
-```typescript
-// Yields to UI every 100 items
-const items = await connector.queryAllItems();
-const filtered = await chunkProcess(items, 100, complexFilter);
-```
+4. **BatchService progress tracking** — Visual feedback during batch generation
+   - Verify ProgressTracker calls are working
+   - Add update() calls at filtering/scoring/selection phases
+   - Estimated effort: 1 hour (mostly testing)
 
-### 2. Using Node.js fs Module
-**Don't:**
-```typescript
-import * as fs from 'fs';
-fs.writeFileSync(path, content);  // Breaks Obsidian indexing
-```
+5. **ProfileInitializer warnings** — Alert user about empty profiles
+   - Add validation check: `isProfileEmpty(profile)` method
+   - Emit Notice if profile empty after seed extraction
+   - Estimated effort: 30 minutes
 
-**Do:**
-```typescript
-await this.app.vault.create(path, content);  // Triggers indexing
-```
+6. **OverrideModal explanations** — Inline help text for validation errors
+   - Create `fieldExplanations` Map
+   - Render in modal when displaying validation errors
+   - Estimated effort: 2 hours (design + implementation)
 
-### 3. Ignoring Cleanup in onunload
-**Don't:**
-```typescript
-onunload() {
-    // Empty - leaks memory, leaves views open
-}
-```
+**Total estimated effort:** 7-10 hours for core features + testing
 
-**Do:**
-```typescript
-onunload() {
-    this.app.workspace.detachLeavesOfType(VIEW_TYPE_TRIAGE);
-    this.connector.close();  // Close database connections
-}
-```
+### Testing Checklist for v1.1
 
-### 4. Saving Large Objects Directly
-**Don't:**
-```typescript
-await this.saveData({
-    allItems: this.allZoteroItems,  // 5000 items × full metadata = huge file
-});
-```
+**RecommendationEngine:**
+- [ ] scoreItems() includes tag signal in combined score
+- [ ] Tag scores normalize correctly (0-1 range)
+- [ ] Empty tag list doesn't cause NaN
+- [ ] Tag weight configuration applies correctly
 
-**Do:**
-```typescript
-await this.saveData({
-    processedIds: Array.from(this.processedIds),  // Just IDs, not full objects
-    lastSyncTime: this.lastSyncTime,
-});
-```
+**ProfileInitializer:**
+- [ ] Tags extracted from seed papers
+- [ ] Tag frequencies counted correctly (tag in 3 papers = weight 3.0)
+- [ ] Empty profile warning triggers when profile has no signals
+- [ ] Warning doesn't block profile creation
+- [ ] Empty profile doesn't crash batch generation (falls back to date sorting)
 
-### 5. Assuming SQLite Path
-**Don't:**
-```typescript
-const dbPath = 'C:\\Users\\User\\Zotero\\zotero.sqlite';  // Hardcoded Windows path
-```
+**AdaptiveLearner:**
+- [ ] User accepting item with tag X increases profile.tags[X] weight
+- [ ] Tag weights persist across Obsidian restarts
+- [ ] Subsequent batches score higher for accepted tags
+- [ ] Learning works with mixed (tag + author + keyword) profiles
 
-**Do:**
-```typescript
-// Let user configure in settings
-const dbPath = this.settings.zoteroDbPath;
-if (!await this.app.vault.adapter.exists(dbPath)) {
-    new Notice('Zotero database not found. Please check settings.');
-}
-```
+**BatchService Progress:**
+- [ ] Progress tracker updates during filtering (0% → 33%)
+- [ ] Progress tracker updates during scoring (33% → 66%)
+- [ ] Progress tracker updates during selection (66% → 100%)
+- [ ] Progress bar renders correctly in Notice
+- [ ] Long operations (5000+ items) don't freeze UI
+- [ ] Percentage calculations are correct
 
----
+**UX Enhancements:**
+- [ ] Empty profile warning appears after seed selection
+- [ ] Warning message is clear and actionable
+- [ ] Override modal shows field explanations inline
+- [ ] Explanations guide user to correct field in Zotero
+- [ ] Explanations don't exceed modal width
+
+## Risk Assessment
+
+| Risk | Severity | Mitigation | Status |
+|------|----------|-----------|--------|
+| Tag scoring weights overwhelm other signals | LOW | Tags weight = 1.0 (same as author weight), adjust post-release if needed | Configure |
+| Empty profile edge case breaks batch gen | MEDIUM | ProfileInitializer validates, BatchService falls back to date sorting, test thoroughly | Test |
+| Progress tracker calls too frequently | LOW | Update only on major phase changes (filter/score/select), not per-item | Design |
+| Modal explanations outdated | LOW | Maintain as code comments, update when Zotero UI changes | Doc |
+| Tag learning creates preference drift | LOW | Monitor user feedback, can reset profile, profile UI allows manual editing | Monitor |
+| Null/undefined tag arrays crash scoring | LOW | Add defensive checks: `item.tags?.length > 0` before iteration | Code |
+
+**No architectural blockers identified.** Tag extraction and UX enhancements fit naturally into existing v1.0 design.
+
+## Comparison: v1.0 vs v1.1 Architecture
+
+| Aspect | v1.0 | v1.1 | Change |
+|--------|------|------|--------|
+| **Scoring signals** | Authors, keywords, recency | Authors, keywords, **tags**, recency | +1 signal |
+| **Profile initialization** | Authors + keywords from seeds | **Tags** + authors + keywords from seeds | +1 signal type |
+| **Adaptive learning** | Authors + keywords | **Tags** + authors + keywords | +1 signal type |
+| **Batch generation UI** | Silent processing | **Progress tracking with Notice** | +UX feature |
+| **Validation feedback** | Error modal with list | Error modal + **field explanations** | +UX feature |
+| **Empty profile handling** | Silent fallback to date sort | **Warning notice to user** | +UX feature |
+| **Component count** | 11 major | 11 major | No change |
+| **Service instances** | 8 service instances | 8 service instances | No change |
+| **Database queries** | 6 SQL queries | 6 SQL queries | No change |
+| **Lines of code** | ~7,324 LOC (v1.0) | ~7,500-7,700 LOC (est.) | +2-5% |
+
+## Architecture Decisions Made
+
+| Decision | Rationale | Alternative | Why Rejected |
+|----------|-----------|-------------|-------------|
+| Add tags to existing scoring engine, don't create separate service | Tags are one signal; existing multi-signal pattern scales | Separate TagScorer component | Adds unnecessary complexity |
+| Extract tags during profile init same as authors/keywords | Consistent pattern, reuses frequency logic | Store tag weights separately in profile | Adds ambiguity, harder to maintain |
+| Use ProgressTracker (existing component) | Already implemented, tested, used | Build new progress UI | Duplicate effort, less reliable |
+| Emit Notice for empty profile | Non-blocking, user can continue | Modal (interrupts workflow) | More user-friendly |
+| Add field explanations in OverrideModal as text | Inline context where user needs it | Separate help modal or tooltips | Adds friction to workflow |
+| No schema version bump for v1.1 | Tags and UserProfile.tags are backward compatible | Add migration for version 2 | Unnecessary complexity |
+| ProgressTracker calls per phase, not per-item | Balance between detail and performance | Update on every item scored | Too noisy, freezes UI more |
+
+## Performance Implications
+
+**Tag extraction:** Already chunked with 50-item batches in ZoteroConnector.loadItems(). Per-item tag query adds negligible overhead (SQLite is fast, typically 0-20 tags per item).
+
+**Score calculation:** Adding tag score calculation adds 1-2ms per item (simple Map lookups). For 5000 items: ~5-10s total. Already visible with ProgressTracker.
+
+**Progress tracking:** Rendering Notice updates is cheap (Obsidian optimized for this). Update every ~33% of batch = 3-6 updates per batch, no performance impact.
+
+**Memory:** No new data structures beyond tag Maps in UserProfile. Typical profile: 10-100 tags, negligible memory.
+
+**Worst case:** 5000 items × 20 tags/item = 100K tag entries = ~1MB memory (acceptable).
+
+## Validation Against v1.0 Research
+
+From `.planning/SUMMARY.md`:
+
+| Finding | v1.1 Approach |
+|---------|---------------|
+| UI freezing during batch processing | ProgressTracker provides visual feedback, chunking unchanged (50 items/yield) |
+| SQLite database locking | No new database access; ITEM_TAGS_QUERY already part of per-item load |
+| Zotero schema changes | Tag query stable across Zotero 6.x/7.x, schema detection still applies |
+| JSON state corruption | No change to debounced save pattern (2000ms) |
+| Empty profile fallback | Now explicit warning instead of silent fallback |
+
+All v1.1 changes validate against existing v1.0 constraints.
+
+## Integration Points Checklist
+
+- [x] Tag extraction: ZoteroItem.tags already populated ✓
+- [x] Score calculation: RecommendationEngine pattern established ✓
+- [x] Profile learning: AdaptiveLearner pattern established ✓
+- [x] Progress tracking: ProgressTracker exists, wired to BatchService ✓
+- [x] Warning notices: Obsidian Notice API established ✓
+- [x] Modal enhancements: OverrideModal already handles rendering ✓
+- [x] Data persistence: Settings.saveData() already handles Profile ✓
+- [x] Dependency injection: All services accept deps in constructor ✓
 
 ## Sources
 
-### Official Documentation
-- [Obsidian Plugin API](https://docs.obsidian.md/Reference/TypeScript+API/Plugin)
-- [Obsidian Vault API](https://docs.obsidian.md/Plugins/Vault)
-- [Obsidian Modals](https://docs.obsidian.md/Plugins/User+interface/Modals)
-- [Obsidian Views](https://docs.obsidian.md/Plugins/User+interface/Views)
-- [Obsidian Workspace](https://docs.obsidian.md/Plugins/User+interface/Workspace)
-
-### Plugin Examples
-- [Obsidian Sample Plugin](https://github.com/obsidianmd/obsidian-sample-plugin) - Official template
-- [Obsidian Zotero Integration](https://github.com/mgmeyers/obsidian-zotero-integration) - Existing Zotero plugin
-- [ZotLit](https://github.com/PKM-er/obsidian-zotlit) - Alternative Zotero integration
-- [obsidian-sqlite3](https://github.com/windily-cloud/obsidian-sqlite3) - SQLite wrapper for plugins
-
-### Performance & Architecture
-- [Obsidian Dataview](https://github.com/blacksmithgu/obsidian-dataview) - Reference for large-scale indexing
-- [Dataview Performance Discussion](https://github.com/blacksmithgu/obsidian-dataview/discussions/2116)
-- [Web Workers in Obsidian](https://github.com/RyotaUshio/obsidian-web-worker-example)
-
-### Community Resources
-- [Obsidian Plugin Developer Docs](https://marcusolsson.github.io/obsidian-plugin-docs/user-interface/workspace)
-- [Adding SQLite to Plugin](https://forum.obsidian.md/t/adding-sqlite-database-integration-to-an-obsidian-plugin/88272)
-- [Plugin Data Persistence](https://forum.obsidian.md/t/how-could-plugin-persist-data/55959)
-- [Custom View Examples](https://forum.obsidian.md/t/how-to-correctly-open-an-itemview/60871)
+- [ZoteroConnector implementation](../../src/db/zotero-connector.ts) — Tags extracted at line 336-342
+- [RecommendationEngine implementation](../../src/recommendations/recommendation-engine.ts) — Multi-signal pattern
+- [ProfileInitializer implementation](../../src/profile/profile-initializer.ts) — Signal extraction from seeds
+- [AdaptiveLearner implementation](../../src/recommendations/adaptive-learner.ts) — Learning from feedback
+- [BatchService implementation](../../src/batch/batch-service.ts) — Batch generation with ProgressTracker
+- [ProgressTracker implementation](../../src/performance/progress-tracker.ts) — Progress API in codebase
+- [ValidationService implementation](../../src/validation/validation-service.ts) — Validation with error formatting
+- [UserProfile types](../../src/profile/types.ts) — Profile structure with Map fields
+- [ZoteroItem interface](../../src/db/zotero-connector.ts:37) — Item schema with tags field
+- [PROJECT.md](../PROJECT.md) — v1.1 milestone requirements
 
 ---
 
-## Confidence Assessment
-
-| Area | Confidence | Justification |
-|------|------------|---------------|
-| Plugin Lifecycle | HIGH | Official docs + sample plugin verified |
-| Settings/State Persistence | HIGH | Documented API patterns + forum examples |
-| Vault File Operations | HIGH | Official Vault API + verified anti-patterns |
-| SQLite Integration | MEDIUM | Working examples exist, but build complexity acknowledged |
-| Performance Patterns | MEDIUM | Dataview reference + community reports, but no official guidance |
-| Web Workers | LOW | Limited adoption, compatibility concerns noted |
-
-**Overall Confidence: HIGH** for core architecture decisions. Performance optimizations may require iteration based on real-world testing with user's 5000-item library.
-
----
-
-## Open Questions for Phase-Specific Research
-
-1. **Zotero Schema:** What exact SQLite queries return items with all needed metadata? (Research during Phase 1)
-2. **Recommendation Algorithm:** What ranking logic best surfaces relevant items? (Research during Phase 2)
-3. **Template Flexibility:** Should users customize note templates? (Research during Phase 4)
-4. **Progress Indicators:** Best UX pattern for long-running operations in Obsidian? (Research during Phase 5)
+**Conclusion:** v1.1 tag extraction and UX polish integrate cleanly into v1.0 architecture through component modifications and established pattern reuse. No structural changes needed. **No new services or architectural patterns required.** Estimated implementation effort: 7-10 hours for core features.
