@@ -209,13 +209,22 @@ export class TriageView extends ItemView {
         errors: validationResult.errors
       });
 
-      createTriageCard(cardContainer, {
+      const card = createTriageCard(cardContainer, {
         item,
         validationResult,
         onAccept: (item) => this.handleAccept(item),
         onReject: (item) => this.handleReject(item),
         onDefer: (item) => this.handleDefer(item)
       });
+
+      // Apply status badge if item was previously processed
+      const registryEntry = this.plugin.registry.getEntry(item.itemID);
+      if (registryEntry) {
+        const state = registryEntry.state;
+        // Map 'imported' state to 'accepted' for badge display
+        const badgeState = state === 'imported' ? 'accepted' : state;
+        updateCardStatus(card, badgeState);
+      }
     }
   }
 
