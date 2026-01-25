@@ -6,16 +6,17 @@ See: .planning/PROJECT.md (updated 2026-01-25)
 
 **Core value:** Users can progressively process their Zotero backlog without overwhelm, ensuring every imported literature note meets quality standards.
 
-**Current focus:** v1.0 complete — ready for v1.1 planning
+**Current focus:** v1.1 Polish + Tag Support
 
 ## Current Position
 
-Milestone: v1.0 MVP (SHIPPED)
-Phase: All 5 phases complete
-Status: Milestone archived, ready for v1.1 planning
-Last activity: 2026-01-25 — v1.0 milestone complete
+Milestone: v1.1 Polish + Tag Support
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-01-25 — Milestone v1.1 started
 
-Progress: [██████████] 100% (v1.0)
+Progress: [░░░░░░░░░░] 0% (v1.1)
 
 ## Performance Metrics
 

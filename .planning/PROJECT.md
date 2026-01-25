@@ -21,9 +21,25 @@ Users can progressively process their Zotero backlog without overwhelm, ensuring
 - ✓ Processing Registry: Local JSON tracking state of every Zotero ID (unseen, proposed, accepted, rejected, deferred, imported) — never show same item twice — v1.0
 - ✓ Settings Panel: Configurable batch size, quality gate fields per item type, profile editor — v1.0
 
+## Current Milestone: v1.1 Polish + Tag Support
+
+**Goal:** Enhance user experience with better feedback and guidance, plus add tag-based recommendation signals.
+
+**Target features:**
+- Enhanced error messages and warnings (ProfileInitializer, validation)
+- Granular progress indicators for batch scoring (5000+ item libraries)
+- Override modal field explanations (guide users to fix metadata)
+- Tag extraction and integration into recommendation engine
+- Minor UX enhancements discovered during implementation
+
 ### Active
 
-(No active requirements — ready for v1.1 planning)
+- [ ] Enhanced error messages: Show user warning when seed papers result in empty profile
+- [ ] Granular progress: Display scoring progress during batch generation for large libraries
+- [ ] Override modal explanations: Add text explaining why fields are required and how to fix in Zotero
+- [ ] Tag extraction: Extract tags from Zotero database and add to ZoteroItem schema
+- [ ] Tag-based recommendations: Integrate tags into profile scoring alongside keywords/authors
+- [ ] Minor UX improvements: Keyboard shortcuts, UI polish, accessibility enhancements
 
 ### Out of Scope
 
@@ -78,4 +94,4 @@ Users can progressively process their Zotero backlog without overwhelm, ensuring
 | Seed paper range 5-15 (not fixed 10) | Flexibility for different library sizes and user preferences | ✓ Good — Min 5 ensures profile quality, max 15 prevents decision fatigue |
 
 ---
-*Last updated: 2026-01-25 after v1.0 milestone completion*
+*Last updated: 2026-01-25 after v1.1 milestone started*
