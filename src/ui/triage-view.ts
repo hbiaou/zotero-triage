@@ -9,7 +9,7 @@ import { ItemView, WorkspaceLeaf, Notice } from 'obsidian';
 import type ZotBridgePlugin from '../main';
 import type { ZoteroItem, RegistryState } from '../types';
 import type { Batch } from '../batch/types';
-import { createTriageCard } from './triage-card';
+import { createTriageCard, updateCardStatus } from './triage-card';
 import { showUndoNotice } from './undo-notice';
 import { renderStatsPanel } from './stats-panel';
 import { OverrideConfirmModal } from './override-modal';
@@ -349,6 +349,12 @@ export class TriageView extends ItemView {
       // Mark as imported
       this.plugin.registry.markState(item.itemID, 'imported');
 
+      // Update status badge on card
+      const card = this.containerEl.querySelector(`[data-item-id="${item.itemID}"]`) as HTMLElement;
+      if (card) {
+        updateCardStatus(card, 'accepted');
+      }
+
       // Record accept for adaptive learning
       this.plugin.batchService.recordAccept(item);
 
@@ -384,6 +390,12 @@ export class TriageView extends ItemView {
     // Mark as rejected
     this.plugin.registry.markState(item.itemID, 'rejected');
 
+    // Update status badge on card
+    const card = this.containerEl.querySelector(`[data-item-id="${item.itemID}"]`) as HTMLElement;
+    if (card) {
+      updateCardStatus(card, 'rejected');
+    }
+
     // Record reject for adaptive learning
     this.plugin.batchService.recordReject(item);
 
@@ -413,6 +425,12 @@ export class TriageView extends ItemView {
     // Mark as deferred
     this.plugin.registry.markState(item.itemID, 'deferred');
 
+    // Update status badge on card
+    const card = this.containerEl.querySelector(`[data-item-id="${item.itemID}"]`) as HTMLElement;
+    if (card) {
+      updateCardStatus(card, 'deferred');
+    }
+
     // Increment processed count
     this.processedCount++;
 
@@ -436,6 +454,12 @@ export class TriageView extends ItemView {
   private undoAction(undoState: UndoState, actionType: 'accepted' | 'rejected' | 'deferred'): void {
     // Revert registry state
     this.plugin.registry.markState(undoState.itemId, undoState.previousState);
+
+    // Update status badge on card (remove badge by passing previous state)
+    const card = this.containerEl.querySelector(`[data-item-id="${undoState.itemId}"]`) as HTMLElement;
+    if (card) {
+      updateCardStatus(card, undoState.previousState);
+    }
 
     // Decrement processed count
     this.processedCount--;
