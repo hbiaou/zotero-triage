@@ -131,14 +131,14 @@ Plans:
 **Plans:** 8 plans
 
 Plans:
-- [ ] 05-01-PLAN.md — Error handling infrastructure (Result pattern, AppError, error context)
-- [ ] 05-02-PLAN.md — Progress tracking infrastructure (ProgressTracker, Notice updates)
-- [ ] 05-03-PLAN.md — Retry handler with exponential backoff (SQLITE_BUSY handling)
-- [ ] 05-04-PLAN.md — Error integration (apply to connector, batch, validation)
-- [ ] 05-05-PLAN.md — Progress integration (add to loadItems, generateBatch)
-- [ ] 05-06-PLAN.md — Cross-platform normalization (path/key case-insensitive)
-- [ ] 05-07-PLAN.md — Lazy initialization and memory monitoring
-- [ ] 05-08-PLAN.md — End-to-end verification and testing
+- [x] 05-01-PLAN.md — Error handling infrastructure (Result pattern, AppError, error context)
+- [x] 05-02-PLAN.md — Progress tracking infrastructure (ProgressTracker, Notice updates)
+- [x] 05-03-PLAN.md — Retry handler with exponential backoff (SQLITE_BUSY handling)
+- [x] 05-04-PLAN.md — Error integration (apply to connector, batch, validation)
+- [x] 05-05-PLAN.md — Progress integration (add to loadItems, generateBatch)
+- [x] 05-06-PLAN.md — Cross-platform normalization (path/key case-insensitive)
+- [x] 05-07-PLAN.md — Lazy initialization and memory monitoring
+- [x] 05-08-PLAN.md — End-to-end verification and testing
 
 ## Progress
 
@@ -151,4 +151,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 2. Batch Workflow | 3/3 | Complete | 2026-01-23 |
 | 3. Quality Gates | 3/3 | Complete | 2026-01-24 |
 | 4. Onboarding & Recommendations | 5/5 | Complete | 2026-01-24 |
-| 5. Polish | 0/8 | Not started | - |
+| 5. Polish | 8/8 | Complete | 2026-01-25 |
