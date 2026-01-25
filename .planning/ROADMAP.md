@@ -1,4 +1,4 @@
-# Roadmap: Progressive Zotero-Obsidian Bridge
+# Roadmap: Progressive Zotero-Obsidian Triage
 
 ## Overview
 
