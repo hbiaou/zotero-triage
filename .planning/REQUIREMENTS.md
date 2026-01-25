@@ -64,26 +64,26 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| TAG-01 | TBD | Pending |
-| TAG-02 | TBD | Pending |
-| TAG-03 | TBD | Pending |
-| TAG-04 | TBD | Pending |
-| TAG-05 | TBD | Pending |
-| TAG-06 | TBD | Pending |
-| UX-01 | TBD | Pending |
-| UX-02 | TBD | Pending |
-| UX-03 | TBD | Pending |
-| UX-04 | TBD | Pending |
-| UX-05 | TBD | Pending |
-| UX-06 | TBD | Pending |
-| VAL-01 | TBD | Pending |
-| VAL-02 | TBD | Pending |
+| TAG-01 | Phase 6 | Pending |
+| TAG-02 | Phase 6 | Pending |
+| TAG-03 | Phase 7 | Pending |
+| TAG-04 | Phase 7 | Pending |
+| TAG-05 | Phase 7 | Pending |
+| TAG-06 | Phase 7 | Pending |
+| UX-01 | Phase 8 | Pending |
+| UX-02 | Phase 8 | Pending |
+| UX-03 | Phase 8 | Pending |
+| UX-04 | Phase 8 | Pending |
+| UX-05 | Phase 8 | Pending |
+| UX-06 | Phase 8 | Pending |
+| VAL-01 | Phase 6 | Pending |
+| VAL-02 | Phase 6 | Pending |
 
 **Coverage:**
 - v1.1 requirements: 14 total
-- Mapped to phases: 0 (pending roadmap creation)
-- Unmapped: 14 ⚠️
+- Mapped to phases: 14 (100% coverage)
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-01-25*
-*Last updated: 2026-01-25 after initial definition*
+*Last updated: 2026-01-25 after roadmap creation*
