@@ -111,7 +111,13 @@ export class ProfileEditor {
     signalMap: Map<string, number>
   ): void {
     const section = this.container.createDiv({ cls: 'profile-section' });
-    section.createEl('h3', { text: `Top ${title}` });
+
+    // Show "Top 10 out of X" if more than TOP_SIGNALS_LIMIT, otherwise just "Top X"
+    const totalCount = signalMap.size;
+    const heading = totalCount > TOP_SIGNALS_LIMIT
+      ? `Top ${TOP_SIGNALS_LIMIT} ${title} (out of ${totalCount})`
+      : `Top ${title}`;
+    section.createEl('h3', { text: heading });
 
     // Get top signals sorted by weight
     const topSignals = this.profileService.getTopSignals(type, TOP_SIGNALS_LIMIT);
