@@ -118,29 +118,44 @@ export function createTriageCard(
  * @param state - The new registry state
  */
 export function updateCardStatus(card: HTMLElement, state: RegistryState): void {
-  const header = card.querySelector('.triage-card-header');
-  if (!header) return;
+  const header = card.querySelector('.triage-card-header') as HTMLElement;
+  if (!header) {
+    console.log('ZotBridge BADGE ERROR: No header found');
+    return;
+  }
 
   // Remove any existing status badge
   const existingBadge = header.querySelector('.status-badge');
   if (existingBadge) {
+    console.log('ZotBridge BADGE: Removing existing badge');
     existingBadge.remove();
   }
 
   // Only show badge for processed states
   if (state === 'accepted' || state === 'rejected' || state === 'deferred') {
-    const badge = header.createSpan({ cls: 'status-badge' });
+    console.log('ZotBridge BADGE: Creating badge for state:', state);
+
+    // Create badge using standard DOM API (Obsidian's createSpan might not work on querySelector result)
+    const badge = document.createElement('span');
+    badge.className = 'status-badge';
 
     // Set state-specific class and text
     if (state === 'accepted') {
-      badge.addClass('status-badge-accepted');
-      badge.setText('Accepted');
+      badge.classList.add('status-badge-accepted');
+      badge.textContent = 'Accepted';
+      console.log('ZotBridge BADGE: Accepted badge created, classes:', badge.className);
     } else if (state === 'rejected') {
-      badge.addClass('status-badge-rejected');
-      badge.setText('Rejected');
+      badge.classList.add('status-badge-rejected');
+      badge.textContent = 'Rejected';
+      console.log('ZotBridge BADGE: Rejected badge created, classes:', badge.className);
     } else if (state === 'deferred') {
-      badge.addClass('status-badge-deferred');
-      badge.setText('Deferred');
+      badge.classList.add('status-badge-deferred');
+      badge.textContent = 'Deferred';
+      console.log('ZotBridge BADGE: Deferred badge created, classes:', badge.className);
     }
+
+    header.appendChild(badge);
+  } else {
+    console.log('ZotBridge BADGE: Skipping badge for state:', state);
   }
 }
