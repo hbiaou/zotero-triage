@@ -15,6 +15,7 @@ import { detectZoteroPath } from './utils/paths';
 import { SetupWizardModal } from './ui/setup-wizard-modal';
 import { ProfileEditor } from './ui/profile-editor';
 import { ProfileInitializer } from './profile/profile-initializer';
+import { extractKeywordsFromMultiple } from './profile/keyword-extractor';
 import type ZoteroTriagePlugin from './main';
 
 /**
@@ -274,8 +275,9 @@ export class ZoteroTriageSettingTab extends PluginSettingTab {
           }
 
           const profileInitializer = new ProfileInitializer(
+            (this.plugin as any).connector,
             profileService,
-            (this.plugin as any).connector
+            extractKeywordsFromMultiple
           );
 
           const wizard = new SetupWizardModal(
@@ -311,8 +313,9 @@ export class ZoteroTriageSettingTab extends PluginSettingTab {
           }
 
           const profileInitializer = new ProfileInitializer(
+            (this.plugin as any).connector,
             profileService,
-            (this.plugin as any).connector
+            extractKeywordsFromMultiple
           );
 
           const wizard = new SetupWizardModal(
