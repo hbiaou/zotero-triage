@@ -121,8 +121,14 @@ WHERE ia.parentItemID = ?
 `;
 
 /**
- * Query to get tags for a specific item.
+ * Query to get user-created tags for a specific item.
  * Parameterized with itemID (?).
+ *
+ * Excludes Zotero 7 auto-generated annotation tags:
+ * - custom-color-* (highlight colors in PDF annotations)
+ * - highlight-* (emphasis markers)
+ * - annotation-* (reserved annotation prefix)
+ * - _* (Zotero internal tags starting with underscore)
  *
  * Returns: tag names ordered alphabetically.
  */
@@ -131,6 +137,10 @@ SELECT t.name
 FROM itemTags it
 JOIN tags t ON it.tagID = t.tagID
 WHERE it.itemID = ?
+  AND t.name NOT LIKE 'custom-color-%'
+  AND t.name NOT LIKE 'highlight-%'
+  AND t.name NOT LIKE 'annotation-%'
+  AND t.name NOT LIKE '\_%' ESCAPE '\'
 ORDER BY t.name
 `;
 
