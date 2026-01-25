@@ -4,7 +4,7 @@
  * Renders item metadata with action buttons for Accept/Reject/Defer.
  */
 
-import type { ZoteroItem } from '../types';
+import type { ZoteroItem, RegistryState } from '../types';
 import type { ValidationResult } from '../validation/types';
 
 export interface TriageCardOptions {
@@ -29,6 +29,7 @@ export function createTriageCard(
   const { item, validationResult, onAccept, onReject, onDefer } = options;
 
   const card = container.createDiv({ cls: 'zotbridge-triage-card' });
+  card.dataset.itemId = String(item.itemID);
 
   // Header with item type badge
   const header = card.createDiv({ cls: 'triage-card-header' });
@@ -108,4 +109,38 @@ export function createTriageCard(
   rejectBtn.addEventListener('click', () => onReject(item));
 
   return card;
+}
+
+/**
+ * Update the status badge on a triage card
+ *
+ * @param card - The card element to update
+ * @param state - The new registry state
+ */
+export function updateCardStatus(card: HTMLElement, state: RegistryState): void {
+  const header = card.querySelector('.triage-card-header');
+  if (!header) return;
+
+  // Remove any existing status badge
+  const existingBadge = header.querySelector('.status-badge');
+  if (existingBadge) {
+    existingBadge.remove();
+  }
+
+  // Only show badge for processed states
+  if (state === 'accepted' || state === 'rejected' || state === 'deferred') {
+    const badge = header.createSpan({ cls: 'status-badge' });
+
+    // Set state-specific class and text
+    if (state === 'accepted') {
+      badge.addClass('status-badge-accepted');
+      badge.setText('Accepted');
+    } else if (state === 'rejected') {
+      badge.addClass('status-badge-rejected');
+      badge.setText('Rejected');
+    } else if (state === 'deferred') {
+      badge.addClass('status-badge-deferred');
+      badge.setText('Deferred');
+    }
+  }
 }

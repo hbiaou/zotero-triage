@@ -296,6 +296,43 @@
   color: var(--text-muted);
 }
 
+/* Status badges for Accept/Defer/Reject */
+.status-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 0.75em;
+  font-weight: 500;
+  margin-left: 8px;
+}
+
+.status-badge-accepted {
+  background: var(--interactive-success);
+  color: white;
+}
+
+.status-badge-deferred {
+  background: var(--background-modifier-border);
+  color: var(--text-muted);
+}
+
+.status-badge-rejected {
+  background: var(--text-error);
+  color: white;
+}
+
+/* Validation warning badge */
+.validation-warning-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 0.75em;
+  font-weight: 500;
+  margin-left: 8px;
+  background: var(--background-modifier-warning);
+  color: var(--text-warning);
+}
+
 /* Card title */
 .triage-card-title {
   margin: 0 0 8px 0;
