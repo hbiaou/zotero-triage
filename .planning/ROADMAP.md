@@ -78,10 +78,12 @@ Plans:
   2. ZoteroItem schema includes tags field with proper null handling
   3. Tag extraction handles schema variations defensively (null tags don't crash)
   4. Existing profiles without tags Map remain compatible (backward compatibility)
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] TBD (pending plan-phase)
+- [ ] 06-01-PLAN.md — Add annotation filtering and defensive NULL handling to tag extraction
+- [ ] 06-02-PLAN.md — Add schema validation and integrate tags into profile initialization
+- [ ] 06-03-PLAN.md — Verify tag infrastructure with real Zotero 7 database
 
 #### Phase 7: Tag-Based Recommendations
 **Goal**: Tags improve batch relevance through profile scoring and adaptive learning
@@ -126,6 +128,6 @@ Phases execute in numeric order: 6 → 7 → 8
 | 3. Recommendation Engine & Batch Generation | v1.0 | 5/5 | Complete | 2026-01-24 |
 | 4. Triage Workflow & Quality Gates | v1.0 | 5/5 | Complete | 2026-01-24 |
 | 5. Literature Note Generation & Polish | v1.0 | 5/5 | Complete | 2026-01-25 |
-| 6. Tag Infrastructure & Extraction | v1.1 | 0/TBD | Not started | - |
+| 6. Tag Infrastructure & Extraction | v1.1 | 0/3 | Not started | - |
 | 7. Tag-Based Recommendations | v1.1 | 0/TBD | Not started | - |
 | 8. UX Enhancements (Progress & Validation) | v1.1 | 0/TBD | Not started | - |
