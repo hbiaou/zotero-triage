@@ -140,7 +140,7 @@ WHERE it.itemID = ?
   AND t.name NOT LIKE 'custom-color-%'
   AND t.name NOT LIKE 'highlight-%'
   AND t.name NOT LIKE 'annotation-%'
-  AND t.name NOT LIKE '\_%' ESCAPE '\'
+  AND t.name NOT LIKE '$_%' ESCAPE '$'
 ORDER BY t.name
 `;
 
