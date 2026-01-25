@@ -1,5 +1,5 @@
 /**
- * ZotBridge Settings Tab
+ * Zotero Triage Settings Tab
  *
  * Provides UI for configuring:
  * - Zotero database path (with auto-detect and test connection)
@@ -15,15 +15,15 @@ import { detectZoteroPath } from './utils/paths';
 import { SetupWizardModal } from './ui/setup-wizard-modal';
 import { ProfileEditor } from './ui/profile-editor';
 import { ProfileInitializer } from './profile/profile-initializer';
-import type ZotBridgePlugin from './main';
+import type ZoteroTriagePlugin from './main';
 
 /**
- * Settings tab for ZotBridge plugin configuration
+ * Settings tab for Zotero Triage plugin configuration
  */
-export class ZotBridgeSettingTab extends PluginSettingTab {
-  plugin: ZotBridgePlugin;
+export class ZoteroTriageSettingTab extends PluginSettingTab {
+  plugin: ZoteroTriagePlugin;
 
-  constructor(app: App, plugin: ZotBridgePlugin) {
+  constructor(app: App, plugin: ZoteroTriagePlugin) {
     super(app, plugin);
     this.plugin = plugin;
   }
@@ -32,7 +32,7 @@ export class ZotBridgeSettingTab extends PluginSettingTab {
     const { containerEl } = this;
     containerEl.empty();
 
-    containerEl.createEl('h1', { text: 'ZotBridge Settings' });
+    containerEl.createEl('h1', { text: 'Zotero Triage Settings' });
 
     // Database Path Section
     containerEl.createEl('h2', { text: 'Zotero Database' });
@@ -367,7 +367,7 @@ export class ZotBridgeSettingTab extends PluginSettingTab {
    * Display current connection status information
    */
   private displayConnectionStatus(containerEl: HTMLElement): void {
-    const statusContainer = containerEl.createDiv({ cls: 'zotbridge-status' });
+    const statusContainer = containerEl.createDiv({ cls: 'zotero-triage-status' });
 
     const dbPath = this.plugin.settings.zoteroDbPath;
 

@@ -11,7 +11,7 @@ import { App, Modal, Setting, Notice } from 'obsidian';
 import * as fs from 'fs';
 import { detectZoteroPath } from '../utils/paths';
 import { SeedPaperPicker } from './seed-paper-picker';
-import type ZotBridgePlugin from '../main';
+import type ZoteroTriagePlugin from '../main';
 import type { UserProfile } from '../profile/types';
 import type { ZoteroConnector } from '../db/zotero-connector';
 
@@ -38,7 +38,7 @@ interface WizardData {
  * SetupWizardModal provides first-run setup experience
  */
 export class SetupWizardModal extends Modal {
-  private plugin: ZotBridgePlugin;
+  private plugin: ZoteroTriagePlugin;
   private connector: ZoteroConnector;
   private onComplete: (profile: UserProfile) => void;
   private onSkip: () => void;
@@ -60,13 +60,13 @@ export class SetupWizardModal extends Modal {
   /**
    * Create a new SetupWizardModal
    * @param app - Obsidian app instance
-   * @param plugin - ZotBridge plugin instance
+   * @param plugin - Zotero Triage plugin instance
    * @param onComplete - Callback when wizard completes (receives profile data)
    * @param onSkip - Callback when user skips wizard
    */
   constructor(
     app: App,
-    plugin: ZotBridgePlugin,
+    plugin: ZoteroTriagePlugin,
     onComplete: (profile: UserProfile) => void,
     onSkip: () => void
   ) {
@@ -88,8 +88,8 @@ export class SetupWizardModal extends Modal {
   onOpen(): void {
     const { contentEl, titleEl } = this;
 
-    titleEl.setText('ZotBridge Setup Wizard');
-    contentEl.addClass('zotbridge-wizard');
+    titleEl.setText('Zotero Triage Setup Wizard');
+    contentEl.addClass('zotero-triage-wizard');
 
     this.renderStep();
   }

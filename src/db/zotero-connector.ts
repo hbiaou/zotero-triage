@@ -218,7 +218,7 @@ export class ZoteroConnector {
         return {
           supported: false,
           version,
-          message: `Zotero schema version ${version} is newer than supported (maximum: ${SUPPORTED_SCHEMA_VERSIONS.max}). Please update ZotBridge plugin.`
+          message: `Zotero schema version ${version} is newer than supported (maximum: ${SUPPORTED_SCHEMA_VERSIONS.max}). Please update Zotero Triage plugin.`
         };
       }
 

@@ -1,5 +1,5 @@
 {
-  "name": "zotbridge",
+  "name": "zotero-triage",
   "version": "0.1.0",
   "description": "Progressive Zotero-Obsidian bridge for sustainable literature processing",
   "main": "main.js",
@@ -13,7 +13,7 @@
     "literature",
     "research"
   ],
-  "author": "ZotBridge",
+  "author": "BIAOU Samadori S. Honoré",
   "license": "MIT",
   "dependencies": {
     "lodash.debounce": "^4.0.8",

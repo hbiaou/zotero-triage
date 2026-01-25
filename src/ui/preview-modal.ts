@@ -65,7 +65,7 @@ export class PreviewModal extends Modal {
     titleEl.setText(`Import: ${displayTitle}`);
 
     // Main container
-    const container = contentEl.createDiv({ cls: 'zotbridge-preview-modal' });
+    const container = contentEl.createDiv({ cls: 'zotero-triage-preview-modal' });
 
     // Metadata summary section
     this.renderMetadataSummary(container);
@@ -75,7 +75,7 @@ export class PreviewModal extends Modal {
 
     // File path indicator
     container.createDiv({
-      cls: 'zotbridge-filepath',
+      cls: 'zotero-triage-filepath',
       text: `Will create: ${this.filePath}`
     });
 
@@ -87,7 +87,7 @@ export class PreviewModal extends Modal {
    * Render metadata summary section
    */
   private renderMetadataSummary(container: HTMLElement): void {
-    const metadataSection = container.createDiv({ cls: 'zotbridge-metadata' });
+    const metadataSection = container.createDiv({ cls: 'zotero-triage-metadata' });
 
     // Authors
     const authors = this.item.authors.length > 0
@@ -130,24 +130,24 @@ export class PreviewModal extends Modal {
     label: string,
     value: string
   ): void {
-    const row = container.createDiv({ cls: 'zotbridge-metadata-row' });
-    row.createSpan({ cls: 'zotbridge-metadata-label', text: `${label}:` });
-    row.createSpan({ cls: 'zotbridge-metadata-value', text: value });
+    const row = container.createDiv({ cls: 'zotero-triage-metadata-row' });
+    row.createSpan({ cls: 'zotero-triage-metadata-label', text: `${label}:` });
+    row.createSpan({ cls: 'zotero-triage-metadata-value', text: value });
   }
 
   /**
    * Render collapsible preview section
    */
   private renderPreviewSection(container: HTMLElement): void {
-    const previewSection = container.createDiv({ cls: 'zotbridge-preview-section' });
+    const previewSection = container.createDiv({ cls: 'zotero-triage-preview-section' });
 
     // Toggle header
     const toggleHeader = previewSection.createDiv({
-      cls: 'zotbridge-preview-toggle'
+      cls: 'zotero-triage-preview-toggle'
     });
 
     const toggleIcon = toggleHeader.createSpan({
-      cls: 'zotbridge-toggle-icon',
+      cls: 'zotero-triage-toggle-icon',
       text: this.previewExpanded ? '\u25BC' : '\u25B6'
     });
 
@@ -155,13 +155,13 @@ export class PreviewModal extends Modal {
 
     // Preview content (hidden by default)
     const previewContent = previewSection.createDiv({
-      cls: 'zotbridge-preview-content'
+      cls: 'zotero-triage-preview-content'
     });
     previewContent.style.display = this.previewExpanded ? 'block' : 'none';
 
     // Code block for markdown preview
     const codeBlock = previewContent.createEl('pre', {
-      cls: 'zotbridge-preview-code'
+      cls: 'zotero-triage-preview-code'
     });
     codeBlock.createEl('code', {
       text: this.previewContent
@@ -179,7 +179,7 @@ export class PreviewModal extends Modal {
    * Render action buttons
    */
   private renderButtons(container: HTMLElement): void {
-    const buttonRow = container.createDiv({ cls: 'zotbridge-button-row' });
+    const buttonRow = container.createDiv({ cls: 'zotero-triage-button-row' });
 
     // Create Note button (primary action)
     const createBtn = buttonRow.createEl('button', {

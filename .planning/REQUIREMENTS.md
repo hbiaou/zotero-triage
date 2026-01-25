@@ -1,4 +1,4 @@
-# Requirements: Progressive Zotero-Obsidian Bridge
+# Requirements: Zotero Triage
 
 **Defined:** 2025-01-22
 **Core Value:** Users can progressively process their Zotero backlog without overwhelm, ensuring only quality notes enter their vault.

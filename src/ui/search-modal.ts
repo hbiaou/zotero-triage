@@ -66,7 +66,7 @@ export class ItemSearchModal extends FuzzySuggestModal<ZoteroItem> {
   renderSuggestion(match: FuzzyMatch<ZoteroItem>, el: HTMLElement): void {
     const item = match.item;
 
-    const container = el.createDiv({ cls: 'zotbridge-suggestion' });
+    const container = el.createDiv({ cls: 'zotero-triage-suggestion' });
 
     // Title
     container.createDiv({

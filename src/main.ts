@@ -1,7 +1,7 @@
 import { Plugin, Notice } from 'obsidian';
 import * as path from 'path';
-import { ZotBridgeSettings, DEFAULT_SETTINGS } from './types';
-import { ZotBridgeSettingTab } from './settings';
+import { ZoteroTriageSettings, DEFAULT_SETTINGS } from './types';
+import { ZoteroTriageSettingTab } from './settings';
 import { ZoteroConnector, ZoteroItem } from './db/zotero-connector';
 import { RegistryService } from './registry/registry-service';
 import { NoteGenerator } from './notes/note-generator';
@@ -21,14 +21,14 @@ import { MemoryMonitor } from './performance/memory-monitor';
 import { ConnectionError } from './error/app-error';
 
 /**
- * ZotBridge Plugin
+ * Zotero Triage Plugin
  *
  * Progressive Zotero-Obsidian bridge for sustainable literature processing.
  * Provides an "Inbox-to-Vault" pipeline that forces batch-based processing
  * with strict quality gates.
  */
-export default class ZotBridgePlugin extends Plugin {
-  settings: ZotBridgeSettings = DEFAULT_SETTINGS;
+export default class ZoteroTriagePlugin extends Plugin {
+  settings: ZoteroTriageSettings = DEFAULT_SETTINGS;
   connector!: ZoteroConnector;
   private connectorInitialized = false;
   registry!: RegistryService;
@@ -104,28 +104,28 @@ export default class ZotBridgePlugin extends Plugin {
     );
 
     // Add settings tab
-    this.addSettingTab(new ZotBridgeSettingTab(this.app, this));
+    this.addSettingTab(new ZoteroTriageSettingTab(this.app, this));
 
     // Register commands
     this.addCommand({
-      id: 'zotbridge-import-item',
+      id: 'zotero-triage-import-item',
       name: 'Import Zotero item',
       callback: () => this.handleImportCommand()
     });
 
     // Command to open triage view
     this.addCommand({
-      id: 'zotbridge-open-triage',
+      id: 'zotero-triage-open-triage',
       name: 'Open triage dashboard',
       callback: () => this.activateTriageView()
     });
 
     // Ribbon icon for quick access
-    this.addRibbonIcon('inbox', 'ZotBridge Triage', () => {
+    this.addRibbonIcon('inbox', 'Zotero Triage', () => {
       this.activateTriageView();
     });
 
-    console.log('ZotBridge plugin loaded', {
+    console.log('Zotero Triage plugin loaded', {
       dbPath: this.settings.zoteroDbPath || '(not configured)',
       outputFolder: this.settings.outputFolder,
       registryEntries: Object.keys((await this.loadData())?.registry?.entries || {}).length
@@ -198,7 +198,7 @@ export default class ZotBridgePlugin extends Plugin {
       console.log(`[MemoryMonitor] Final: ${this.memoryMonitor.summary()}`);
     }
 
-    console.log('ZotBridge plugin unloaded');
+    console.log('Zotero Triage plugin unloaded');
   }
 
   /**
@@ -234,7 +234,7 @@ export default class ZotBridgePlugin extends Plugin {
 
     if (!basePath) {
       // Fallback: try to get from manifest dir (relative path)
-      console.warn('ZotBridge: Could not determine vault base path');
+      console.warn('Zotero Triage: Could not determine vault base path');
       return '';
     }
 

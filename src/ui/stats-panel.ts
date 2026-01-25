@@ -24,7 +24,7 @@ export function renderStatsPanel(
   const registryStats = registry.getStats();
   const sessionStats = sessionTracker.getStats();
 
-  const panel = container.createDiv({ cls: 'zotbridge-stats-panel' });
+  const panel = container.createDiv({ cls: 'zotero-triage-stats-panel' });
 
   // Library Overview section
   const librarySection = panel.createDiv({ cls: 'stats-section' });

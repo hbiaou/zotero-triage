@@ -28,7 +28,7 @@ export function createTriageCard(
 ): HTMLElement {
   const { item, validationResult, onAccept, onReject, onDefer } = options;
 
-  const card = container.createDiv({ cls: 'zotbridge-triage-card' });
+  const card = container.createDiv({ cls: 'zotero-triage-triage-card' });
   card.dataset.itemId = String(item.itemID);
 
   // Header with item type badge

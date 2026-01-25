@@ -6,7 +6,7 @@
  */
 
 import { ItemView, WorkspaceLeaf, Notice } from 'obsidian';
-import type ZotBridgePlugin from '../main';
+import type ZoteroTriagePlugin from '../main';
 import type { ZoteroItem, RegistryState } from '../types';
 import type { Batch } from '../batch/types';
 import { createTriageCard, updateCardStatus } from './triage-card';
@@ -17,7 +17,7 @@ import { ProgressTracker } from '../performance/progress-tracker';
 import { getErrorContext } from '../error/error-handler';
 import { ErrorModal } from './error-modal';
 
-export const TRIAGE_VIEW_TYPE = 'zotbridge-triage';
+export const TRIAGE_VIEW_TYPE = 'zotero-triage-view';
 
 /**
  * Stores previous state for undo functionality
@@ -31,12 +31,12 @@ interface UndoState {
  * TriageView displays batches of items as cards with action buttons
  */
 export class TriageView extends ItemView {
-  private plugin: ZotBridgePlugin;
+  private plugin: ZoteroTriagePlugin;
   private currentBatch: Batch | null = null;
   private processedCount: number = 0;
   private totalZoteroItems: number = 0;
 
-  constructor(leaf: WorkspaceLeaf, plugin: ZotBridgePlugin) {
+  constructor(leaf: WorkspaceLeaf, plugin: ZoteroTriagePlugin) {
     super(leaf);
     this.plugin = plugin;
   }
@@ -46,7 +46,7 @@ export class TriageView extends ItemView {
   }
 
   getDisplayText(): string {
-    return 'ZotBridge Triage';
+    return 'Zotero Triage';
   }
 
   getIcon(): string {
@@ -56,12 +56,12 @@ export class TriageView extends ItemView {
   async onOpen(): Promise<void> {
     const container = this.containerEl.children[1] as HTMLElement;
     container.empty();
-    container.addClass('zotbridge-triage-container');
+    container.addClass('zotero-triage-triage-container');
 
     // Check if database is configured
     if (!this.plugin.settings.zoteroDbPath) {
       container.createDiv({
-        cls: 'zotbridge-empty-state',
+        cls: 'zotero-triage-empty-state',
         text: 'Please configure Zotero database path in settings'
       });
       return;
@@ -98,7 +98,7 @@ export class TriageView extends ItemView {
       });
 
       // Verify items were loaded
-      console.log('ZotBridge DEBUG: Loaded', items.length, 'items from Zotero');
+      console.log('Zotero Triage DEBUG: Loaded', items.length, 'items from Zotero');
 
       if (items.length === 0) {
         progress.error('No items found in Zotero library');
@@ -111,10 +111,10 @@ export class TriageView extends ItemView {
       progress.update(items.length, 'Generating batch...');
 
       // DEBUG: Log connector and registry state
-      console.log('ZotBridge DEBUG: Total items in connector:', this.totalZoteroItems);
+      console.log('Zotero Triage DEBUG: Total items in connector:', this.totalZoteroItems);
       const registryStats = this.plugin.registry.getStats();
-      console.log('ZotBridge DEBUG: Registry stats:', registryStats);
-      console.log('ZotBridge DEBUG: First 3 item states:',
+      console.log('Zotero Triage DEBUG: Registry stats:', registryStats);
+      console.log('Zotero Triage DEBUG: First 3 item states:',
         items.slice(0, 3).map(item => ({
           id: item.itemID,
           title: item.title.substring(0, 50),
@@ -129,7 +129,7 @@ export class TriageView extends ItemView {
       });
 
       // DEBUG: Log batch result
-      console.log('ZotBridge DEBUG: Batch generated with', batch.items.length, 'items');
+      console.log('Zotero Triage DEBUG: Batch generated with', batch.items.length, 'items');
 
       if (batch.items.length === 0) {
         progress.error('No unprocessed items available');
@@ -159,8 +159,8 @@ export class TriageView extends ItemView {
   private renderEmptyState(container: HTMLElement): void {
     container.empty();
 
-    const emptyState = container.createDiv({ cls: 'zotbridge-empty-state' });
-    emptyState.createEl('h3', { text: 'ZotBridge Triage' });
+    const emptyState = container.createDiv({ cls: 'zotero-triage-empty-state' });
+    emptyState.createEl('h3', { text: 'Zotero Triage' });
     emptyState.createEl('p', {
       text: 'Review and process items from your Zotero library in small batches.'
     });
@@ -196,13 +196,13 @@ export class TriageView extends ItemView {
     this.renderProgressBar(container);
 
     // Render cards
-    const cardContainer = container.createDiv({ cls: 'zotbridge-card-list' });
+    const cardContainer = container.createDiv({ cls: 'zotero-triage-card-list' });
     for (const item of this.currentBatch.items) {
       // Run validation
       const validationResult = this.plugin.validationService.validate(item);
 
       // DEBUG: Log validation results
-      console.log('ZotBridge DEBUG: Validation for', item.title.substring(0, 50), {
+      console.log('Zotero Triage DEBUG: Validation for', item.title.substring(0, 50), {
         itemType: item.itemType,
         valid: validationResult.valid,
         missingFields: validationResult.missingFields,
@@ -251,7 +251,7 @@ export class TriageView extends ItemView {
   private handleBatchComplete(): void {
     const container = this.containerEl.children[1] as HTMLElement;
     container.empty();
-    container.addClass('zotbridge-triage-container');
+    container.addClass('zotero-triage-triage-container');
 
     // Re-render stats panel
     this.renderStatsPanel(container);
@@ -299,7 +299,7 @@ export class TriageView extends ItemView {
   private renderProgressBar(container: HTMLElement): void {
     if (!this.currentBatch) return;
 
-    const progressSection = container.createDiv({ cls: 'zotbridge-progress' });
+    const progressSection = container.createDiv({ cls: 'zotero-triage-progress' });
 
     // Text indicator
     const progressText = progressSection.createDiv({ cls: 'progress-text' });

@@ -27,7 +27,7 @@ export class OverrideConfirmModal extends Modal {
   onOpen(): void {
     const { containerEl } = this;
     containerEl.empty();
-    containerEl.addClass('zotbridge-override-modal');
+    containerEl.addClass('zotero-triage-override-modal');
 
     // Header
     containerEl.createEl('h2', { text: 'Import with missing fields?' });

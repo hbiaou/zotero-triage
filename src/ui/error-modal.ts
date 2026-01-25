@@ -19,7 +19,7 @@ export class ErrorModal extends Modal {
   onOpen(): void {
     const { contentEl } = this;
     contentEl.empty();
-    contentEl.addClass('zotbridge-error-modal');
+    contentEl.addClass('zotero-triage-error-modal');
 
     // Title
     contentEl.createEl('h2', { text: this.context.title });

@@ -1,4 +1,4 @@
-/* ZotBridge Plugin Styles
+/* Zotero Triage Plugin Styles
  *
  * UI components for Zotero-Obsidian integration:
  * - Search modal suggestions
@@ -10,18 +10,18 @@
    Search Modal Suggestions
    ========================================================================== */
 
-.zotbridge-suggestion {
+.zotero-triage-suggestion {
   padding: 6px 0;
 }
 
-.zotbridge-suggestion .suggestion-title {
+.zotero-triage-suggestion .suggestion-title {
   font-weight: 500;
   font-size: 1em;
   line-height: 1.4;
   margin-bottom: 2px;
 }
 
-.zotbridge-suggestion .suggestion-meta {
+.zotero-triage-suggestion .suggestion-meta {
   color: var(--text-muted);
   font-size: 0.85em;
   display: block;
@@ -31,42 +31,42 @@
    Preview Modal
    ========================================================================== */
 
-.zotbridge-preview-modal {
+.zotero-triage-preview-modal {
   padding: 0;
 }
 
 /* Metadata Summary */
-.zotbridge-metadata {
+.zotero-triage-metadata {
   margin-bottom: 16px;
   padding: 12px;
   background: var(--background-secondary);
   border-radius: 6px;
 }
 
-.zotbridge-metadata-row {
+.zotero-triage-metadata-row {
   display: flex;
   gap: 8px;
   padding: 4px 0;
   line-height: 1.5;
 }
 
-.zotbridge-metadata-label {
+.zotero-triage-metadata-label {
   font-weight: 600;
   min-width: 70px;
   color: var(--text-muted);
 }
 
-.zotbridge-metadata-value {
+.zotero-triage-metadata-value {
   flex: 1;
   word-break: break-word;
 }
 
 /* Preview Toggle Section */
-.zotbridge-preview-section {
+.zotero-triage-preview-section {
   margin-bottom: 16px;
 }
 
-.zotbridge-preview-toggle {
+.zotero-triage-preview-toggle {
   cursor: pointer;
   padding: 8px 0;
   font-size: 0.9em;
@@ -74,20 +74,20 @@
   user-select: none;
 }
 
-.zotbridge-preview-toggle:hover {
+.zotero-triage-preview-toggle:hover {
   color: var(--text-normal);
 }
 
-.zotbridge-toggle-icon {
+.zotero-triage-toggle-icon {
   font-size: 0.8em;
   margin-right: 4px;
 }
 
-.zotbridge-preview-content {
+.zotero-triage-preview-content {
   margin-top: 8px;
 }
 
-.zotbridge-preview-code {
+.zotero-triage-preview-code {
   background: var(--background-secondary);
   border: 1px solid var(--background-modifier-border);
   border-radius: 6px;
@@ -99,13 +99,13 @@
   line-height: 1.5;
 }
 
-.zotbridge-preview-code code {
+.zotero-triage-preview-code code {
   white-space: pre-wrap;
   word-break: break-word;
 }
 
 /* File Path Indicator */
-.zotbridge-filepath {
+.zotero-triage-filepath {
   margin-bottom: 16px;
   padding: 8px 12px;
   background: var(--background-secondary-alt);
@@ -116,7 +116,7 @@
 }
 
 /* Button Row */
-.zotbridge-button-row {
+.zotero-triage-button-row {
   display: flex;
   justify-content: flex-end;
   gap: 8px;
@@ -124,7 +124,7 @@
   border-top: 1px solid var(--background-modifier-border);
 }
 
-.zotbridge-button-row button {
+.zotero-triage-button-row button {
   padding: 8px 16px;
 }
 
@@ -132,7 +132,7 @@
    Stats Panel
    ========================================================================== */
 
-.zotbridge-stats-panel {
+.zotero-triage-stats-panel {
   margin-bottom: 16px;
   padding: 12px;
   background: var(--background-secondary);
@@ -195,25 +195,25 @@
    ========================================================================== */
 
 /* Container for triage view */
-.zotbridge-triage-container {
+.zotero-triage-triage-container {
   padding: 16px;
   overflow-y: auto;
 }
 
 /* Empty state and batch complete state */
-.zotbridge-empty-state,
+.zotero-triage-empty-state,
 .batch-complete {
   text-align: center;
   padding: 40px 20px;
 }
 
-.zotbridge-empty-state h3,
+.zotero-triage-empty-state h3,
 .batch-complete h3 {
   margin-bottom: 12px;
   color: var(--text-normal);
 }
 
-.zotbridge-empty-state p,
+.zotero-triage-empty-state p,
 .batch-complete p {
   margin-bottom: 20px;
   color: var(--text-muted);
@@ -232,12 +232,12 @@
 }
 
 /* Progress indicator */
-.zotbridge-progress {
+.zotero-triage-progress {
   margin-bottom: 20px;
   text-align: center;
 }
 
-.zotbridge-progress .progress-text {
+.zotero-triage-progress .progress-text {
   margin-bottom: 8px;
   font-size: 0.9em;
   color: var(--text-muted);
@@ -257,14 +257,14 @@
 }
 
 /* Card list container */
-.zotbridge-card-list {
+.zotero-triage-card-list {
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
 
 /* Individual triage card */
-.zotbridge-triage-card {
+.zotero-triage-triage-card {
   background: var(--background-secondary);
   border: 1px solid var(--background-modifier-border);
   border-radius: 8px;
@@ -273,7 +273,7 @@
   transition: box-shadow 0.2s ease;
 }
 
-.zotbridge-triage-card:hover {
+.zotero-triage-triage-card:hover {
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 
@@ -404,13 +404,13 @@
 }
 
 /* Undo link in notice */
-.zotbridge-undo-link {
+.zotero-triage-undo-link {
   color: var(--interactive-accent);
   text-decoration: underline;
   cursor: pointer;
 }
 
-.zotbridge-undo-link:hover {
+.zotero-triage-undo-link:hover {
   color: var(--interactive-accent-hover);
 }
 
@@ -418,7 +418,7 @@
    Setup Wizard
    ========================================================================== */
 
-.zotbridge-wizard {
+.zotero-triage-wizard {
   min-width: 600px;
   min-height: 500px;
 }
@@ -621,10 +621,10 @@
    ========================================================================== */
 
 /* For future use */
-.zotbridge-notice-success {
+.zotero-triage-notice-success {
   background: var(--background-modifier-success);
 }
 
-.zotbridge-notice-error {
+.zotero-triage-notice-error {
   background: var(--background-modifier-error);
 }

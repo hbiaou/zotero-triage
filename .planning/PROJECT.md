@@ -1,4 +1,4 @@
-# Progressive Zotero-Obsidian Bridge
+# Zotero Triage - Progressive Zotero-Obsidian Integration
 
 ## What This Is
 

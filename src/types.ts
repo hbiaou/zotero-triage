@@ -1,5 +1,5 @@
 /**
- * ZotBridge Core Type Definitions
+ * Zotero Triage Core Type Definitions
  *
  * Defines interfaces for plugin settings, Zotero items, and the processing registry.
  */
@@ -10,7 +10,7 @@ import type { UserProfile } from './profile/types';
 /**
  * Plugin settings stored in data.json
  */
-export interface ZotBridgeSettings {
+export interface ZoteroTriageSettings {
   /** Path to the Zotero SQLite database file */
   zoteroDbPath: string;
   /** Output folder for literature notes (relative to vault root) */
@@ -28,7 +28,7 @@ import { DEFAULT_QUALITY_GATE_CONFIG } from './validation/types';
 /**
  * Default settings applied on first plugin load
  */
-export const DEFAULT_SETTINGS: ZotBridgeSettings = {
+export const DEFAULT_SETTINGS: ZoteroTriageSettings = {
   zoteroDbPath: '',
   outputFolder: '10_Literature',
   batchSize: 5,

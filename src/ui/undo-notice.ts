@@ -14,7 +14,7 @@ export function showUndoNotice(options: UndoNoticeOptions): Notice {
   container.createSpan({ text: message + ' ' });
   const undoBtn = container.createEl('a', {
     text: 'Undo',
-    cls: 'zotbridge-undo-link'
+    cls: 'zotero-triage-undo-link'
   });
   undoBtn.addEventListener('click', (e) => {
     e.preventDefault();

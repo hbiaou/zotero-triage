@@ -56,21 +56,21 @@ export class RegistryService {
 
       // Validate registry structure
       if (!loaded.entries || typeof loaded.entries !== 'object') {
-        console.warn('ZotBridge: Invalid registry data, resetting to default');
+        console.warn('Zotero Triage: Invalid registry data, resetting to default');
         this.registry = this.getDefault();
         return;
       }
 
       // Check for version mismatch (future-proofing for migrations)
       if (loaded.version !== 1) {
-        console.log(`ZotBridge: Registry version ${loaded.version}, current is 1`);
+        console.log(`Zotero Triage: Registry version ${loaded.version}, current is 1`);
         // Future: handle migrations here
       }
 
       this.registry = loaded;
-      console.log(`ZotBridge: Loaded registry with ${Object.keys(this.registry.entries).length} entries`);
+      console.log(`Zotero Triage: Loaded registry with ${Object.keys(this.registry.entries).length} entries`);
     } catch (err) {
-      console.error('ZotBridge: Failed to load registry', err);
+      console.error('Zotero Triage: Failed to load registry', err);
       this.registry = this.getDefault();
     }
   }
