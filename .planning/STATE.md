@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-01-25)
 ## Current Position
 
 Phase: 6 of 8 (Tag Infrastructure & Extraction)
-Plan: 0 of TBD in current phase
-Status: Ready to plan
-Last activity: 2026-01-25 — Roadmap created for v1.1 milestone
+Plan: 1 of TBD in current phase
+Status: In progress
+Last activity: 2026-01-25 — Completed 06-01-PLAN.md (tag infrastructure with defensive NULL handling)
 
-Progress: [█████░░░░░] 62% (v1.0 complete: 5/8 phases)
+Progress: [█████░░░░░] 63% (v1.0 complete + 06-01: 24/38 total plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 23 (v1.0)
-- Average duration: 54 min
-- Total execution time: 18.6 hours
+- Total plans completed: 24 (v1.0: 23, v1.1: 1)
+- Average duration: 52 min
+- Total execution time: 18.7 hours
 
 **By Phase:**
 
@@ -32,15 +32,16 @@ Progress: [█████░░░░░] 62% (v1.0 complete: 5/8 phases)
 | 03-quality-gates | 3/3 | 945 min | 315 min |
 | 04-onboarding-and-recommendations | 5/5 | 38 min | 8 min |
 | 05-polish | 8/8 | 32 min | 4 min |
-| 06-tag-infrastructure | 0/TBD | - | - |
+| 06-tag-infrastructure | 1/TBD | 3 min | 3 min |
 | 07-tag-recommendations | 0/TBD | - | - |
 | 08-ux-enhancements | 0/TBD | - | - |
 
 **Recent Trend:**
 - v1.0 shipped successfully with 23 plans across 5 phases
-- v1.1 roadmap established with 3 phases targeting UX polish and tag support
+- v1.1 in progress: Phase 6 started with tag infrastructure foundation (3 min execution)
+- Average duration improving with focused, atomic plans
 
-*Updated after roadmap creation*
+*Updated after 06-01 completion*
 
 ## Accumulated Context
 
@@ -52,6 +53,9 @@ Recent decisions affecting v1.1 work:
 - **Tag extraction approach**: Direct SQLite queries to itemTags + tags tables (proven pattern from v1.0)
 - **Tag scoring weight**: Conservative initial weight (1.0, equal to authors) with post-launch tuning
 - **Progress feedback strategy**: Throttled updates (100 items, 500ms) to prevent UI jank during 5000+ item scoring
+- **Annotation tag filtering** (06-01): SQL-level filtering using NOT LIKE patterns for efficiency
+- **Tag extraction error handling** (06-01): Graceful degradation to empty array; tags are enhancement not core feature
+- **Tag normalization** (06-01): Trim whitespace and skip empty strings to prevent polluted arrays
 
 ### Pending Todos
 
@@ -84,11 +88,11 @@ Carried forward to v1.1 planning:
 
 ## Session Continuity
 
-Last session: 2026-01-25 (roadmap creation)
-Stopped at: v1.1 roadmap created with 3 phases (6-8) covering 14 requirements
+Last session: 2026-01-25 19:16:49Z
+Stopped at: Completed 06-01-PLAN.md (tag infrastructure & extraction defensive handling)
 Resume file: None
 
-**Next step:** `/gsd:plan-phase 6` to create detailed plans for Tag Infrastructure & Extraction
+**Next step:** Continue Phase 6 with remaining tag infrastructure plans or proceed to Phase 7 (tag recommendations)
 
 Config:
 {
