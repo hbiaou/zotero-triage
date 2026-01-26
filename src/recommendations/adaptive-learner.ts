@@ -54,11 +54,21 @@ export class AdaptiveLearner {
     // Extract signals from item
     const signals = this.extractSignals(item);
 
+    // Debug logging (Phase 7 verification)
+    console.log('[AdaptiveLearner] Learning from accept:', {
+      title: item.title?.substring(0, 60) + '...',
+      extractedTags: signals.tags,
+      extractedAuthors: signals.authors.slice(0, 3),
+      extractedKeywords: signals.keywords.slice(0, 5),
+      profileTagsBeforeUpdate: Array.from(profile.tags.entries()).slice(0, 5)
+    });
+
     // Boost tag weights
     for (const tag of signals.tags) {
       const currentWeight = profile.tags.get(tag) || 0;
       const newWeight = Math.min(MAX_WEIGHT, currentWeight + ACCEPT_BOOST);
       profile.tags.set(tag, newWeight);
+      console.log(`[AdaptiveLearner] Tag "${tag}": ${currentWeight.toFixed(2)} → ${newWeight.toFixed(2)}`);
     }
 
     // Boost author weights
@@ -79,10 +89,13 @@ export class AdaptiveLearner {
     this.feedbackCount++;
     if (this.feedbackCount % 10 === 0) {
       this.applyWeightDecay(profile);
+      console.log('[AdaptiveLearner] Applied weight decay (feedback count: 10)');
     }
 
     // Update profile via service (triggers debounced save)
     this.profileService.recordAccept(item);
+
+    console.log('[AdaptiveLearner] Profile updated, total tags in profile:', profile.tags.size);
   }
 
   /**
@@ -100,12 +113,23 @@ export class AdaptiveLearner {
     // Extract signals from item
     const signals = this.extractSignals(item);
 
+    // Debug logging (Phase 7 verification)
+    console.log('[AdaptiveLearner] Learning from reject:', {
+      title: item.title?.substring(0, 60) + '...',
+      extractedTags: signals.tags,
+      extractedAuthors: signals.authors.slice(0, 3),
+      extractedKeywords: signals.keywords.slice(0, 5)
+    });
+
     // Diminish tag weights (only if exists)
     for (const tag of signals.tags) {
       const currentWeight = profile.tags.get(tag);
       if (currentWeight !== undefined) {
         const newWeight = Math.max(MIN_WEIGHT, currentWeight + REJECT_PENALTY);
         profile.tags.set(tag, newWeight);
+        console.log(`[AdaptiveLearner] Tag "${tag}": ${currentWeight.toFixed(2)} → ${newWeight.toFixed(2)} (diminished)`);
+      } else {
+        console.log(`[AdaptiveLearner] Tag "${tag}" not in profile, ignoring reject signal`);
       }
       // Don't add negative signals (ignore if not in profile)
     }

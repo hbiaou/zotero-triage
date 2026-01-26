@@ -129,7 +129,7 @@ export class RecommendationEngine {
       }
     }
 
-    return {
+    const scoredItem = {
       item,
       score: finalScore, // Will be normalized after all items scored
       scoreBreakdown: {
@@ -139,6 +139,21 @@ export class RecommendationEngine {
         recencyBoost
       }
     };
+
+    // Debug logging for score verification (Phase 7)
+    if (tagScore > 0 || authorScore > 0 || keywordScore > 0) {
+      console.log('[RecommendationEngine] Scored item:', {
+        title: item.title?.substring(0, 60) + '...',
+        tagScore: tagScore.toFixed(2),
+        authorScore: authorScore.toFixed(2),
+        keywordScore: keywordScore.toFixed(2),
+        recencyBoost: recencyBoost.toFixed(2),
+        finalScore: finalScore.toFixed(2),
+        itemTags: item.tags?.slice(0, 5) || []
+      });
+    }
+
+    return scoredItem;
   }
 
   /**
