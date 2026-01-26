@@ -74,10 +74,11 @@ export interface ProfileWeights {
 
 /**
  * Default weight multipliers
- * Tags are most important, then authors, then keywords
+ * Tags positioned between keywords (2.0) and authors (1.0) per Phase 7 decision
+ * User can configure via settings slider (0.0 - 3.0 range)
  */
 export const DEFAULT_PROFILE_WEIGHTS: ProfileWeights = {
-  tagWeight: 1.0,
+  tagWeight: 1.5,
   authorWeight: 0.8,
   keywordWeight: 0.5
 };

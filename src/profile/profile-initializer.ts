@@ -9,6 +9,7 @@ import type { ZoteroConnector } from '../db/zotero-connector';
 import type { ProfileService } from './profile-service';
 import type { UserProfile } from './types';
 import { extractKeywordsFromMultiple } from './keyword-extractor';
+import { normalizeTag, isNoiseTag } from '../utils/stemming';
 
 /**
  * ProfileInitializer class for creating profiles from seed papers
@@ -106,6 +107,72 @@ export class ProfileInitializer {
   }
 
   /**
+   * Build tag profile from seed papers with top-20 frequency weighting
+   *
+   * Algorithm:
+   * 1. Collect all tags from seed papers
+   * 2. Normalize each tag using normalizeTag() (lowercase + stemming)
+   * 3. Skip empty strings and noise tags (workflow + annotation tags)
+   * 4. Count frequency (Map<normalized_tag, count>)
+   * 5. Filter by minimum frequency (1), sort descending, take top 20
+   * 6. Use frequency directly as weight (appears in 3 papers = weight 3.0)
+   *
+   * @param seedPapers - Zotero items to extract tags from
+   * @param topN - Number of top tags to include (default: 20)
+   * @param minFrequency - Minimum appearances required (default: 1)
+   * @returns Map<string, number> for profile.tags
+   */
+  private buildTagProfile(
+    seedPapers: any[],
+    topN: number = 20,
+    minFrequency: number = 1
+  ): Map<string, number> {
+    const tagFrequency = new Map<string, number>();
+
+    for (const paper of seedPapers) {
+      if (!paper.tags || !Array.isArray(paper.tags)) {
+        continue; // Skip items without tags
+      }
+
+      for (const tag of paper.tags) {
+        // Defensive: verify tag is non-empty string
+        if (typeof tag !== 'string' || tag.trim().length === 0) {
+          continue;
+        }
+
+        // Normalize tag (lowercase + stemming)
+        const normalized = normalizeTag(tag);
+        if (normalized.length === 0) {
+          continue;
+        }
+
+        // Skip noise tags (workflow metadata + annotation tags)
+        if (isNoiseTag(normalized)) {
+          continue;
+        }
+
+        // Count frequency
+        tagFrequency.set(normalized, (tagFrequency.get(normalized) || 0) + 1);
+      }
+    }
+
+    // Filter by minimum frequency, sort by frequency descending, take top N
+    const topTags = Array.from(tagFrequency.entries())
+      .filter(([_, freq]) => freq >= minFrequency)
+      .sort((a, b) => b[1] - a[1])  // Sort by frequency descending
+      .slice(0, topN);
+
+    // Convert frequency to weight map
+    // Frequency directly becomes weight (3 appearances = weight 3.0)
+    const profileTags = new Map<string, number>();
+    for (const [tag, freq] of topTags) {
+      profileTags.set(tag, freq);
+    }
+
+    return profileTags;
+  }
+
+  /**
    * Extract signals from seed papers with frequency counting
    *
    * Returns signal -> frequency maps for tags, authors, and keywords
@@ -115,22 +182,10 @@ export class ProfileInitializer {
     authors: Map<string, number>;
     keywords: Map<string, number>;
   } {
-    const tagCounts = new Map<string, number>();
     const authorCounts = new Map<string, number>();
     const keywordCounts = new Map<string, number>();
 
     for (const paper of seedPapers) {
-      // Extract tags
-      if (paper.tags && Array.isArray(paper.tags)) {
-        for (const tag of paper.tags) {
-          // Defensive: verify tag is non-empty string
-          if (typeof tag === 'string' && tag.trim().length > 0) {
-            const normalized = tag.toLowerCase().trim();
-            tagCounts.set(normalized, (tagCounts.get(normalized) || 0) + 1);
-          }
-        }
-      }
-
       // Extract authors
       if (paper.authors && Array.isArray(paper.authors)) {
         for (const author of paper.authors) {
@@ -150,15 +205,13 @@ export class ProfileInitializer {
       }
     }
 
+    // Build tag profile using specialized method (top 20 with stemming + noise filtering)
+    const tags = this.buildTagProfile(seedPapers, 20, 1);
+
     // Convert counts to weights (frequency = weight)
     // Signal appearing in 1 paper = weight 1.0
     // Signal appearing in 5 papers = weight 5.0
     // etc.
-    const tags = new Map<string, number>();
-    for (const [tag, count] of tagCounts.entries()) {
-      tags.set(tag, count);
-    }
-
     const authors = new Map<string, number>();
     for (const [author, count] of authorCounts.entries()) {
       authors.set(author, count);
