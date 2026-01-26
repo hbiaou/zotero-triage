@@ -5,6 +5,7 @@
  * and initializes profile with frequency-based weighting.
  */
 
+import { Notice } from 'obsidian';
 import type { ZoteroConnector } from '../db/zotero-connector';
 import type { ProfileService } from './profile-service';
 import type { UserProfile } from './types';
@@ -67,6 +68,14 @@ export class ProfileInitializer {
     const tags = new Map<string, number>(signals.tags);
     const authors = new Map<string, number>(signals.authors);
     const keywords = new Map<string, number>(signals.keywords);
+
+    // Check if profile is empty (no signals extracted)
+    if (tags.size === 0 && authors.size === 0 && keywords.size === 0) {
+      new Notice(
+        'Tip: Selected seed papers have minimal metadata. Add keywords, authors, or tags in Zotero to improve recommendations.',
+        10000
+      );
+    }
 
     // Create profile via ProfileService
     const profile = this.profileService.createProfile(
