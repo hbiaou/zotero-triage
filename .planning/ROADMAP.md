@@ -98,9 +98,9 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 07-01-PLAN.md — Extract top 20 tags from seed papers and implement tag scoring with stemming
-- [ ] 07-02-PLAN.md — Add tag-based adaptive learning with weight decay and settings configuration
-- [ ] 07-03-PLAN.md — Verify tag recommendations work end-to-end with real Zotero database
+- [x] 07-01-PLAN.md — Extract top 20 tags from seed papers and implement tag scoring with stemming
+- [x] 07-02-PLAN.md — Add tag-based adaptive learning with weight decay and settings configuration
+- [x] 07-03-PLAN.md — Verify tag recommendations work end-to-end with real Zotero database
 
 #### Phase 8: UX Enhancements (Progress, Validation, Search & Modal UX)
 **Goal**: Users receive clear feedback during operations, understand validation requirements, can efficiently find items, and have smooth interaction flows
@@ -135,5 +135,5 @@ Phases execute in numeric order: 6 → 7 → 8
 | 4. Triage Workflow & Quality Gates | v1.0 | 5/5 | Complete | 2026-01-24 |
 | 5. Literature Note Generation & Polish | v1.0 | 5/5 | Complete | 2026-01-25 |
 | 6. Tag Infrastructure & Extraction | v1.1 | 3/3 | Complete | 2026-01-25 |
-| 7. Tag-Based Recommendations | v1.1 | 0/3 | Not started | - |
+| 7. Tag-Based Recommendations | v1.1 | 3/3 | Complete | 2026-01-26 |
 | 8. UX Enhancements (Progress & Validation) | v1.1 | 0/TBD | Not started | - |

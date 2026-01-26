@@ -11,10 +11,10 @@ Requirements for v1.1 release. Each maps to roadmap phases.
 
 - [x] **TAG-01**: Extract tags from Zotero SQLite database (itemTags + tags tables)
 - [x] **TAG-02**: Add tags field to ZoteroItem schema with proper NULL handling
-- [ ] **TAG-03**: Populate user profile with tag frequencies from seed papers
-- [ ] **TAG-04**: Score items based on tag overlap with user profile
-- [ ] **TAG-05**: Update tag weights from accept/reject actions (adaptive learning)
-- [ ] **TAG-06**: Filter Zotero 7 annotation tags (custom-color-*, highlight-*)
+- [x] **TAG-03**: Populate user profile with tag frequencies from seed papers
+- [x] **TAG-04**: Score items based on tag overlap with user profile
+- [x] **TAG-05**: Update tag weights from accept/reject actions (adaptive learning)
+- [x] **TAG-06**: Filter Zotero 7 annotation tags (custom-color-*, highlight-*)
 
 ### UX Polish (Progress & Feedback)
 
@@ -70,10 +70,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 |-------------|-------|--------|
 | TAG-01 | Phase 6 | Complete |
 | TAG-02 | Phase 6 | Complete |
-| TAG-03 | Phase 7 | Pending |
-| TAG-04 | Phase 7 | Pending |
-| TAG-05 | Phase 7 | Pending |
-| TAG-06 | Phase 7 | Pending |
+| TAG-03 | Phase 7 | Complete |
+| TAG-04 | Phase 7 | Complete |
+| TAG-05 | Phase 7 | Complete |
+| TAG-06 | Phase 7 | Complete |
 | UX-01 | Phase 8 | Pending |
 | UX-02 | Phase 8 | Pending |
 | UX-03 | Phase 8 | Pending |

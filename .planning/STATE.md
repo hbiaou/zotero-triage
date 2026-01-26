@@ -5,22 +5,22 @@
 See: .planning/PROJECT.md (updated 2026-01-25)
 
 **Core value:** Users can progressively process their Zotero backlog without overwhelm, ensuring every imported literature note meets quality standards.
-**Current focus:** Phase 7 - Tag-Based Recommendations (v1.1 milestone)
+**Current focus:** Phase 8 - UX Enhancements (v1.1 milestone)
 
 ## Current Position
 
-Phase: 7 of 8 (Tag-Based Recommendations)
-Plan: 2 of TBD in current phase
-Status: In progress
-Last activity: 2026-01-26 — Completed 07-02-PLAN.md (adaptive learning and settings integration)
+Phase: 8 of 8 (UX Enhancements)
+Plan: 0 of TBD in current phase
+Status: Ready to plan
+Last activity: 2026-01-26 — Phase 7 complete and verified
 
-Progress: [███████░░░] 74% (v1.0 complete + Phase 6-7 in progress: 28/38 total plans)
+Progress: [███████░░░] 76% (v1.0 complete + Phases 6-7 complete: 29/38 total plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 28 (v1.0: 23, v1.1: 5)
-- Average duration: 41 min
+- Total plans completed: 29 (v1.0: 23, v1.1: 6)
+- Average duration: 40 min
 - Total execution time: 19.3 hours
 
 **By Phase:**
@@ -33,17 +33,17 @@ Progress: [███████░░░] 74% (v1.0 complete + Phase 6-7 in pro
 | 04-onboarding-and-recommendations | 5/5 | 38 min | 8 min |
 | 05-polish | 8/8 | 32 min | 4 min |
 | 06-tag-infrastructure | 3/3 | 14 min | 5 min |
-| 07-tag-recommendations | 2/TBD | 17 min | 8.5 min |
+| 07-tag-recommendations | 3/3 | 17 min | 6 min |
 | 08-ux-enhancements | 0/TBD | - | - |
 
 **Recent Trend:**
 - v1.0 shipped successfully with 23 plans across 5 phases
 - v1.1 in progress: Phase 6 tag infrastructure COMPLETE (3 plans, 14 min total)
-- Phase 7 in progress: Tag scoring and adaptive learning complete (2 plans, 17 min total)
-- Verification workflow caught 2 critical bugs during integration testing
-- Average 8.5 min per plan in Phase 7 (adaptive learning integration)
+- Phase 7 tag recommendations COMPLETE (3 plans, 17 min total)
+- Verification workflow caught 3 critical bugs during Phase 7 (stemmer, logging, persistence)
+- Average 6 min per plan in Phase 7 (includes checkpoint verification)
 
-*Updated after 07-02 completion*
+*Updated after Phase 7 completion*
 
 ## Accumulated Context
 
@@ -74,20 +74,34 @@ Recent decisions affecting v1.1 work:
 
 ### Pending Todos
 
-Carried forward to v1.1 planning:
+Phase 8 (UX Enhancements) scope:
 
-1. **Enhanced error messages in ProfileInitializer** (UX-03)
-   - Show user warning notice when seed papers result in empty profile
-
-2. **Granular progress during batch scoring** (UX-01, UX-02)
+1. **Granular progress during batch scoring** (UX-01, UX-02)
    - Add progress updates during recommendation engine scoring for 5000+ item libraries
+   - Throttle updates (every 100 items, 500ms intervals) to prevent UI jank
+
+2. **Enhanced error messages in ProfileInitializer** (UX-03)
+   - Show user warning notice when seed papers result in empty profile
 
 3. **Override modal field explanations** (UX-04)
    - Add text explaining why fields are required and how to fix them in Zotero
 
-4. **~~Tag extraction~~ COMPLETE** (TAG-01 through TAG-06, Phase 6)
-   - ~~Extract tags from Zotero database~~ DONE
-   - ~~Integrate tag scoring into recommendation engine~~ DONE (07-01)
+4. **Validation warning aggregation** (UX-05)
+   - Aggregate validation warnings to prevent notice spam during batch operations
+
+5. **Scroll position preservation** (UX-06)
+   - Fix scroll position during batch processing (preserve user's position after marking items)
+
+6. **Search/filter functionality** (UX-07, UX-08)
+   - Add search/filter to onboarding seed selection (by author, keyword, title)
+   - Add search/filter to batch processing view (by author, keyword, title, tags)
+
+7. **Onboarding modal improvements** (UX-09, UX-10)
+   - Expand seed items selection modal width (eliminate horizontal scrolling)
+   - Preserve scroll position in seed items modal when clicking items
+
+**Completed:**
+- ~~Tag extraction and scoring~~ COMPLETE (TAG-01 through TAG-06, Phases 6-7)
 
 ### Quick Tasks Completed
 
@@ -106,11 +120,11 @@ Carried forward to v1.1 planning:
 
 ## Session Continuity
 
-Last session: 2026-01-26T11:36:33Z
-Stopped at: Completed 07-02-PLAN.md (adaptive learning and settings integration)
+Last session: 2026-01-26
+Stopped at: Phase 7 complete and verified (all 3 plans executed, verification passed)
 Resume file: None
 
-**Next step:** Phase 7 integration testing (07-03) or move to Phase 8 UX enhancements
+**Next step:** Phase 8 (UX Enhancements) - plan execution with `/gsd:plan-phase 8` or `/gsd:discuss-phase 8`
 
 Config:
 {
