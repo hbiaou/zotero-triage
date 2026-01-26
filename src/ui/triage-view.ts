@@ -38,6 +38,7 @@ export class TriageView extends ItemView {
   private searchQuery: string = '';
   private searchInput: HTMLInputElement | null = null;
   private validationWarnings: Map<string, number> = new Map();
+  private scrollPosition: number = 0;
 
   constructor(leaf: WorkspaceLeaf, plugin: ZoteroTriagePlugin) {
     super(leaf);
@@ -433,6 +434,8 @@ export class TriageView extends ItemView {
    * Perform the actual import after validation check
    */
   private async performAccept(item: ZoteroItem, previousState: RegistryState): Promise<void> {
+    this.saveScrollPosition();
+
     try {
       // Create the note
       await this.plugin.noteGenerator.createNote(item);
@@ -462,8 +465,9 @@ export class TriageView extends ItemView {
         timeout: 3000
       });
 
-      // Refresh view
+      // Refresh view and restore scroll
       this.refresh();
+      this.restoreScrollPosition();
 
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
@@ -476,6 +480,8 @@ export class TriageView extends ItemView {
    * Handle Reject action - mark rejected
    */
   private handleReject(item: ZoteroItem): void {
+    this.saveScrollPosition();
+
     const previousState = this.plugin.registry.getState(item.itemID);
 
     // Mark as rejected
@@ -503,14 +509,17 @@ export class TriageView extends ItemView {
       timeout: 3000
     });
 
-    // Refresh view
+    // Refresh view and restore scroll
     this.refresh();
+    this.restoreScrollPosition();
   }
 
   /**
    * Handle Defer action - mark deferred
    */
   private handleDefer(item: ZoteroItem): void {
+    this.saveScrollPosition();
+
     const previousState = this.plugin.registry.getState(item.itemID);
 
     // Mark as deferred
@@ -535,8 +544,9 @@ export class TriageView extends ItemView {
       timeout: 3000
     });
 
-    // Refresh view
+    // Refresh view and restore scroll
     this.refresh();
+    this.restoreScrollPosition();
   }
 
   /**
@@ -562,6 +572,28 @@ export class TriageView extends ItemView {
     this.refresh();
 
     new Notice('Action undone');
+  }
+
+  /**
+   * Save scroll position before re-rendering
+   */
+  private saveScrollPosition(): void {
+    const cardContainer = this.containerEl.querySelector('.zotero-triage-card-list') as HTMLElement;
+    if (cardContainer) {
+      this.scrollPosition = cardContainer.scrollTop;
+    }
+  }
+
+  /**
+   * Restore scroll position after re-rendering
+   */
+  private restoreScrollPosition(): void {
+    requestAnimationFrame(() => {
+      const cardContainer = this.containerEl.querySelector('.zotero-triage-card-list') as HTMLElement;
+      if (cardContainer) {
+        cardContainer.scrollTop = this.scrollPosition;
+      }
+    });
   }
 
   /**
