@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-01-25)
 
 **Core value:** Users can progressively process their Zotero backlog without overwhelm, ensuring every imported literature note meets quality standards.
-**Current focus:** Phase 6 - Tag Infrastructure & Extraction (v1.1 milestone)
+**Current focus:** Phase 7 - Tag-Based Recommendations (v1.1 milestone)
 
 ## Current Position
 
 Phase: 7 of 8 (Tag-Based Recommendations)
-Plan: 0 of TBD in current phase
-Status: Ready to plan
-Last activity: 2026-01-25 — Phase 6 complete and verified
+Plan: 1 of TBD in current phase
+Status: In progress
+Last activity: 2026-01-26 — Completed 07-01-PLAN.md (tag scoring implementation)
 
-Progress: [██████░░░░] 68% (v1.0 complete + Phase 6 complete: 26/38 total plans)
+Progress: [███████░░░] 71% (v1.0 complete + Phase 6-7 in progress: 27/38 total plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 26 (v1.0: 23, v1.1: 3)
-- Average duration: 45 min
-- Total execution time: 19.0 hours
+- Total plans completed: 27 (v1.0: 23, v1.1: 4)
+- Average duration: 43 min
+- Total execution time: 19.1 hours
 
 **By Phase:**
 
@@ -33,16 +33,17 @@ Progress: [██████░░░░] 68% (v1.0 complete + Phase 6 complete
 | 04-onboarding-and-recommendations | 5/5 | 38 min | 8 min |
 | 05-polish | 8/8 | 32 min | 4 min |
 | 06-tag-infrastructure | 3/3 | 14 min | 5 min |
-| 07-tag-recommendations | 0/TBD | - | - |
+| 07-tag-recommendations | 1/TBD | 4 min | 4 min |
 | 08-ux-enhancements | 0/TBD | - | - |
 
 **Recent Trend:**
 - v1.0 shipped successfully with 23 plans across 5 phases
 - v1.1 in progress: Phase 6 tag infrastructure COMPLETE (3 plans, 14 min total)
+- Phase 7 started: Tag scoring implementation complete (1 plan, 4 min)
 - Verification workflow caught 2 critical bugs during integration testing
-- Average 5 min per plan in Phase 6 (includes bug fixes during verification)
+- Average 4 min per plan in Phases 6-7 (highly focused implementation plans)
 
-*Updated after 06-03 completion*
+*Updated after 07-01 completion*
 
 ## Accumulated Context
 
@@ -52,7 +53,13 @@ Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting v1.1 work:
 
 - **Tag extraction approach**: Direct SQLite queries to itemTags + tags tables (proven pattern from v1.0)
-- **Tag scoring weight**: Conservative initial weight (1.0, equal to authors) with post-launch tuning
+- **Tag scoring weight** (07-01): Set to 1.5 (between keywords 2.0 and authors 1.0) for balanced contribution
+- **Tag profile selection** (07-01): Top 20 tags from seed papers with frequency-based weighting
+- **Tag matching strategy** (07-01): Case-insensitive Porter stemming for linguistic normalization
+- **Multi-match scoring** (07-01): Linear multi-match (sum all matching weights), no diminishing returns
+- **No-tag handling** (07-01): Items without tags score 0 (neutral, not penalized)
+- **Multi-word tags** (07-01): Exact match after stemming, don't split ('machine learning' matches phrase only)
+- **Noise tag filtering** (07-01): Defense-in-depth filtering of workflow tags AND annotation tags
 - **Progress feedback strategy**: Throttled updates (100 items, 500ms) to prevent UI jank during 5000+ item scoring
 - **Annotation tag filtering** (06-01): SQL-level filtering using NOT LIKE patterns for efficiency
 - **Tag extraction error handling** (06-01): Graceful degradation to empty array; tags are enhancement not core feature
@@ -75,8 +82,9 @@ Carried forward to v1.1 planning:
 3. **Override modal field explanations** (UX-04)
    - Add text explaining why fields are required and how to fix them in Zotero
 
-4. **Tag extraction** (TAG-01 through TAG-06)
-   - Extract tags from Zotero database and integrate into recommendation engine
+4. **~~Tag extraction~~ COMPLETE** (TAG-01 through TAG-06, Phase 6)
+   - ~~Extract tags from Zotero database~~ DONE
+   - ~~Integrate tag scoring into recommendation engine~~ DONE (07-01)
 
 ### Quick Tasks Completed
 
@@ -88,17 +96,18 @@ Carried forward to v1.1 planning:
 ### Blockers/Concerns
 
 **v1.1 risks identified during research:**
-- Tag scoring overwhelming other signals — mitigation: conservative weighting (1.0) with adaptive learning
-- Empty profile edge case — handled by v1.0 fallback logic, v1.1 adds explicit warning
+- Tag scoring overwhelming other signals — mitigation: weight 1.5 balanced between keywords/authors; linear multi-match fair
+- Empty profile edge case — handled by v1.0 fallback logic, v1.1 adds explicit warning (pending UX phase)
 - Large library performance — progress tracking confirms processing; chunked async unchanged from v1.0
+- Tag normalization consistency — mitigated by centralizeTag() function used everywhere (07-01)
 
 ## Session Continuity
 
-Last session: 2026-01-25 22:02:33Z
-Stopped at: Completed quick task 002 (modal sizing and settings warning fixes)
+Last session: 2026-01-26T11:17:43Z
+Stopped at: Completed 07-01-PLAN.md (tag scoring implementation)
 Resume file: None
 
-**Next step:** Phase 6 COMPLETE. Ready for Phase 7 (tag recommendations scoring integration)
+**Next step:** Phase 7 continues with adaptive learning (07-02) or UX enhancements (Phase 8)
 
 Config:
 {
