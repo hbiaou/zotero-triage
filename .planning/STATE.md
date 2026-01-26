@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-01-25)
 ## Current Position
 
 Phase: 8 of 8 (UX Enhancements)
-Plan: 1 of TBD in current phase
+Plan: 2 of TBD in current phase
 Status: In progress
-Last activity: 2026-01-26 — Completed 08-01-PLAN.md
+Last activity: 2026-01-26 — Completed 08-02-PLAN.md
 
-Progress: [███████░░░] 79% (v1.0 complete + Phases 6-7-8 partial: 30/38 total plans)
+Progress: [████████░░] 82% (v1.0 complete + Phases 6-7-8 partial: 31/38 total plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 30 (v1.0: 23, v1.1: 7)
-- Average duration: 39 min
-- Total execution time: 19.4 hours
+- Total plans completed: 31 (v1.0: 23, v1.1: 8)
+- Average duration: 38 min
+- Total execution time: 19.5 hours
 
 **By Phase:**
 
@@ -34,17 +34,17 @@ Progress: [███████░░░] 79% (v1.0 complete + Phases 6-7-8 par
 | 05-polish | 8/8 | 32 min | 4 min |
 | 06-tag-infrastructure | 3/3 | 14 min | 5 min |
 | 07-tag-recommendations | 3/3 | 17 min | 6 min |
-| 08-ux-enhancements | 1/TBD | 6 min | 6 min |
+| 08-ux-enhancements | 2/TBD | 15 min | 8 min |
 
 **Recent Trend:**
 - v1.0 shipped successfully with 23 plans across 5 phases
 - v1.1 in progress: Phase 6 tag infrastructure COMPLETE (3 plans, 14 min total)
 - Phase 7 tag recommendations COMPLETE (3 plans, 17 min total)
-- Phase 8 UX enhancements IN PROGRESS (1 plan, 6 min)
+- Phase 8 UX enhancements IN PROGRESS (2 plans, 15 min total)
 - Verification workflow caught 3 critical bugs during Phase 7 (stemmer, logging, persistence)
-- Average 6 min per plan across Phases 7-8 (includes checkpoint verification)
+- Average 8 min per plan across Phase 8 (fast execution for focused UX improvements)
 
-*Updated after Phase 8 Plan 01 completion*
+*Updated after Phase 8 Plan 02 completion*
 
 ## Accumulated Context
 
@@ -68,6 +68,10 @@ Recent decisions affecting v1.1 work:
 - **Empty profile handling** (08-01): Show 10-second Notice guiding users to enrich metadata in Zotero
 - **Override modal help** (08-01): Progressive disclosure pattern (visible examples, expandable explanations)
 - **Validation aggregation** (08-01): Single summary Notice after batch load prevents notice spam
+- **Search implementation** (08-02): Case-insensitive substring match (simple, performant) over fuzzy matching
+- **Search scope** (08-02): Title, authors, tags (core identifying fields users remember)
+- **Search persistence** (08-02): Query persists through re-renders for consistent UX during batch processing
+- **Real-time filtering** (08-02): No debounce - filtering fast enough for instant feedback
 - **Annotation tag filtering** (06-01): SQL-level filtering using NOT LIKE patterns for efficiency
 - **Tag extraction error handling** (06-01): Graceful degradation to empty array; tags are enhancement not core feature
 - **Tag normalization** (06-01, 06-02): Trim whitespace, lowercase normalization, skip empty strings
@@ -139,10 +143,10 @@ Phase 8 (UX Enhancements) scope:
 ## Session Continuity
 
 Last session: 2026-01-26
-Stopped at: Completed 08-01-PLAN.md (UX enhancements for progress and validation)
+Stopped at: Completed 08-02-PLAN.md (Search/filter functionality for onboarding and batch processing)
 Resume file: None
 
-**Next step:** Phase 8 (UX Enhancements) - continue with remaining plans or execute next plan with `/gsd:execute-plan`
+**Next step:** Phase 8 (UX Enhancements) - continue with 08-03-PLAN.md or execute next plan with `/gsd:execute-plan`
 
 Config:
 {
