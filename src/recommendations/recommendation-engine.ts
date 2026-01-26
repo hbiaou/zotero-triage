@@ -11,7 +11,7 @@
  * Implements frequency-weighted scoring (RESEARCH.md Algorithm 1)
  */
 
-import type { ZoteroItem } from '../types';
+import type { ZoteroItem, ZoteroTriageSettings } from '../types';
 import type { UserProfile } from '../profile/types';
 import { DEFAULT_PROFILE_WEIGHTS } from '../profile/types';
 import type { ProfileService } from '../profile/profile-service';
@@ -37,18 +37,22 @@ const DEFAULT_CONFIG: RecommendationConfig = {
 export class RecommendationEngine {
   private profileService: ProfileService;
   private zoteroConnector: ZoteroConnector;
+  private settings: ZoteroTriageSettings;
 
   /**
    * Create a new RecommendationEngine
    * @param profileService - Service for accessing user profile
    * @param zoteroConnector - Connector for accessing Zotero data
+   * @param settings - Plugin settings for accessing tag weight configuration
    */
   constructor(
     profileService: ProfileService,
-    zoteroConnector: ZoteroConnector
+    zoteroConnector: ZoteroConnector,
+    settings: ZoteroTriageSettings
   ) {
     this.profileService = profileService;
     this.zoteroConnector = zoteroConnector;
+    this.settings = settings;
   }
 
   /**
@@ -102,9 +106,12 @@ export class RecommendationEngine {
     const authorScore = this.calculateAuthorScore(item, profile);
     const keywordScore = this.calculateKeywordScore(item, profile);
 
+    // Get tag weight from settings (dynamic, user-configurable)
+    const tagWeightMultiplier = this.settings.tagWeight ?? DEFAULT_PROFILE_WEIGHTS.tagWeight;
+
     // Apply profile weights to each signal type
     const rawScore =
-      (tagScore * DEFAULT_PROFILE_WEIGHTS.tagWeight) +
+      (tagScore * tagWeightMultiplier) +
       (authorScore * DEFAULT_PROFILE_WEIGHTS.authorWeight) +
       (keywordScore * DEFAULT_PROFILE_WEIGHTS.keywordWeight);
 

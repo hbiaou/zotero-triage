@@ -21,6 +21,12 @@ export interface ZoteroTriageSettings {
   qualityGate: QualityGateConfig;
   /** User profile for personalized recommendations (null if not configured) */
   userProfile: UserProfile | null;
+  /**
+   * Tag weight multiplier for recommendation scoring (0.0-3.0)
+   * Default: 1.5 (between keywords and authors)
+   * 0.0 = disable tag scoring, 3.0 = strong tag preference
+   */
+  tagWeight: number;
 }
 
 import { DEFAULT_QUALITY_GATE_CONFIG } from './validation/types';
@@ -33,7 +39,8 @@ export const DEFAULT_SETTINGS: ZoteroTriageSettings = {
   outputFolder: '10_Literature',
   batchSize: 5,
   qualityGate: DEFAULT_QUALITY_GATE_CONFIG,
-  userProfile: null
+  userProfile: null,
+  tagWeight: 1.5  // Default from CONTEXT.md decision
 };
 
 /**

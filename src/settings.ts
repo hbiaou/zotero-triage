@@ -163,6 +163,21 @@ export class ZoteroTriageSettingTab extends PluginSettingTab {
           await this.plugin.saveSettings();
         }));
 
+    // Recommendation Settings Section
+    containerEl.createEl('h2', { text: 'Recommendation Settings' });
+
+    new Setting(containerEl)
+      .setName('Tag weight')
+      .setDesc('Importance of tag matches in recommendations (0.0 = disabled, 3.0 = very important)')
+      .addSlider(slider => slider
+        .setLimits(0, 3.0, 0.1)
+        .setValue(this.plugin.settings.tagWeight)
+        .setDynamicTooltip()
+        .onChange(async (value) => {
+          this.plugin.settings.tagWeight = value;
+          await this.plugin.saveSettings();
+        }));
+
     // Quality Gates Section
     containerEl.createEl('h2', { text: 'Quality Gates' });
 

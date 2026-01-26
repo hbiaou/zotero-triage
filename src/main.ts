@@ -69,7 +69,8 @@ export default class ZoteroTriagePlugin extends Plugin {
     // Initialize recommendation engine
     this.recommendationEngine = new RecommendationEngine(
       this.profileService,
-      this.connector
+      this.connector,
+      this.settings
     );
 
     // Initialize adaptive learner
