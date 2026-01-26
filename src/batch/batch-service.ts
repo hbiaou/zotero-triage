@@ -25,6 +25,7 @@ import { ProgressTracker } from '../performance/progress-tracker';
  * BatchService manages batch generation for the triage workflow
  */
 export class BatchService {
+  private static readonly BATCH_SIZE = 100; // Progress update frequency
   private connector: ZoteroConnector;
   private registry: RegistryService;
   private profileService: ProfileService;
@@ -94,7 +95,9 @@ export class BatchService {
         return true;
       });
 
-      progress.update(50, 'Scoring candidates...');
+      // Update progress tracker with actual total
+      progress['state'].total = availableItems.length;
+      progress.update(0, `Scoring ${availableItems.length} candidates...`);
 
       // Sort items based on whether profile exists
       let sortedItems: ZoteroItem[];
@@ -108,7 +111,16 @@ export class BatchService {
             recencyBoost: profile.recencyBoost
           };
 
-          const scoredItems = this.recommendationEngine.scoreItems(availableItems, config);
+          // Score items with progress updates every 100 items
+          const scoredItems = this.recommendationEngine.scoreItems(
+            availableItems,
+            config,
+            (scored) => progress.update(scored, `Scoring candidates...`)
+          );
+
+          // Update progress after scoring
+          progress.update(availableItems.length, 'Normalizing scores...');
+
           const normalizedScores = this.recommendationEngine.normalizeScores(scoredItems);
 
           // Extract items sorted by score (already sorted by scoreItems method)
@@ -120,9 +132,10 @@ export class BatchService {
       } else {
         // No profile: Use date-based sorting (original behavior)
         sortedItems = this.dateSortedItems(availableItems);
+        progress.update(availableItems.length, 'Sorted by date...');
       }
 
-      progress.update(75, 'Selecting batch...');
+      progress.update(availableItems.length, 'Selecting batch...');
 
       // Take N items
       const selectedItems = sortedItems.slice(0, options.size);

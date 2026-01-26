@@ -61,11 +61,13 @@ export class RecommendationEngine {
    *
    * @param items - Items to score
    * @param config - Optional configuration overrides
+   * @param onProgress - Optional progress callback called every 100 items
    * @returns Scored items sorted by score descending
    */
   scoreItems(
     items: ZoteroItem[],
-    config?: Partial<RecommendationConfig>
+    config?: Partial<RecommendationConfig>,
+    onProgress?: (scored: number) => void
   ): ScoredItem[] {
     const fullConfig: RecommendationConfig = {
       ...DEFAULT_CONFIG,
@@ -79,10 +81,21 @@ export class RecommendationEngine {
       return this.coldStartScoring(items);
     }
 
-    // Score each item based on profile
-    const scoredItems = items.map(item =>
-      this.scoreItem(item, profile, fullConfig)
-    );
+    // Score each item based on profile with progress updates
+    const scoredItems: ScoredItem[] = [];
+    for (let i = 0; i < items.length; i++) {
+      scoredItems.push(this.scoreItem(items[i], profile, fullConfig));
+
+      // Call progress callback every 100 items
+      if (onProgress && (i + 1) % 100 === 0) {
+        onProgress(i + 1);
+      }
+    }
+
+    // Final progress update after all items scored
+    if (onProgress && items.length % 100 !== 0) {
+      onProgress(items.length);
+    }
 
     // Apply diversity penalty if configured
     if (fullConfig.relevanceVsDiversity > 0) {

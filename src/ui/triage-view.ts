@@ -35,6 +35,8 @@ export class TriageView extends ItemView {
   private currentBatch: Batch | null = null;
   private processedCount: number = 0;
   private totalZoteroItems: number = 0;
+  private searchQuery: string = '';
+  private searchInput: HTMLInputElement | null = null;
 
   constructor(leaf: WorkspaceLeaf, plugin: ZoteroTriagePlugin) {
     super(leaf);
@@ -199,9 +201,13 @@ export class TriageView extends ItemView {
     // Render progress bar
     this.renderProgressBar(container);
 
+    // Render search filter
+    this.renderSearchFilter(container);
+
     // Render cards
     const cardContainer = container.createDiv({ cls: 'zotero-triage-card-list' });
-    for (const item of this.currentBatch.items) {
+    const displayedItems = this.filterItems(this.currentBatch.items);
+    for (const item of displayedItems) {
       // Run validation
       const validationResult = this.plugin.validationService.validate(item);
 
@@ -239,6 +245,54 @@ export class TriageView extends ItemView {
       registry: this.plugin.registry,
       sessionTracker: this.plugin.sessionTracker,
       totalZoteroItems: this.totalZoteroItems
+    });
+  }
+
+  /**
+   * Render search filter input
+   */
+  private renderSearchFilter(container: HTMLElement): void {
+    const searchGroup = container.createDiv({ cls: 'triage-search' });
+
+    this.searchInput = searchGroup.createEl('input', {
+      type: 'text',
+      cls: 'search-filter-input',
+      placeholder: 'Search by author, title, or tag...'
+    });
+
+    this.searchInput.addEventListener('input', (e) => {
+      this.searchQuery = (e.target as HTMLInputElement).value.toLowerCase();
+      this.refresh();
+    });
+  }
+
+  /**
+   * Filter items by search query
+   */
+  private filterItems(items: ZoteroItem[]): ZoteroItem[] {
+    if (this.searchQuery.length === 0) {
+      return items;
+    }
+
+    return items.filter(item => {
+      const query = this.searchQuery;
+
+      // Match against title
+      if (item.title.toLowerCase().includes(query)) {
+        return true;
+      }
+
+      // Match against authors
+      if (item.authors.some(a => a.toLowerCase().includes(query))) {
+        return true;
+      }
+
+      // Match against tags (if exist)
+      if (item.tags?.some(t => t.toLowerCase().includes(query))) {
+        return true;
+      }
+
+      return false;
     });
   }
 

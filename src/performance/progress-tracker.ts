@@ -10,6 +10,9 @@ export interface ProgressState {
 export class ProgressTracker {
 	private notice: Notice | null = null;
 	private state: ProgressState;
+	private lastUpdateTime: number = 0;
+	private cachedMessage: string = '';
+	private static readonly UPDATE_THROTTLE_MS = 500;
 
 	constructor() {
 		this.state = { status: '', loaded: 0, total: 0, percentComplete: 0 };
@@ -26,16 +29,24 @@ export class ProgressTracker {
 
 	/**
 	 * Update progress state and Notice message
+	 * Uses time-based throttling to prevent UI jank during large batch operations
 	 */
 	update(loaded: number, status?: string): void {
+		// Always update internal state
 		this.state.loaded = loaded;
 		if (status) {
 			this.state.status = status;
 		}
 		this.state.percentComplete = Math.round((loaded / this.state.total) * 100);
 
-		if (this.notice) {
-			this.notice.setMessage(this.formatMessage());
+		// Throttle DOM updates to UPDATE_THROTTLE_MS intervals
+		const now = Date.now();
+		if (now - this.lastUpdateTime >= ProgressTracker.UPDATE_THROTTLE_MS) {
+			if (this.notice) {
+				this.cachedMessage = this.formatMessage();
+				this.notice.setMessage(this.cachedMessage);
+				this.lastUpdateTime = now;
+			}
 		}
 	}
 
