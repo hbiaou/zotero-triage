@@ -37,6 +37,7 @@ export class TriageView extends ItemView {
   private totalZoteroItems: number = 0;
   private searchQuery: string = '';
   private searchInput: HTMLInputElement | null = null;
+  private validationWarnings: Map<string, number> = new Map();
 
   constructor(leaf: WorkspaceLeaf, plugin: ZoteroTriagePlugin) {
     super(leaf);
@@ -147,6 +148,30 @@ export class TriageView extends ItemView {
       // Store batch and reset processed count
       this.currentBatch = batch;
       this.processedCount = 0;
+
+      // Clear validation warnings for new batch
+      this.validationWarnings.clear();
+
+      // Collect validation warnings from batch
+      if (this.plugin.settings.qualityGate.enabled) {
+        for (const item of batch.items) {
+          const validation = this.plugin.validationService.validate(item);
+          if (!validation.valid) {
+            for (const field of validation.missingFields) {
+              const key = `Missing ${field}`;
+              this.validationWarnings.set(key, (this.validationWarnings.get(key) ?? 0) + 1);
+            }
+          }
+        }
+
+        // Show aggregated validation summary if warnings exist
+        if (this.validationWarnings.size > 0) {
+          const summary = Array.from(this.validationWarnings.entries())
+            .map(([issue, count]) => `${count}x ${issue}`)
+            .join(', ');
+          new Notice(`Validation: ${summary}`, 5000);
+        }
+      }
 
       // Render the batch
       this.refresh();
