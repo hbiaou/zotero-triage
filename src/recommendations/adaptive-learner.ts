@@ -10,7 +10,9 @@
 
 import type { ZoteroItem } from '../types';
 import type { ProfileService } from '../profile/profile-service';
+import type { UserProfile } from '../profile/types';
 import { extractKeywords } from '../profile/keyword-extractor';
+import { normalizeTag } from '../utils/stemming';
 
 /**
  * Weight adjustment constants (from ProfileService)
@@ -27,6 +29,7 @@ const MAX_WEIGHT = 5.0;          // Ceiling weight (prevents runaway)
  */
 export class AdaptiveLearner {
   private profileService: ProfileService;
+  private feedbackCount = 0;
 
   /**
    * Create a new AdaptiveLearner
@@ -70,6 +73,12 @@ export class AdaptiveLearner {
       const currentWeight = profile.keywords.get(keyword) || 0;
       const newWeight = Math.min(MAX_WEIGHT, currentWeight + ACCEPT_BOOST);
       profile.keywords.set(keyword, newWeight);
+    }
+
+    // Apply weight decay every 10 feedback events
+    this.feedbackCount++;
+    if (this.feedbackCount % 10 === 0) {
+      this.applyWeightDecay(profile);
     }
 
     // Update profile via service (triggers debounced save)
@@ -119,6 +128,12 @@ export class AdaptiveLearner {
       }
     }
 
+    // Apply weight decay every 10 feedback events
+    this.feedbackCount++;
+    if (this.feedbackCount % 10 === 0) {
+      this.applyWeightDecay(profile);
+    }
+
     // Update profile via service (triggers debounced save)
     this.profileService.recordReject(item);
   }
@@ -135,9 +150,10 @@ export class AdaptiveLearner {
     authors: string[];
     keywords: string[];
   } {
-    // Tags: Currently not available in ZoteroItem schema
-    // Will be populated when tag extraction is added to ZoteroConnector
-    const tags: string[] = [];
+    // Extract tags from item (now available from Phase 6)
+    const tags = (item.tags || [])
+      .map(t => normalizeTag(t))  // Use normalizeTag from stemming.ts
+      .filter(t => t.length > 0);
 
     // Authors: Direct from item (normalize to lowercase for consistency)
     const authors = item.authors.map(a => a.toLowerCase());
@@ -157,5 +173,35 @@ export class AdaptiveLearner {
       authors,
       keywords
     };
+  }
+
+  /**
+   * Apply exponential decay to all profile weights.
+   * Gradually returns weights toward baseline (1.0) to prevent permanent extremes.
+   * Uses exponential moving average: weight = weight * 0.95 + baseline * 0.05
+   *
+   * Call this periodically (e.g., after every 10 feedback events).
+   */
+  private applyWeightDecay(profile: UserProfile): void {
+    const DECAY_FACTOR = 0.95;  // 95% current, 5% baseline
+    const BASELINE_WEIGHT = 1.0;
+
+    // Decay tag weights
+    for (const [tag, weight] of profile.tags.entries()) {
+      const decayed = weight * DECAY_FACTOR + BASELINE_WEIGHT * (1 - DECAY_FACTOR);
+      profile.tags.set(tag, Math.max(MIN_WEIGHT, decayed));
+    }
+
+    // Decay author weights
+    for (const [author, weight] of profile.authors.entries()) {
+      const decayed = weight * DECAY_FACTOR + BASELINE_WEIGHT * (1 - DECAY_FACTOR);
+      profile.authors.set(author, Math.max(MIN_WEIGHT, decayed));
+    }
+
+    // Decay keyword weights
+    for (const [keyword, weight] of profile.keywords.entries()) {
+      const decayed = weight * DECAY_FACTOR + BASELINE_WEIGHT * (1 - DECAY_FACTOR);
+      profile.keywords.set(keyword, Math.max(MIN_WEIGHT, decayed));
+    }
   }
 }
