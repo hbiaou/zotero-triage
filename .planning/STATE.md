@@ -100,6 +100,20 @@ Phase 8 (UX Enhancements) scope:
    - Expand seed items selection modal width (eliminate horizontal scrolling)
    - Preserve scroll position in seed items modal when clicking items
 
+**Post-Phase 8 / v1.2 candidates:**
+
+8. **Extend adaptive learning to authors and keywords**
+   - Currently only tags have full adaptive learning (boost/diminish/decay)
+   - Authors and keywords should also learn from accept/reject feedback
+   - ProfileService.recordAccept/recordReject stubs need implementation
+   - Would improve recommendation quality over time for all signals
+
+9. **Fix Relevance vs Diversity persistence during onboarding**
+   - Setting configured during onboarding wizard doesn't persist
+   - User must reconfigure in settings panel after onboarding
+   - Other onboarding settings persist correctly
+   - Likely missing in profile initialization or settings save
+
 **Completed:**
 - ~~Tag extraction and scoring~~ COMPLETE (TAG-01 through TAG-06, Phases 6-7)
 
