@@ -92,8 +92,9 @@ export class AdaptiveLearner {
       console.log('[AdaptiveLearner] Applied weight decay (feedback count: 10)');
     }
 
-    // Update profile via service (triggers debounced save)
-    this.profileService.recordAccept(item);
+    // Update profile directly (recordAccept() would re-fetch from settings and lose tag changes)
+    profile.updatedAt = Date.now();
+    this.profileService.updateProfile(profile);
 
     console.log('[AdaptiveLearner] Profile updated, total tags in profile:', profile.tags.size);
   }
@@ -156,10 +157,14 @@ export class AdaptiveLearner {
     this.feedbackCount++;
     if (this.feedbackCount % 10 === 0) {
       this.applyWeightDecay(profile);
+      console.log('[AdaptiveLearner] Applied weight decay (feedback count: 10)');
     }
 
-    // Update profile via service (triggers debounced save)
-    this.profileService.recordReject(item);
+    // Update profile directly (recordReject() would re-fetch from settings and lose tag changes)
+    profile.updatedAt = Date.now();
+    this.profileService.updateProfile(profile);
+
+    console.log('[AdaptiveLearner] Profile updated, total tags in profile:', profile.tags.size);
   }
 
   /**
