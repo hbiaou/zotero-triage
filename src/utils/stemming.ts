@@ -7,7 +7,31 @@
  * - Adaptive learning (updating tag weights from feedback)
  */
 
-import stemmer from 'stemmer';
+/**
+ * Simple suffix-based stemmer
+ * Handles common English suffixes for basic stemming without external dependencies
+ */
+function simpleStemmer(word: string): string {
+  // Common suffix removal rules (simplified Porter stemmer logic)
+  const suffixes = [
+    { pattern: /ies$/, replacement: 'y', minLength: 4 },
+    { pattern: /es$/, replacement: '', minLength: 3 },
+    { pattern: /s$/, replacement: '', minLength: 3 },
+    { pattern: /ing$/, replacement: '', minLength: 4 },
+    { pattern: /ed$/, replacement: '', minLength: 3 },
+    { pattern: /ly$/, replacement: '', minLength: 4 },
+    { pattern: /er$/, replacement: '', minLength: 3 },
+    { pattern: /or$/, replacement: '', minLength: 3 },
+  ];
+
+  for (const { pattern, replacement, minLength } of suffixes) {
+    if (word.length > minLength && pattern.test(word)) {
+      return word.replace(pattern, replacement);
+    }
+  }
+
+  return word;
+}
 
 /**
  * Normalize tag for matching with profile
@@ -15,7 +39,7 @@ import stemmer from 'stemmer';
  * Algorithm:
  * 1. Lowercase for case-insensitive matching
  * 2. Trim whitespace
- * 3. Apply Porter stemmer for linguistic normalization
+ * 3. Apply simple stemmer for linguistic normalization
  *    - 'networks' -> 'network'
  *    - 'running' -> 'run'
  *    - 'learning' -> 'learn'
@@ -35,9 +59,9 @@ export function normalizeTag(tag: string): string {
     return '';
   }
 
-  // Step 2: Apply Porter stemmer
+  // Step 2: Apply simple stemmer
   // Converts variations to base form for better matching
-  const stemmed = stemmer(lowercased);
+  const stemmed = simpleStemmer(lowercased);
 
   return stemmed;
 }
