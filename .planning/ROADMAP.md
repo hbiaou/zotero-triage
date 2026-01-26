@@ -81,9 +81,9 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 06-01-PLAN.md — Add annotation filtering and defensive NULL handling to tag extraction
-- [ ] 06-02-PLAN.md — Add schema validation and integrate tags into profile initialization
-- [ ] 06-03-PLAN.md — Verify tag infrastructure with real Zotero 7 database
+- [x] 06-01-PLAN.md — Add annotation filtering and defensive NULL handling to tag extraction
+- [x] 06-02-PLAN.md — Add schema validation and integrate tags into profile initialization
+- [x] 06-03-PLAN.md — Verify tag infrastructure with real Zotero 7 database
 
 #### Phase 7: Tag-Based Recommendations
 **Goal**: Tags improve batch relevance through profile scoring and adaptive learning
@@ -117,10 +117,12 @@ Plans:
   8. User can search/filter items during batch processing by author, keyword, title, or tags
   9. Seed items selection modal during onboarding is wide enough to display content without horizontal scrolling
   10. Scroll position is preserved in seed items selection modal when clicking to select items (doesn't reset to top)
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] TBD (pending plan-phase)
+- [ ] 08-01-PLAN.md — Add throttled progress updates, empty profile warnings, and enhanced override modal guidance
+- [ ] 08-02-PLAN.md — Add search/filter to seed paper picker and batch view
+- [ ] 08-03-PLAN.md — Fix modal sizing and preserve scroll position during item interactions
 
 ## Progress
 
@@ -136,4 +138,4 @@ Phases execute in numeric order: 6 → 7 → 8
 | 5. Literature Note Generation & Polish | v1.0 | 5/5 | Complete | 2026-01-25 |
 | 6. Tag Infrastructure & Extraction | v1.1 | 3/3 | Complete | 2026-01-25 |
 | 7. Tag-Based Recommendations | v1.1 | 3/3 | Complete | 2026-01-26 |
-| 8. UX Enhancements (Progress & Validation) | v1.1 | 0/TBD | Not started | - |
+| 8. UX Enhancements (Progress & Validation) | v1.1 | 0/3 | Not started | - |
