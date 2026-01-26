@@ -102,10 +102,10 @@ Plans:
 - [ ] 07-02-PLAN.md — Add tag-based adaptive learning with weight decay and settings configuration
 - [ ] 07-03-PLAN.md — Verify tag recommendations work end-to-end with real Zotero database
 
-#### Phase 8: UX Enhancements (Progress & Validation)
-**Goal**: Users receive clear feedback during operations and understand validation requirements
+#### Phase 8: UX Enhancements (Progress, Validation & Search)
+**Goal**: Users receive clear feedback during operations, understand validation requirements, and can efficiently find items
 **Depends on**: Phase 6 (tag infrastructure not required for UX features)
-**Requirements**: UX-01, UX-02, UX-03, UX-04, UX-05, UX-06
+**Requirements**: UX-01, UX-02, UX-03, UX-04, UX-05, UX-06, UX-07, UX-08
 **Success Criteria** (what must be TRUE):
   1. User sees granular progress updates during batch scoring for 5000+ item libraries
   2. Progress updates are throttled (every 100 items, 500ms intervals) to prevent UI jank
@@ -113,6 +113,8 @@ Plans:
   4. Override modal explains why fields are required and how to fix in Zotero (per-field guidance)
   5. Validation warnings are aggregated to prevent notice spam during batch operations
   6. Scroll position is preserved after marking items during batch processing
+  7. User can search/filter seed papers during onboarding by author, keyword, or title
+  8. User can search/filter items during batch processing by author, keyword, title, or tags
 **Plans**: TBD
 
 Plans:

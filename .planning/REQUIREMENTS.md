@@ -24,6 +24,8 @@ Requirements for v1.1 release. Each maps to roadmap phases.
 - [ ] **UX-04**: Add field explanations to override modal (why required + how to fix in Zotero)
 - [ ] **UX-05**: Aggregate validation warnings to prevent notice spam
 - [ ] **UX-06**: Fix scroll position during batch processing (preserve user's position after marking items)
+- [ ] **UX-07**: Add search/filter to onboarding seed paper selection (by author, keyword, title)
+- [ ] **UX-08**: Add search/filter to batch processing view (by author, keyword, title, tags)
 
 ### Data Quality & Validation
 
@@ -76,6 +78,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | UX-04 | Phase 8 | Pending |
 | UX-05 | Phase 8 | Pending |
 | UX-06 | Phase 8 | Pending |
+| UX-07 | Phase 8 | Pending |
+| UX-08 | Phase 8 | Pending |
 | VAL-01 | Phase 6 | Complete |
 | VAL-02 | Phase 6 | Complete |
 
