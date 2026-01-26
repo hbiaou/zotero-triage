@@ -33,6 +33,9 @@ export class SeedPaperPicker {
   private itemType: string = 'all';
   private tag: string = 'all';
 
+  // Scroll position tracking
+  private scrollPosition: number = 0;
+
   // Constants
   private readonly MIN_SELECTION = 5;
   private readonly MAX_SELECTION = 15;
@@ -301,6 +304,12 @@ export class SeedPaperPicker {
    * Toggle selection of a paper
    */
   private toggleSelection(itemId: string): void {
+    // Save scroll position before re-render
+    const listContainer = this.container.querySelector('.seed-picker-list') as HTMLElement;
+    if (listContainer) {
+      this.scrollPosition = listContainer.scrollTop;
+    }
+
     if (this.selectedIds.has(itemId)) {
       this.selectedIds.delete(itemId);
     } else {
@@ -315,6 +324,14 @@ export class SeedPaperPicker {
 
     // Re-render to update UI
     this.render();
+
+    // Restore scroll position after re-render
+    requestAnimationFrame(() => {
+      const newListContainer = this.container.querySelector('.seed-picker-list') as HTMLElement;
+      if (newListContainer) {
+        newListContainer.scrollTop = this.scrollPosition;
+      }
+    });
   }
 
   /**

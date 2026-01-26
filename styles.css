@@ -482,10 +482,14 @@
    Seed Paper Picker
    ========================================================================== */
 
+/* Modal responsive sizing */
 .seed-picker {
   display: flex;
   flex-direction: column;
   height: 400px;
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow-y: auto;
 }
 
 .seed-picker-filters {
@@ -508,15 +512,19 @@
 .seed-picker-list {
   flex: 1;
   overflow-y: auto;
+  max-height: 60vh;
   border: 1px solid var(--background-modifier-border);
   border-radius: 4px;
 }
 
 .seed-paper-item {
+  display: flex;
+  flex-direction: column;
   padding: 10px;
   border-bottom: 1px solid var(--background-modifier-border);
   cursor: pointer;
   transition: background-color 0.2s;
+  word-wrap: break-word;
 }
 
 .seed-paper-item:hover {
@@ -535,11 +543,15 @@
 .seed-paper-title {
   font-weight: 500;
   margin-bottom: 4px;
+  white-space: normal;
+  overflow-wrap: break-word;
 }
 
 .seed-paper-meta {
   font-size: 0.9em;
   color: var(--text-muted);
+  white-space: normal;
+  overflow-wrap: break-word;
 }
 
 .seed-picker-status {
