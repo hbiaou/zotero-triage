@@ -26,6 +26,8 @@ Requirements for v1.1 release. Each maps to roadmap phases.
 - [ ] **UX-06**: Fix scroll position during batch processing (preserve user's position after marking items)
 - [ ] **UX-07**: Add search/filter to onboarding seed paper selection (by author, keyword, title)
 - [ ] **UX-08**: Add search/filter to batch processing view (by author, keyword, title, tags)
+- [ ] **UX-09**: Expand seed items selection modal width during onboarding (eliminate horizontal scrolling)
+- [ ] **UX-10**: Preserve scroll position in seed items selection modal when clicking items (don't reset to top)
 
 ### Data Quality & Validation
 
@@ -80,6 +82,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | UX-06 | Phase 8 | Pending |
 | UX-07 | Phase 8 | Pending |
 | UX-08 | Phase 8 | Pending |
+| UX-09 | Phase 8 | Pending |
+| UX-10 | Phase 8 | Pending |
 | VAL-01 | Phase 6 | Complete |
 | VAL-02 | Phase 6 | Complete |
 
