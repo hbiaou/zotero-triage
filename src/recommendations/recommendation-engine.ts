@@ -18,6 +18,7 @@ import type { ProfileService } from '../profile/profile-service';
 import type { ZoteroConnector } from '../db/zotero-connector';
 import type { ScoredItem, RecommendationConfig } from './types';
 import { extractKeywords } from '../profile/keyword-extractor';
+import { normalizeTag } from '../utils/stemming';
 
 /**
  * Default recommendation configuration
@@ -136,12 +137,56 @@ export class RecommendationEngine {
   /**
    * Calculate tag match score
    * Sum weights of matching tags from profile
+   *
+   * Algorithm:
+   * 1. Handle items with no tags (return 0, neutral - not a penalty)
+   * 2. Normalize item tags using normalizeTag() (lowercase + stemming)
+   * 3. Normalize profile tags using normalizeTag()
+   * 4. Match and score: for each normalized item tag, check if it matches any normalized profile tag
+   * 5. Sum weights: Linear multi-match scoring - add weight of ALL matching profile tags
+   * 6. Return raw score (normalization happens in scoreItem caller)
+   *
+   * Multi-word tag handling: Exact match after stemming (don't split)
+   * 'machine learning' only matches 'machine learning', not 'machine' or 'learning' separately
+   *
+   * @param item - Zotero item with tags field
+   * @param profile - User profile with tag weights
+   * @returns Raw tag match score
    */
   private calculateTagScore(item: ZoteroItem, profile: UserProfile): number {
-    // Note: ZoteroItem doesn't have tags field in current schema
-    // This will be populated when tag extraction is added to ZoteroConnector
-    // For now, return 0 (no tag data available)
-    return 0;
+    // Handle items with no tags (neutral, no penalty)
+    if (!item.tags || item.tags.length === 0) {
+      return 0;
+    }
+
+    // Normalize item tags
+    const itemTags = item.tags
+      .map(t => normalizeTag(t))
+      .filter(t => t.length > 0);
+
+    if (itemTags.length === 0) {
+      return 0;
+    }
+
+    // Build normalized profile tag map
+    const normalizedProfile = new Map<string, number>();
+    for (const [tag, weight] of profile.tags.entries()) {
+      const normalized = normalizeTag(tag);
+      if (normalized) {
+        normalizedProfile.set(normalized, weight);
+      }
+    }
+
+    // Linear multi-match: sum all matching weights
+    let score = 0;
+    for (const itemTag of itemTags) {
+      const weight = normalizedProfile.get(itemTag);
+      if (weight !== undefined) {
+        score += weight;
+      }
+    }
+
+    return score;
   }
 
   /**
