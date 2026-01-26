@@ -26,6 +26,8 @@ export class SeedPaperPicker {
   private selectedIds: Set<string> = new Set();
 
   // Filter state
+  private searchQuery: string = '';
+  private searchInput: HTMLInputElement | null = null;
   private yearFrom: string = '';
   private yearTo: string = '';
   private itemType: string = 'all';
@@ -88,6 +90,9 @@ export class SeedPaperPicker {
   private renderFilters(): void {
     const filtersContainer = this.container.createDiv({ cls: 'seed-picker-filters' });
 
+    // Search filter
+    this.renderSearchFilter(filtersContainer);
+
     // Year range filters
     const years = this.getAvailableYears();
 
@@ -142,6 +147,24 @@ export class SeedPaperPicker {
   }
 
   /**
+   * Render search filter input
+   */
+  private renderSearchFilter(container: HTMLElement): void {
+    const searchGroup = container.createDiv({ cls: 'seed-picker-search' });
+
+    this.searchInput = searchGroup.createEl('input', {
+      type: 'text',
+      cls: 'search-filter-input',
+      placeholder: 'Search by author, title, or tag...'
+    });
+
+    this.searchInput.addEventListener('input', (e) => {
+      this.searchQuery = (e.target as HTMLInputElement).value.toLowerCase();
+      this.applyFilters();
+    });
+  }
+
+  /**
    * Get available years from items
    */
   private getAvailableYears(): string[] {
@@ -174,6 +197,28 @@ export class SeedPaperPicker {
    */
   private applyFilters(): void {
     this.filteredItems = this.allItems.filter(item => {
+      // Search query filter
+      if (this.searchQuery.length > 0) {
+        const query = this.searchQuery;
+
+        // Match against title
+        if (item.title.toLowerCase().includes(query)) {
+          // Continue to other filters
+        }
+        // Match against authors
+        else if (item.authors.some(a => a.toLowerCase().includes(query))) {
+          // Continue to other filters
+        }
+        // Match against tags (if exist)
+        else if (item.tags?.some(t => t.toLowerCase().includes(query))) {
+          // Continue to other filters
+        }
+        // No match - exclude this item
+        else {
+          return false;
+        }
+      }
+
       // Year range filter
       if (this.yearFrom && item.year) {
         if (item.year < this.yearFrom) return false;
