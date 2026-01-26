@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-01-25)
 ## Current Position
 
 Phase: 7 of 8 (Tag-Based Recommendations)
-Plan: 1 of TBD in current phase
+Plan: 2 of TBD in current phase
 Status: In progress
-Last activity: 2026-01-26 — Completed 07-01-PLAN.md (tag scoring implementation)
+Last activity: 2026-01-26 — Completed 07-02-PLAN.md (adaptive learning and settings integration)
 
-Progress: [███████░░░] 71% (v1.0 complete + Phase 6-7 in progress: 27/38 total plans)
+Progress: [███████░░░] 74% (v1.0 complete + Phase 6-7 in progress: 28/38 total plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 27 (v1.0: 23, v1.1: 4)
-- Average duration: 43 min
-- Total execution time: 19.1 hours
+- Total plans completed: 28 (v1.0: 23, v1.1: 5)
+- Average duration: 41 min
+- Total execution time: 19.3 hours
 
 **By Phase:**
 
@@ -33,17 +33,17 @@ Progress: [███████░░░] 71% (v1.0 complete + Phase 6-7 in pro
 | 04-onboarding-and-recommendations | 5/5 | 38 min | 8 min |
 | 05-polish | 8/8 | 32 min | 4 min |
 | 06-tag-infrastructure | 3/3 | 14 min | 5 min |
-| 07-tag-recommendations | 1/TBD | 4 min | 4 min |
+| 07-tag-recommendations | 2/TBD | 17 min | 8.5 min |
 | 08-ux-enhancements | 0/TBD | - | - |
 
 **Recent Trend:**
 - v1.0 shipped successfully with 23 plans across 5 phases
 - v1.1 in progress: Phase 6 tag infrastructure COMPLETE (3 plans, 14 min total)
-- Phase 7 started: Tag scoring implementation complete (1 plan, 4 min)
+- Phase 7 in progress: Tag scoring and adaptive learning complete (2 plans, 17 min total)
 - Verification workflow caught 2 critical bugs during integration testing
-- Average 4 min per plan in Phases 6-7 (highly focused implementation plans)
+- Average 8.5 min per plan in Phase 7 (adaptive learning integration)
 
-*Updated after 07-01 completion*
+*Updated after 07-02 completion*
 
 ## Accumulated Context
 
@@ -54,6 +54,9 @@ Recent decisions affecting v1.1 work:
 
 - **Tag extraction approach**: Direct SQLite queries to itemTags + tags tables (proven pattern from v1.0)
 - **Tag scoring weight** (07-01): Set to 1.5 (between keywords 2.0 and authors 1.0) for balanced contribution
+- **Tag weight user control** (07-02): Settings slider (0.0-3.0) lets users tune tag signal strength dynamically
+- **Weight decay mechanism** (07-02): Exponential moving average (0.95 factor) returns weights toward baseline every 10 feedback events
+- **Decay trigger frequency** (07-02): Every 10 accept/reject events prevents permanent weight extremes while allowing learning
 - **Tag profile selection** (07-01): Top 20 tags from seed papers with frequency-based weighting
 - **Tag matching strategy** (07-01): Case-insensitive Porter stemming for linguistic normalization
 - **Multi-match scoring** (07-01): Linear multi-match (sum all matching weights), no diminishing returns
@@ -103,11 +106,11 @@ Carried forward to v1.1 planning:
 
 ## Session Continuity
 
-Last session: 2026-01-26T11:17:43Z
-Stopped at: Completed 07-01-PLAN.md (tag scoring implementation)
+Last session: 2026-01-26T11:36:33Z
+Stopped at: Completed 07-02-PLAN.md (adaptive learning and settings integration)
 Resume file: None
 
-**Next step:** Phase 7 continues with adaptive learning (07-02) or UX enhancements (Phase 8)
+**Next step:** Phase 7 integration testing (07-03) or move to Phase 8 UX enhancements
 
 Config:
 {
