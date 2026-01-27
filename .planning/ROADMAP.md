@@ -65,64 +65,37 @@ Plans:
 
 </details>
 
-### ✅ v1.1 Polish + Tag Support - SHIPPED 2026-01-27
+<details>
+<summary>✅ v1.1 Polish + Tag Support (Phases 6-8) - SHIPPED 2026-01-27</summary>
 
-**Milestone Goal:** Enhance user experience with better feedback and guidance, plus add tag-based recommendation signals to improve batch relevance.
-
-#### Phase 6: Tag Infrastructure & Extraction
+### Phase 6: Tag Infrastructure & Extraction
 **Goal**: Extract tags from Zotero database and integrate into data layer
-**Depends on**: Phase 5 (v1.0 complete)
-**Requirements**: TAG-01, TAG-02, VAL-01, VAL-02
-**Success Criteria** (what must be TRUE):
-  1. Plugin extracts tags from Zotero itemTags and tags tables for each item
-  2. ZoteroItem schema includes tags field with proper null handling
-  3. Tag extraction handles schema variations defensively (null tags don't crash)
-  4. Existing profiles without tags Map remain compatible (backward compatibility)
 **Plans**: 3 plans
 
 Plans:
-- [x] 06-01-PLAN.md — Add annotation filtering and defensive NULL handling to tag extraction
-- [x] 06-02-PLAN.md — Add schema validation and integrate tags into profile initialization
-- [x] 06-03-PLAN.md — Verify tag infrastructure with real Zotero 7 database
+- [x] 06-01: Add annotation filtering and defensive NULL handling to tag extraction
+- [x] 06-02: Add schema validation and integrate tags into profile initialization
+- [x] 06-03: Verify tag infrastructure with real Zotero 7 database
 
-#### Phase 7: Tag-Based Recommendations
+### Phase 7: Tag-Based Recommendations
 **Goal**: Tags improve batch relevance through profile scoring and adaptive learning
-**Depends on**: Phase 6
-**Requirements**: TAG-03, TAG-04, TAG-05, TAG-06
-**Success Criteria** (what must be TRUE):
-  1. User profile captures tag frequencies from seed papers (top N tags weighted)
-  2. Recommendation engine scores items based on tag overlap with profile
-  3. Adaptive learner adjusts tag weights from accept/reject feedback
-  4. Zotero 7 annotation tags (custom-color-*, highlight-*) are filtered from scoring
-  5. Tag scoring integrates with existing keyword/author signals without overwhelming them
 **Plans**: 3 plans
 
 Plans:
-- [x] 07-01-PLAN.md — Extract top 20 tags from seed papers and implement tag scoring with stemming
-- [x] 07-02-PLAN.md — Add tag-based adaptive learning with weight decay and settings configuration
-- [x] 07-03-PLAN.md — Verify tag recommendations work end-to-end with real Zotero database
+- [x] 07-01: Extract top 20 tags from seed papers and implement tag scoring with stemming
+- [x] 07-02: Add tag-based adaptive learning with weight decay and settings configuration
+- [x] 07-03: Verify tag recommendations work end-to-end with real Zotero database
 
-#### Phase 8: UX Enhancements (Progress, Validation, Search & Modal UX)
+### Phase 8: UX Enhancements (Progress, Validation, Search & Modal UX)
 **Goal**: Users receive clear feedback during operations, understand validation requirements, can efficiently find items, and have smooth interaction flows
-**Depends on**: Phase 6 (tag infrastructure not required for UX features)
-**Requirements**: UX-01, UX-02, UX-03, UX-04, UX-05, UX-06, UX-07, UX-08, UX-09, UX-10
-**Success Criteria** (what must be TRUE):
-  1. User sees granular progress updates during batch scoring for 5000+ item libraries
-  2. Progress updates are throttled (every 100 items, 500ms intervals) to prevent UI jank
-  3. User receives warning notice when seed papers result in empty profile
-  4. Override modal explains why fields are required and how to fix in Zotero (per-field guidance)
-  5. Validation warnings are aggregated to prevent notice spam during batch operations
-  6. Scroll position is preserved after marking items during batch processing
-  7. User can search/filter seed papers during onboarding by author, keyword, or title
-  8. User can search/filter items during batch processing by author, keyword, title, or tags
-  9. Seed items selection modal during onboarding is wide enough to display content without horizontal scrolling
-  10. Scroll position is preserved in seed items selection modal when clicking to select items (doesn't reset to top)
 **Plans**: 3 plans
 
 Plans:
-- [x] 08-01-PLAN.md — Add throttled progress updates, empty profile warnings, and enhanced override modal guidance
-- [x] 08-02-PLAN.md — Add search/filter to seed paper picker and batch view
-- [x] 08-03-PLAN.md — Fix modal sizing and preserve scroll position during item interactions
+- [x] 08-01: Add throttled progress updates, empty profile warnings, and enhanced override modal guidance
+- [x] 08-02: Add search/filter to seed paper picker and batch view
+- [x] 08-03: Fix modal sizing and preserve scroll position during item interactions
+
+</details>
 
 ## Progress
 

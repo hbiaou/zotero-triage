@@ -2,19 +2,19 @@
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-01-25)
+See: .planning/PROJECT.md (updated 2026-01-27)
 
 **Core value:** Users can progressively process their Zotero backlog without overwhelm, ensuring every imported literature note meets quality standards.
-**Current focus:** v1.1 milestone complete - all 8 phases shipped
+**Current focus:** Ready for next milestone planning
 
 ## Current Position
 
-Phase: 8 of 8 (UX Enhancements)
-Plan: 3 of 3 complete
-Status: Complete
-Last activity: 2026-01-27 — Completed quick task 003: Fix wizard modal sizing and search input functionality
+Phase: Not started
+Plan: Not started
+Status: Ready for next milestone planning
+Last activity: 2026-01-27 — v1.1 milestone complete
 
-Progress: [██████████] 100% (v1.0 + v1.1 complete: 32/32 total plans)
+Progress: v1.0 + v1.1 shipped (32 plans total). Ready for new milestone.
 
 ## Performance Metrics
 
@@ -52,91 +52,31 @@ Progress: [██████████] 100% (v1.0 + v1.1 complete: 32/32 tot
 
 ### Decisions
 
-Decisions are logged in PROJECT.md Key Decisions table.
-Recent decisions affecting v1.1 work:
+All decisions are logged in PROJECT.md Key Decisions table.
+v1.1 decisions archived in milestones/v1.1-ROADMAP.md.
 
-- **Tag extraction approach**: Direct SQLite queries to itemTags + tags tables (proven pattern from v1.0)
-- **Tag scoring weight** (07-01): Set to 1.5 (between keywords 2.0 and authors 1.0) for balanced contribution
-- **Tag weight user control** (07-02): Settings slider (0.0-3.0) lets users tune tag signal strength dynamically
-- **Weight decay mechanism** (07-02): Exponential moving average (0.95 factor) returns weights toward baseline every 10 feedback events
-- **Decay trigger frequency** (07-02): Every 10 accept/reject events prevents permanent weight extremes while allowing learning
-- **Tag profile selection** (07-01): Top 20 tags from seed papers with frequency-based weighting
-- **Tag matching strategy** (07-01): Case-insensitive Porter stemming for linguistic normalization
-- **Multi-match scoring** (07-01): Linear multi-match (sum all matching weights), no diminishing returns
-- **No-tag handling** (07-01): Items without tags score 0 (neutral, not penalized)
-- **Multi-word tags** (07-01): Exact match after stemming, don't split ('machine learning' matches phrase only)
-- **Noise tag filtering** (07-01): Defense-in-depth filtering of workflow tags AND annotation tags
-- **Progress feedback strategy** (08-01): Throttled updates (100 items, 500ms) to prevent UI jank during 5000+ item scoring
-- **Empty profile handling** (08-01): Show 10-second Notice guiding users to enrich metadata in Zotero
-- **Override modal help** (08-01): Progressive disclosure pattern (visible examples, expandable explanations)
-- **Validation aggregation** (08-01): Single summary Notice after batch load prevents notice spam
-- **Search implementation** (08-02): Case-insensitive substring match (simple, performant) over fuzzy matching
-- **Search scope** (08-02): Title, authors, tags (core identifying fields users remember)
-- **Search persistence** (08-02): Query persists through re-renders for consistent UX during batch processing
-- **Real-time filtering** (08-02): No debounce - filtering fast enough for instant feedback
-- **Modal responsive sizing** (08-03): max-width: 90vw prevents horizontal scroll on narrow screens (800px+)
-- **Scroll preservation pattern** (08-03): Save before action, restore in requestAnimationFrame after DOM update
-- **Search input persistence** (08-03): Restore input.value from state after re-render to survive component updates
-- **Annotation tag filtering** (06-01): SQL-level filtering using NOT LIKE patterns for efficiency
-- **Tag extraction error handling** (06-01): Graceful degradation to empty array; tags are enhancement not core feature
-- **Tag normalization** (06-01, 06-02): Trim whitespace, lowercase normalization, skip empty strings
-- **Tag schema validation** (06-02): Non-blocking validation for optional features; log warnings but continue
-- **Profile tag extraction** (06-02): Defensive type checking (string, non-empty) before adding to profile
-- **ESCAPE clause syntax** (06-03): SQLite requires `ESCAPE '\\'` not `ESCAPE '\'` for proper backslash escaping
-- **Integration testing** (06-03): Real database verification catches runtime errors missed by static analysis
+Key patterns from v1.1:
+- Tag-based recommendations with Porter stemming and adaptive learning
+- Throttled progress feedback for large library operations
+- Progressive disclosure for help text
+- Defensive NULL handling and schema validation
 
-### Pending Todos
+### Pending Items for Future Milestones
 
-**Total:** 5 todos in .planning/todos/pending/
+**Potential v1.2 candidates:**
 
-Phase 8 (UX Enhancements) scope:
-
-1. **Granular progress during batch scoring** (UX-01, UX-02)
-   - Add progress updates during recommendation engine scoring for 5000+ item libraries
-   - Throttle updates (every 100 items, 500ms intervals) to prevent UI jank
-
-2. **Enhanced error messages in ProfileInitializer** (UX-03)
-   - Show user warning notice when seed papers result in empty profile
-
-3. **Override modal field explanations** (UX-04)
-   - Add text explaining why fields are required and how to fix them in Zotero
-
-4. **Validation warning aggregation** (UX-05)
-   - Aggregate validation warnings to prevent notice spam during batch operations
-
-5. **Scroll position preservation** (UX-06)
-   - Fix scroll position during batch processing (preserve user's position after marking items)
-
-6. **Search/filter functionality** (UX-07, UX-08)
-   - Add search/filter to onboarding seed selection (by author, keyword, title)
-   - Add search/filter to batch processing view (by author, keyword, title, tags)
-
-7. **Onboarding modal improvements** (UX-09, UX-10)
-   - Expand seed items selection modal width (eliminate horizontal scrolling)
-   - Preserve scroll position in seed items modal when clicking items
-
-**Post-Phase 8 / v1.2 candidates:**
-
-8. **Extend adaptive learning to authors and keywords**
+1. **Extend adaptive learning to authors and keywords**
    - Currently only tags have full adaptive learning (boost/diminish/decay)
-   - Authors and keywords should also learn from accept/reject feedback
-   - ProfileService.recordAccept/recordReject stubs need implementation
    - Would improve recommendation quality over time for all signals
 
-9. **Fix Relevance vs Diversity persistence during onboarding**
+2. **Fix Relevance vs Diversity persistence during onboarding**
    - Setting configured during onboarding wizard doesn't persist
    - User must reconfigure in settings panel after onboarding
-   - Other onboarding settings persist correctly
-   - Likely missing in profile initialization or settings save
 
-10. **Implement library scope filter and preflight check** (2026-01-27)
-    - Database queries must exclude group libraries, feeds, trash, retracted items
-    - Target only user's personal library (libraryID where type='user')
-    - Add preflight check in onboarding wizard warning about duplicates and trash
-    - Non-destructive user advisory (no auto-merge/auto-delete)
-
-**Completed:**
-- ~~Tag extraction and scoring~~ COMPLETE (TAG-01 through TAG-06, Phases 6-7)
+3. **Implement library scope filter and preflight check**
+   - Database queries should exclude group libraries, feeds, trash, retracted items
+   - Target only user's personal library (libraryID where type='user')
+   - Add preflight check in onboarding wizard warning about duplicates and trash
 
 ### Quick Tasks Completed
 
@@ -148,19 +88,15 @@ Phase 8 (UX Enhancements) scope:
 
 ### Blockers/Concerns
 
-**v1.1 risks identified during research:**
-- Tag scoring overwhelming other signals — mitigation: weight 1.5 balanced between keywords/authors; linear multi-match fair
-- Empty profile edge case — handled by v1.0 fallback logic, v1.1 adds explicit warning (pending UX phase)
-- Large library performance — progress tracking confirms processing; chunked async unchanged from v1.0
-- Tag normalization consistency — mitigated by centralizeTag() function used everywhere (07-01)
+None - v1.1 milestone complete and verified.
 
 ## Session Continuity
 
 Last session: 2026-01-27
-Stopped at: Completed 08-03-PLAN.md (Modal sizing and scroll preservation)
+Stopped at: v1.1 milestone completion
 Resume file: None
 
-**Next step:** Phase 8 (UX Enhancements) - continue with additional plans or complete phase
+**Next step:** `/gsd:new-milestone` to start next milestone cycle
 
 Config:
 {

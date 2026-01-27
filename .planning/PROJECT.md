@@ -2,7 +2,7 @@
 
 ## What This Is
 
-An Obsidian plugin that solves "importer's block" for researchers with massive Zotero libraries (3000+ items). Instead of bulk importing, it provides an "Inbox-to-Vault" pipeline that forces sustainable, batch-based processing (5-10 items/day) with strict quality gates. Only high-quality, metadata-rich notes enter the vault.
+An Obsidian plugin that solves "importer's block" for researchers with massive Zotero libraries (3000+ items). Instead of bulk importing, it provides an "Inbox-to-Vault" pipeline that forces sustainable, batch-based processing (5-10 items/day) with strict quality gates and intelligent tag-based recommendations. Only high-quality, metadata-rich notes enter the vault.
 
 ## Core Value
 
@@ -20,26 +20,17 @@ Users can progressively process their Zotero backlog without overwhelm, ensuring
 - ✓ Literature Note Generator: Create Markdown note in configurable folder with full YAML frontmatter (citation, Zotero links, file refs, processing metadata) — v1.0
 - ✓ Processing Registry: Local JSON tracking state of every Zotero ID (unseen, proposed, accepted, rejected, deferred, imported) — never show same item twice — v1.0
 - ✓ Settings Panel: Configurable batch size, quality gate fields per item type, profile editor — v1.0
-
-## Current Milestone: v1.1 Polish + Tag Support
-
-**Goal:** Enhance user experience with better feedback and guidance, plus add tag-based recommendation signals.
-
-**Target features:**
-- Enhanced error messages and warnings (ProfileInitializer, validation)
-- Granular progress indicators for batch scoring (5000+ item libraries)
-- Override modal field explanations (guide users to fix metadata)
-- Tag extraction and integration into recommendation engine
-- Minor UX enhancements discovered during implementation
+- ✓ Tag Extraction & Integration: Extract tags from Zotero database with annotation filtering, integrate into profile and recommendation scoring — v1.1
+- ✓ Tag-based Recommendations: Porter-stemmed tag matching with top-20 frequency-weighted profile tags, adaptive learning with decay — v1.1
+- ✓ User-configurable Tag Weights: Settings slider (0.0-3.0) for dynamic tag signal strength tuning — v1.1
+- ✓ Progress Feedback: Throttled progress updates (500ms, 100-item batches) for large library operations — v1.1
+- ✓ Enhanced Validation UX: Field explanations in override modal, aggregated warnings, empty profile warnings — v1.1
+- ✓ Search/Filter Functionality: Real-time filtering by author/title/tags in onboarding and batch views — v1.1
+- ✓ Responsive Modal UX: 90vw max-width, scroll preservation during interactions — v1.1
 
 ### Active
 
-- [ ] Enhanced error messages: Show user warning when seed papers result in empty profile
-- [ ] Granular progress: Display scoring progress during batch generation for large libraries
-- [ ] Override modal explanations: Add text explaining why fields are required and how to fix in Zotero
-- [ ] Tag extraction: Extract tags from Zotero database and add to ZoteroItem schema
-- [ ] Tag-based recommendations: Integrate tags into profile scoring alongside keywords/authors
-- [ ] Minor UX improvements: Keyboard shortcuts, UI polish, accessibility enhancements
+(Empty - ready for next milestone requirements)
 
 ### Out of Scope
 
@@ -52,11 +43,12 @@ Users can progressively process their Zotero backlog without overwhelm, ensuring
 
 ## Context
 
-**Current state (v1.0 shipped):**
-- Plugin built with TypeScript, ~7,324 LOC
-- Tech stack: Obsidian Plugin API, sql.js for SQLite, Zod for validation
-- Successfully handles 5000+ item libraries with lazy initialization (<50ms startup)
-- Adaptive learning refines recommendations from user feedback (accept/reject weight adjustments)
+**Current state (v1.1 shipped):**
+- Plugin built with TypeScript, ~7,092 LOC
+- Tech stack: Obsidian Plugin API, sql.js for SQLite, Zod for validation, Porter stemming for tag normalization
+- Successfully handles 5000+ item libraries with lazy initialization (<50ms startup) and throttled progress feedback
+- Adaptive learning refines recommendations from user feedback with weight decay mechanism (exponential moving average)
+- Tag-based recommendations complement keyword/author signals for improved batch relevance
 
 **Target users:** Researchers and academics with large Zotero libraries (3000-5000+ items) who feel overwhelmed by the prospect of bulk importing. They want sustainable daily processing, not a one-time dump.
 
@@ -64,13 +56,14 @@ Users can progressively process their Zotero backlog without overwhelm, ensuring
 
 **Key insight (validated):** The constraint of 5-10 items/day is a feature, not a limitation. It forces engagement and quality over quantity.
 
-**Zotero access approach (validated):** Direct SQLite read via sql.js for performance. Schema detection (version 100-200) handles Zotero 6.x and 7.x.
+**Zotero access approach (validated):** Direct SQLite read via sql.js for performance. Schema detection (version 100-200) handles Zotero 6.x and 7.x. Defensive NULL handling and annotation tag filtering ensure reliability across schema variations.
 
-**Recommendation engine (validated):** Multi-signal scoring (keywords, authors, recency) with adaptive learning. Simple frequency-based keyword extraction. No vectors or embeddings needed for MVP.
+**Recommendation engine (validated):** Multi-signal scoring (tags, keywords, authors, recency) with adaptive learning. Porter-stemmed tag matching with top-20 frequency-weighted profiles. Simple frequency-based keyword extraction. No vectors or embeddings needed.
 
 **Known limitations:**
-- Tag extraction not implemented (ZoteroItem schema missing tags field) — deferred to v1.1
-- Profile initialization edge case: Empty profile falls back to date sorting (no user warning) — documented for v1.1
+- Adaptive learning only fully implemented for tags (authors/keywords use simpler weight adjustment)
+- Library scope filter not implemented (queries include group libraries, feeds, trash)
+- Relevance vs Diversity setting doesn't persist from onboarding wizard
 
 ## Constraints
 
@@ -92,6 +85,14 @@ Users can progressively process their Zotero backlog without overwhelm, ensuring
 | Lazy database initialization | Defer connection to first use for fast startup | ✓ Good — Achieved <50ms plugin load time |
 | Exponential backoff for SQLITE_BUSY | Handle concurrent Zotero access gracefully | ✓ Good — 5 retry attempts with jitter prevents lock failures |
 | Seed paper range 5-15 (not fixed 10) | Flexibility for different library sizes and user preferences | ✓ Good — Min 5 ensures profile quality, max 15 prevents decision fatigue |
+| Tag weight 1.5 (between keywords 2.0 and authors 1.0) | Balanced contribution from tag signal | ✓ Good — Tags enhance recommendations without overwhelming other signals |
+| Top 20 tags for profile | Balance coverage vs noise | ✓ Good — Captures key topics without diluting signal strength |
+| Porter stemming for tag matching | Linguistic normalization (e.g., "forest" matches "forestry") | ✓ Good — Improves matching flexibility without complexity |
+| Linear multi-match tag scoring | Sum all matching tag weights, no diminishing returns | ✓ Good — Fair for diverse papers, simple to understand |
+| Weight decay (0.95 factor, every 10 events) | Prevent permanent weight extremes | ✓ Good — Conservative decay allows learning while avoiding instability |
+| Throttled progress (500ms, 100-item batches) | Prevent UI jank during large library scoring | ✓ Good — Responsive feedback without performance degradation |
+| Progressive disclosure for field help | Examples visible, explanations expandable | ✓ Good — Most users understand from examples, details available when needed |
+| SQL-level annotation tag filtering | Filter at query time vs post-processing | ✓ Good — More efficient, reduces data transfer and processing |
 
 ---
-*Last updated: 2026-01-25 after v1.1 milestone started*
+*Last updated: 2026-01-27 after v1.1 milestone completion*
