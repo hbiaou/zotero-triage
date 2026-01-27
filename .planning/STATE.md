@@ -12,7 +12,7 @@ See: .planning/PROJECT.md (updated 2026-01-25)
 Phase: 8 of 8 (UX Enhancements)
 Plan: 3 of 3 complete
 Status: Complete
-Last activity: 2026-01-27 — Phase 8 complete and verified
+Last activity: 2026-01-27 — Completed quick task 003: Fix wizard modal sizing and search input functionality
 
 Progress: [██████████] 100% (v1.0 + v1.1 complete: 32/32 total plans)
 
@@ -136,6 +136,7 @@ Phase 8 (UX Enhancements) scope:
 |---|-------------|------|--------|-----------|
 | 001 | Add visual status indicators for processed items in batch | 2026-01-25 | a3d13ec | [001-add-visual-status-indicators](./quick/001-add-visual-status-indicators/) |
 | 002 | Fix modal sizing and persistent settings warning | 2026-01-25 | 222f510 | [002-fix-modal-sizing-and-persistent-settings](./quick/002-fix-modal-sizing-and-persistent-settings/) |
+| 003 | Fix wizard modal sizing and search input functionality | 2026-01-27 | 2311dd6 | [003-1-the-issue-with-the-triage-setup-wizard](./quick/003-1-the-issue-with-the-triage-setup-wizard/) |
 
 ### Blockers/Concerns
 
