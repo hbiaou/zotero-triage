@@ -1,184 +1,156 @@
-# Project Research Summary: Zotero Triage v1.1
+# Project Research Summary: Zotero Triage v1.2
 
-**Project:** Zotero Triage (v1.1 Feature Enhancement)
-**Domain:** Obsidian plugin with Zotero SQLite integration
-**Researched:** 2026-01-25
-**Confidence:** HIGH (architectural patterns from v1.0 validation + v1.1-specific research)
+**Project:** Zotero Triage Plugin (v1.2 Milestone: Library Filtering & Preflight Checks)
+**Domain:** Obsidian plugin with Zotero integration
+**Researched:** 2026-01-27
+**Confidence:** HIGH
 
 ---
 
 ## Executive Summary
 
-Zotero Triage v1.1 extends the v1.0 core (batch workflow, quality gates, literature notes) with **tag extraction from Zotero's SQLite database** and **UX polish for large libraries**. The v1.0 stack (TypeScript, sql.js, Obsidian API, Zod) requires **no new dependencies**—all v1.1 features integrate through existing architectural patterns.
+Zotero Triage v1.2 adds **library scope filtering** and **preflight data health checks** to the existing recommendation engine, enabling users to process only personal library items while detecting common data issues (duplicates, trash volume, group membership) before triage begins. The milestone is **additive with zero new dependencies**: all features use the existing TypeScript + sql.js + Obsidian API stack with targeted SQL query extensions and modest new settings fields.
 
-**Key recommendation:** v1.1 is low-risk and well-aligned with v1.0 architecture. Tag-based recommendations unlock a major value proposition (users can filter papers by their own tag taxonomy), and UX improvements directly address pitfalls observed during large-library processing. No new architectural patterns required. Implementation effort: **7-10 hours for core features**.
+The architecture strategy is **filter-first**: library scoping happens at ZoteroConnector query time (not post-processing), reducing memory overhead and improving performance. A new DuplicateDetector service identifies potential duplicates (DOI/ISBN/title matching) for user review in a preflight modal before ProfileInitializer runs. This is **non-blocking advisory design**: warnings inform users without preventing workflow progression.
 
-**Primary risks managed:** (1) Tag scoring weights overwhelming other signals—mitigate with conservative weighting (tag weight = 1.0, same as authors) and post-release tuning; (2) Empty profile edge case—already handled by v1.0's fallback logic, v1.1 adds explicit warning; (3) Large library performance—progress tracking confirms items are being processed, chunked async yielding unchanged from v1.0.
+The critical insight from research: **duplicate detection is hard**. Zotero's own algorithm has documented false positives (same ISBN across book volumes, same DOI from publisher series). The plugin must use conservative matching (requiring multiple field confirmation) and allow user override, or risk blocking legitimate items and eroding trust.
 
 ---
 
 ## Key Findings
 
-### Recommended Stack (v1.1)
+### Recommended Stack
 
-**No new npm dependencies required.** All v1.1 features extend v1.0 stack:
+v1.2 requires **zero new npm packages**. The existing stack (TypeScript 5.9.3, sql.js 1.13.0, Obsidian API latest) fully supports the new features with targeted extensions:
 
-**Core technologies (unchanged from v1.0):**
-- **TypeScript 5.8+** — type safety for tag scoring extensions
-- **sql.js 1.13.0** — queries tags from `tags` + `itemTags` tables (proven pattern)
-- **Obsidian API (latest)** — Notice for progress feedback, Modal for field explanations
-- **Zod 3.25.76** — schema validation for extended ZoteroItem with tags field
-- **lodash.debounce 4.0.8** — debounced state persistence (unchanged)
+**Core technologies (no changes):**
+- **TypeScript 5.9.3** — Query logic and type-safe duplicate detection fit existing patterns
+- **sql.js 1.13.0** — Read-only SQL queries for library filtering, duplicate detection, and preflight validation
+- **Obsidian API (latest)** — Settings persistence (saveData/loadData), Modal extensions (PreflightCheckModal), new Setting controls
 
-**Confidence:** HIGH. Tag schema from official Zotero GitHub; all patterns integrate seamlessly with v1.0 infrastructure.
+**Feature-specific additions:**
+1. **Library filtering:** Zotero SQLite schema additions to ITEMS_QUERY (WHERE clause filters by libraryID, type = 'user', archived = 0)
+2. **Duplicate detection:** In-memory service using existing ZoteroItem array; DOI/ISBN/title matching via string normalization
+3. **Preflight checks:** New queries to itemRelated (duplicates), deletedItems (trash), groups (group library detection), retractedItems (Zotero 7+)
+4. **Settings persistence:** New ZoteroTriageSettings fields (libraryFilterMode, preflightCheckEnabled, lastPreflightCheck)
+
+**Implementation scope:** ~500 lines of new code across 4 components. **Cost:** 2-4 hours per component.
 
 ---
 
-### Expected Features (v1.1)
+### Expected Features
 
-**Launch with v1.1:**
+v1.2 focuses on **scope management** and **data transparency** before triage begins.
 
-1. **Tag extraction from Zotero** (MUST-HAVE)
-   - Query `itemTags` + `tags` tables for each item during load
-   - Integrate into RecommendationEngine as third signal (after authors, keywords)
-   - Extract tag profile from seed papers during ProfileInitializer
-   - Learn from user feedback (AdaptiveLearner increments tag weights on accept)
+**Must have (table stakes):**
+- **Personal library filtering** — Exclude group libraries, feeds, trash, archived items; users expect plugin to respect their library scope
+- **Preflight health check modal** — Before onboarding, show item count, duplicate count, trash volume; advisory only, never blocking
+- **Duplicate item awareness** — Query Zotero's itemRelated table; warn users about DOI/ISBN matches without blocking
+- **Non-destructive by design** — Plugin validates and alerts; all fixes happen in Zotero, not in plugin
 
-2. **Enhanced error messages** (MUST-HAVE)
-   - Warning notice if ProfileInitializer detects empty profile
-   - Field explanation help text in override modal
-   - Why essential: Reduces friction; users understand "why" before fixing metadata
-
-3. **Progress feedback during batch scoring** (MUST-HAVE)
-   - Notice updates showing phases: "Filtering [500/5000]" → "Scoring [450/500]" → "Quality check [12/450]"
-   - Prevents "is it frozen?" anxiety with 5000-item libraries
-
-4. **Field explanations and validation feedback** (MUST-HAVE)
-   - List missing fields by type in override modal
-   - Link to Zotero UI sections for each field
+**Should have (competitive differentiators):**
+- **Transparent scope display** — Show exactly which items plugin processes vs. what's excluded
+- **Configurable library selection** — Settings UI to choose which personal library to process
 
 **Defer to v2+:**
-- Adaptive tag weighting (HIGH complexity, niche use)
-- Auto-tag notes with Obsidian tags (HIGH complexity)
-- ML tag suggestions (training data problem)
+- Complex fuzzy matching (author + publication year) — Conservative and error-prone
+- Auto-merge duplicates — Violates read-only constraint; user loses control
+- Library health dashboard — Advanced feature
 
 ---
 
 ### Architecture Approach
 
-v1.1 integrates through **minimal modifications to existing v1.0 components**, reusing established patterns. No new services, no structural changes to dependency injection, no schema migrations.
+v1.2 integrates four new components into the existing v1.1 architecture while preserving the ProfileInitializer → RecommendationEngine → BatchService → RegistryService flow:
 
-**Major modifications (4 components):**
-1. **RecommendationEngine** — Add `calculateTagScore()` method (follows existing author/keyword pattern)
-2. **ProfileInitializer** — Extract tags from seed papers (frequency counting, same pattern as authors)
-3. **AdaptiveLearner** — Learn tag weights from user feedback (increment weights on accept, same pattern)
-4. **BatchService** — Wire ProgressTracker calls to major phases (already initialized, just add update calls)
+**Major components:**
 
-**No new components needed** — ProgressTracker exists, Obsidian Notice API already used, Modal enhancements via string templating.
+1. **ZoteroConnector (modified)** — Add library filtering to ITEMS_QUERY; accept `libraryFilter` parameter; execute query-time filtering
 
-**Key insight:** ZoteroConnector already loads tags via ITEM_TAGS_QUERY (line 336-342)—no change needed, just utilize populated field.
+2. **DuplicateDetector (new)** — Standalone service scanning loaded items for duplicate DOIs, ISBNs, and titles; returns DuplicateGroup[] with confidence scores
 
-### Critical Pitfalls (from v1.0 research, amplified by v1.1 scale)
+3. **PreflightCheckModal (new)** — Obsidian Modal displaying duplicate groups; allows user to keep/remove items; returns resolved seed list; never blocking
 
-**Top pitfalls with v1.1 mitigations:**
+4. **RegistryService (unchanged)** — Continues to track all historical triage state; filtering at query time preserves history
 
-1. **UI Freezing During Batch Processing** (CRITICAL)
-   - What: Processing 5000+ items synchronously blocks Obsidian main thread
-   - Mitigation: Chunked async processing (50 items/yield) unchanged from v1.0; ProgressTracker confirms UI isn't frozen
+**Data flow:** Plugin load → ZoteroConnector.loadItems({libraryFilter}) → Batch uses pre-filtered set. Wizard: SetupWizardModal → DuplicateDetector → PreflightCheckModal (if needed) → ProfileInitializer
 
-2. **SQLite Database Locking** (CRITICAL)
-   - What: Zotero writes lock database; concurrent read fails with SQLITE_BUSY
-   - Mitigation: Verify WAL mode enabled; retry logic with exponential backoff; test with Zotero actively syncing
+**Integration principle:** Filter early (at query time), validate late (before profile creation), advise always (never silently discard data).
 
-3. **Zotero Schema Changes Breaking Integration** (MODERATE)
-   - What: Zotero updates schema between versions; queries break
-   - Mitigation: Tags table schema documented in official Zotero GitHub (HIGH confidence stable); implement version detection
+---
 
-4. **State Corruption from Concurrent Writes** (MODERATE)
-   - What: Multiple operations attempt simultaneous state saves; JSON corrupts
-   - Mitigation: v1.0 already implements debounced saves (2000ms); v1.1 uses same pattern
+### Critical Pitfalls
 
-5. **Memory Leaks with Large Datasets** (MODERATE)
-   - What: 5000 items × tag data accumulates without cleanup
-   - Mitigation: Tag data structures (Map<string, number>) negligible memory; process in existing batches <100 items
+Research identified five critical pitfalls; three are high-risk without proper prevention:
+
+1. **Filtering breaks batch generation** (CRITICAL)
+   - Root cause: Misunderstanding libraryID vs. collections; filter conditions ordered incorrectly; not tested with multi-group/feed/archived libraries
+   - Prevention: Test with representative libraries; add debug logging; make filtering optional and toggleable
+
+2. **Duplicate detection false positives** (CRITICAL)
+   - Root cause: DOI/ISBN-only matching without type/year validation; same DOI from publisher series; multi-volume books share ISBN
+   - Prevention: Require multi-field confirmation (DOI AND title similarity, not OR); validate publication type compatibility; allow ±1 year variance; make advisory-only with override button
+
+3. **Preflight blocking UX** (HIGH)
+   - Root cause: 30+ second validation without progress feedback; modal without recovery path; users force-quit plugin
+   - Prevention: Show progress during validation; implement 30-second timeout with graceful degradation; always provide "Skip Check" button
+
+4. **Schema incompatibility (Zotero 6 vs. 7)** (MEDIUM)
+   - Root cause: Zotero 7 introduced annotation tags, changed feed handling; schema not guaranteed stable
+   - Prevention: Include version-specific schema checks; test on both versions; filter annotation tags; graceful degradation for missing tables
+
+5. **Performance degradation at scale** (MEDIUM)
+   - Root cause: O(n²) duplicate detection (25M comparisons for 5000 items); no batch optimization; memory grows 50MB+
+   - Prevention: Pre-filter by DOI/ISBN first; implement early-exit; batch validation in chunks; add 30-second timeout; test on 5000+ items
 
 ---
 
 ## Implications for Roadmap
 
-**Suggested 6-phase structure based on research:**
+Research suggests four implementation phases, each independently testable.
 
-### Phase 1: Foundation (Unchanged from v1.0)
-- Database access, SQLite locking, schema version detection
-- No additional v1.1 work needed
+### Phase 1: Library Filtering Foundation
+**Delivers:** Modified ITEMS_QUERY with libraryID filtering, ZoteroConnector changes, new settings field, debug logging
+**Avoids:** Pitfall #1 (filtering breaks batch) — extensive testing with multi-group/feed/archived libraries
+**Effort:** 2-3 hours | **Priority:** P1
 
-### Phase 2: Tag Extraction & Multi-Signal Scoring
-- RecommendationEngine with tag scoring (3-4 hours)
-- ProfileInitializer extracting tags from seeds (1-2 hours)
-- AdaptiveLearner learning tag weights (1 hour)
-- Avoids: UI freezing (chunked async unchanged); state corruption (same debounce pattern)
+### Phase 2: Duplicate Detection Service
+**Delivers:** DuplicateDetector class with DOI/ISBN/title matching, confidence scoring, comprehensive testing
+**Avoids:** Pitfall #2 (false positives) — conservative multi-field matching, user override
+**Effort:** 2 hours | **Priority:** P1
 
-### Phase 3: Progress Tracking & UX Polish
-- ProgressTracker visibility during batch scoring (2-3 hours)
-- Warning notice for empty profiles
-- Field explanation help text
-- Avoids: UI freezing perception; confusion during long operations
+### Phase 3: Preflight Modal & Integration
+**Delivers:** PreflightCheckModal with progress feedback, timeout protection, non-blocking design, integration with wizard flow
+**Avoids:** Pitfall #3 (blocking UX) — recovery buttons, progress updates, always-skippable flow
+**Flags:** Test preflight queries on Zotero 6.0 and 7.x; verify retractedItems table handling
+**Effort:** 3 hours | **Priority:** P1
 
-### Phase 4: Validation & Error Handling
-- Enhanced override modal with field explanations (1 hour)
-- Visual validation feedback
-- Avoids: State corruption (validation prevents invalid items)
+### Phase 4: Settings Persistence & UI Polish
+**Delivers:** Library selection dropdown in settings, persistent selection, batch generation respects selection
+**Avoids:** None — Phase 1 already handles persistence; this is UX refinement
+**Effort:** 1-2 hours | **Priority:** P2
 
-### Phase 5: Integration Testing & Performance
-- Cross-platform testing (Windows/Mac/Linux)
-- Performance benchmarks on 5000-item library
-- Edge case validation (empty libraries, schema versions)
-- Avoids: UI freezing, memory leaks, schema changes, state corruption
-
-### Phase 6: Feature Design & Tuning
-- Tag scoring weight optimization
-- Field explanation text review
-- Accessibility improvements
-
-### Phase Ordering Rationale
-
-1. **Foundation first (Phase 1):** Database access is foundational; v1.1 tag queries depend on it.
-
-2. **Core feature second (Phase 2):** Tag extraction is primary v1.1 value (differentiator vs. competitors).
-
-3. **UX enhancements parallel-ready (Phase 3):** Progress and error messages don't depend on functional tags.
-
-4. **Validation polishing (Phase 4):** Ensures error messages guide users effectively.
-
-5. **Testing and integration (Phase 5):** Comprehensive real-world validation before release.
-
-6. **Fine-tuning (Phase 6):** Algorithm weights, accessibility features, messaging clarity.
-
-**Why this grouping minimizes risk:**
-- Separates risky work (database access, large-scale processing) to Phase 1-2 with focused testing
-- UX work (Phase 3) is low-risk, doesn't block anything
-- Testing (Phase 5) is comprehensive before users see code
-- No big-bang integration; features built incrementally
+**Phase Ordering Rationale:**
+1. Filtering first (foundation for all downstream)
+2. Detector second (service pure logic, no UI)
+3. Modal third (depends on detector, integrates into wizard)
+4. Settings last (polishing layer, can be deferred)
 
 ---
 
-### Research Flags
+## Research Flags
 
-**Phases requiring deeper research during planning:**
+**Phases needing deeper research during planning:**
 
-- **Phase 2 (Tag Scoring Algorithm):** How much should tags contribute to final score? Start with equal weight to keywords, validate against user feedback.
+- **Phase 1:** Query performance optimization — If preflight check takes >10 seconds on 5000 items, may need algorithm redesign. Run EXPLAIN QUERY PLAN.
 
-- **Phase 3 (Field Explanation UX):** User test the help text—is it clear why each field matters?
-
-- **Phase 5 (Cross-platform Testing):** Zotero paths differ by OS; explicit testing on Windows/Mac/Linux with attachment lookup.
+- **Phase 3:** Zotero version compatibility — Must validate preflight queries work on both Zotero 6.0+ and 7.x. May require community testing during beta.
 
 **Phases with standard patterns (skip research-phase):**
 
-- **Phase 1 (Foundation):** v1.0 research already covered SQLite access, Zotero schema.
+- **Phase 2:** Duplicate detection algorithm is deterministic; standard O(n) pre-filtering + matching. No research needed beyond test case development.
 
-- **Phase 4 (Validation Modal):** Standard Obsidian modal pattern, well-documented.
-
-- **Phase 6 (Tuning):** No research needed. Phase 5 will reveal which parameters need adjustment.
+- **Phase 4:** Settings UI uses proven Obsidian Plugin API patterns. No research needed.
 
 ---
 
@@ -186,52 +158,63 @@ v1.1 integrates through **minimal modifications to existing v1.0 components**, r
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| **Stack** | HIGH | No new dependencies; v1.0 stack proven. Tag schema from official Zotero GitHub. |
-| **Features** | HIGH | All must-haves straightforward; dependencies mapped in FEATURES.md. |
-| **Architecture** | HIGH | 4 component modifications, no new services. All patterns proven in v1.0. |
-| **Pitfalls** | MEDIUM-HIGH | Critical pitfalls documented from v1.0 research. Tag weighting needs post-launch monitoring. |
+| **Stack** | HIGH | Zero new dependencies; existing stack fully supports features. Official Zotero schema verified. |
+| **Features** | HIGH | Feature categories clearly defined with dependencies resolved. Sourced from Zotero documentation and competitive landscape. |
+| **Architecture** | HIGH | Integration points identified in existing v1.1 architecture. Component boundaries clear. Existing SetupWizardModal pattern serves as proven reference. |
+| **Pitfalls** | HIGH | Five critical pitfalls identified with real-world examples from Zotero forums. Prevention strategies documented with recovery costs assessed. |
 
 **Overall confidence: HIGH**
 
-v1.1 is well-scoped, low-risk, and aligns with v1.0 architecture. No foundational assumptions need validation. Implementation complexity is moderate (7-10 hours), and all integration points are explicit.
+All four research dimensions converge. Official Zotero documentation is primary source. Existing v1.1 architecture is mature and stable. Pitfall research grounded in community issues.
 
-### Gaps to Address
+---
 
-1. **Tag weighting algorithm optimization** — Start with conservative weights (1.0 same as authors); adjust post-release based on user feedback.
+## Gaps to Address
 
-2. **Field explanation text clarity** — Explanations are plausible but untested with actual users. Phase 3 should include user testing.
+During planning and implementation, flag these areas for validation:
 
-3. **Large library performance benchmarking** — v1.1 adds tag queries; must verify <5s batch operation on 5000-item library.
+1. **Multi-library performance testing** — Research assumes query-time filtering is optimal; needs verification on user machines with 5000+ items across 3+ libraries. If preflight check exceeds 30 seconds, redesign algorithm.
 
-4. **Automatic vs. user tags differentiation** — Zotero's itemTags.type field (0=user, 1=automatic). v1.1 treats equally. Revisit if users report noisy recommendations.
+2. **Duplicate detection accuracy baseline** — Implement test cases for 20+ known duplicate scenarios. Measure precision/recall before shipping. If accuracy <95%, adjust confidence thresholds.
 
-5. **Obsidian version compatibility** — v1.1's ProgressModal and Notice API usage should be tested on Obsidian 1.3+.
+3. **Zotero version compatibility matrix** — Create documented matrix of Zotero 6.0, 6.1, 7.0, 7.1+ with version-dependent behaviors. Test preflight on at least two versions before release.
+
+4. **Preflight timeout scenarios** — Simulate large libraries (10K+ items) to verify 30-second timeout doesn't cause data loss. Measure memory growth; set alert at 150MB.
+
+5. **User feedback on false positives** — Plan Phase 3 validation to include beta testers with large libraries. Gather feedback on duplicate detection accuracy and preflight perceived friction.
 
 ---
 
 ## Sources
 
-### Primary Research Files
-- **STACK.md** — v1.1 stack additions (tags queries, progress tracking patterns, modal components). HIGH confidence from official Zotero schema + Obsidian API docs.
-- **FEATURES.md** — v1.1 features (tag extraction, progress feedback, field explanations). HIGH confidence from project requirements + competitive landscape analysis.
-- **ARCHITECTURE.md** — Integration points (4 modified components, no new services). HIGH confidence from codebase review + pattern validation.
-- **PITFALLS.md** — Risk mitigation (UI freezing, SQLite locking, schema changes, state corruption). HIGH confidence from official docs + community forums + real-world examples.
+### Primary (HIGH confidence)
 
-### Official Documentation
-- [Zotero Direct SQLite Access](https://www.zotero.org/support/dev/client_coding/direct_sqlite_database_access)
-- [Zotero GitHub userdata.sql schema](https://github.com/zotero/zotero/blob/main/resource/schema/userdata.sql)
-- [Obsidian Plugin API Docs](https://docs.obsidian.md/Reference/TypeScript+API/Plugin)
-- [Obsidian Modals & Notice API](https://docs.obsidian.md/Plugins/User+interface/Modals)
-- [Zod Schema Validation](https://zod.dev/api)
+- **Zotero SQLite Schema** — Official [GitHub schema definition](https://github.com/zotero/zotero/blob/main/resource/schema/userdata.sql)
+- **Zotero Duplicate Detection Docs** — Official [duplicate detection algorithm](https://www.zotero.org/support/duplicate_detection)
+- **Zotero Database Access** — Official [read-only SQLite access patterns](https://www.zotero.org/support/dev/client_coding/direct_sqlite_database_access)
+- **Obsidian Plugin API** — [Official settings persistence patterns](https://docs.obsidian.md/Plugins/Storing+data)
 
-### Community & Project Context
-- [Zotero Forums — SQLite access](https://forums.zotero.org/)
-- [Obsidian Plugin Developer Forum](https://forum.obsidian.md/)
-- v1.0 research outputs (STACK.md, PITFALLS.md from prior research phase)
+### Secondary (MEDIUM confidence)
+
+- **Zotero Community Forums** — Real-world issues: ISBN false positives, group library filtering, duplicate detection accuracy
+- **v1.1 Architecture** — Existing codebase serves as proven reference for integration patterns
+- **Data Quality Research** — Peer-reviewed studies on duplicate detection algorithms and deduplication pitfalls
+
+### Tertiary (implementation details)
+
+- Test case development requires access to real Zotero databases with multi-group/feed/archive scenarios
+- Performance profiling needs EXPLAIN QUERY PLAN analysis and WASM sql.js benchmarking
 
 ---
 
-**Research completed:** 2026-01-25
-**Ready for roadmap:** YES — Sufficient confidence and specificity for v1.1 phase planning.
-**Estimated implementation:** 7-10 hours for core features + 2 hours testing
-**Risk level:** LOW-MODERATE (standard Obsidian/SQLite pitfalls, all documented and mitigable)
+*Research completed: 2026-01-27*
+*Ready for roadmap creation: YES*
+
+---
+
+## Research Files Reference
+
+- **STACK.md** — Technology stack analysis; zero new dependencies; SQL query patterns; settings extensions; implementation patterns
+- **FEATURES.md** — Feature categorization (table stakes vs. differentiators); dependency graph; Zotero database structure; preflight UX patterns
+- **ARCHITECTURE_V1_2.md** — Component integration guide; data flow diagrams; recommended build order (Phase 1-4); performance implications; anti-patterns to avoid
+- **PITFALLS_V1_2.md** — Critical pitfalls (5 identified); prevention strategies; real-world examples from Zotero ecosystem; recovery costs
