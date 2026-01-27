@@ -112,10 +112,11 @@ Plans:
   3. User can configure which libraries to include via settings dropdown
   4. Library filter selection persists across plugin restarts
   5. All database queries (onboarding, batch generation, registry) respect library filtering
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] TBD
+- [ ] 09-01-PLAN.md — Update queries with library filtering and schema validation
+- [ ] 09-02-PLAN.md — Verify filtering with real Zotero database
 
 #### Phase 10: Duplicate Detection Service
 **Goal**: Plugin identifies duplicate items across libraries to warn users before profile creation
@@ -176,7 +177,7 @@ Phases execute in numeric order: 9 → 10 → 11 → 12
 | 6. Tag Infrastructure & Extraction | v1.1 | 3/3 | Complete | 2026-01-25 |
 | 7. Tag-Based Recommendations | v1.1 | 3/3 | Complete | 2026-01-26 |
 | 8. UX Enhancements (Progress & Validation) | v1.1 | 3/3 | Complete | 2026-01-27 |
-| 9. Library Filtering Foundation | v1.2 | 0/TBD | Not started | - |
+| 9. Library Filtering Foundation | v1.2 | 0/2 | Not started | - |
 | 10. Duplicate Detection Service | v1.2 | 0/TBD | Not started | - |
 | 11. Preflight Modal & Integration | v1.2 | 0/TBD | Not started | - |
 | 12. Settings Persistence & UI Polish | v1.2 | 0/TBD | Not started | - |
