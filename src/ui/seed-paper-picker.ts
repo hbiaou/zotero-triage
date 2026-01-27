@@ -165,12 +165,6 @@ export class SeedPaperPicker {
       this.searchQuery = (e.target as HTMLInputElement).value.toLowerCase();
       this.applyFilters();
     });
-
-    // Force value restoration after event listener attached
-    // This ensures value persists across re-renders triggered by typing
-    if (this.searchInput && this.searchQuery) {
-      this.searchInput.value = this.searchQuery;
-    }
   }
 
   /**
@@ -249,8 +243,10 @@ export class SeedPaperPicker {
       return true;
     });
 
-    // Re-render paper list
-    this.render();
+    // Only re-render paper list and status, not entire component
+    // This prevents destroying the search input while user is typing
+    this.renderPaperListOnly();
+    this.renderStatusOnly();
   }
 
   /**
@@ -258,7 +254,37 @@ export class SeedPaperPicker {
    */
   private renderPaperList(): void {
     const listContainer = this.container.createDiv({ cls: 'seed-picker-list' });
+    this.populatePaperList(listContainer);
+  }
 
+  /**
+   * Render paper list only (selective re-render without destroying filters)
+   */
+  private renderPaperListOnly(): void {
+    // Find existing paper list container
+    const existingList = this.container.querySelector('.seed-picker-list') as HTMLElement;
+    if (existingList) {
+      // Save scroll position
+      this.scrollPosition = existingList.scrollTop;
+
+      // Clear and re-populate
+      existingList.empty();
+      this.populatePaperList(existingList);
+
+      // Restore scroll position
+      requestAnimationFrame(() => {
+        existingList.scrollTop = this.scrollPosition;
+      });
+    } else {
+      // Fallback to full render if list doesn't exist
+      this.render();
+    }
+  }
+
+  /**
+   * Populate a paper list container with filtered items
+   */
+  private populatePaperList(listContainer: HTMLElement): void {
     if (this.filteredItems.length === 0) {
       listContainer.createDiv({
         cls: 'setting-item-description',
@@ -310,12 +336,6 @@ export class SeedPaperPicker {
    * Toggle selection of a paper
    */
   private toggleSelection(itemId: string): void {
-    // Save scroll position before re-render
-    const listContainer = this.container.querySelector('.seed-picker-list') as HTMLElement;
-    if (listContainer) {
-      this.scrollPosition = listContainer.scrollTop;
-    }
-
     if (this.selectedIds.has(itemId)) {
       this.selectedIds.delete(itemId);
     } else {
@@ -328,16 +348,9 @@ export class SeedPaperPicker {
     // Notify callback
     this.onSelectionChange(Array.from(this.selectedIds));
 
-    // Re-render to update UI
-    this.render();
-
-    // Restore scroll position after re-render
-    requestAnimationFrame(() => {
-      const newListContainer = this.container.querySelector('.seed-picker-list') as HTMLElement;
-      if (newListContainer) {
-        newListContainer.scrollTop = this.scrollPosition;
-      }
-    });
+    // Re-render only paper list and status (preserves filters including search input)
+    this.renderPaperListOnly();
+    this.renderStatusOnly();
   }
 
   /**
@@ -348,6 +361,18 @@ export class SeedPaperPicker {
     const count = this.selectedIds.size;
     const statusText = `${count} papers selected (min: ${this.MIN_SELECTION}, max: ${this.MAX_SELECTION})`;
     statusDiv.setText(statusText);
+  }
+
+  /**
+   * Render selection status only (selective re-render)
+   */
+  private renderStatusOnly(): void {
+    const existingStatus = this.container.querySelector('.seed-picker-status') as HTMLElement;
+    if (existingStatus) {
+      const count = this.selectedIds.size;
+      const statusText = `${count} papers selected (min: ${this.MIN_SELECTION}, max: ${this.MAX_SELECTION})`;
+      existingStatus.setText(statusText);
+    }
   }
 
   /**

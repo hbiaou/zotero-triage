@@ -286,14 +286,10 @@ export class TriageView extends ItemView {
       placeholder: 'Search by author, title, or tag...'
     });
 
-    // Restore search query value after re-render
-    if (this.searchQuery) {
-      this.searchInput.value = this.searchQuery;
-    }
-
     this.searchInput.addEventListener('input', (e) => {
       this.searchQuery = (e.target as HTMLInputElement).value.toLowerCase();
-      this.refresh();
+      // Only re-render the card list, not the entire view
+      this.renderCardListOnly();
     });
   }
 
@@ -324,6 +320,57 @@ export class TriageView extends ItemView {
       }
 
       return false;
+    });
+  }
+
+  /**
+   * Render only the card list (selective re-render for search filtering)
+   * Preserves search input and other UI elements
+   */
+  private renderCardListOnly(): void {
+    if (!this.currentBatch) return;
+
+    // Find existing card list container
+    const container = this.containerEl.children[1] as HTMLElement;
+    const existingCardList = container.querySelector('.zotero-triage-card-list') as HTMLElement;
+
+    if (!existingCardList) {
+      // Fallback to full render if card list doesn't exist
+      this.refresh();
+      return;
+    }
+
+    // Save scroll position
+    this.scrollPosition = existingCardList.scrollTop;
+
+    // Clear and re-populate card list
+    existingCardList.empty();
+    const displayedItems = this.filterItems(this.currentBatch.items);
+
+    for (const item of displayedItems) {
+      // Run validation
+      const validationResult = this.plugin.validationService.validate(item);
+
+      const card = createTriageCard(existingCardList, {
+        item,
+        validationResult,
+        onAccept: (item) => this.handleAccept(item),
+        onReject: (item) => this.handleReject(item),
+        onDefer: (item) => this.handleDefer(item)
+      });
+
+      // Apply status badge if item was previously processed
+      const state = this.plugin.registry.getState(item.itemID);
+      if (state !== 'unseen' && state !== 'proposed') {
+        // Map 'imported' state to 'accepted' for badge display
+        const badgeState: RegistryState = state === 'imported' ? 'accepted' : state;
+        updateCardStatus(card, badgeState);
+      }
+    }
+
+    // Restore scroll position
+    requestAnimationFrame(() => {
+      existingCardList.scrollTop = this.scrollPosition;
     });
   }
 
