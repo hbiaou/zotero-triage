@@ -87,6 +87,8 @@ Recent decisions affecting v1.1 work:
 
 ### Pending Todos
 
+**Total:** 5 todos in .planning/todos/pending/
+
 Phase 8 (UX Enhancements) scope:
 
 1. **Granular progress during batch scoring** (UX-01, UX-02)
@@ -126,6 +128,12 @@ Phase 8 (UX Enhancements) scope:
    - User must reconfigure in settings panel after onboarding
    - Other onboarding settings persist correctly
    - Likely missing in profile initialization or settings save
+
+10. **Implement library scope filter and preflight check** (2026-01-27)
+    - Database queries must exclude group libraries, feeds, trash, retracted items
+    - Target only user's personal library (libraryID where type='user')
+    - Add preflight check in onboarding wizard warning about duplicates and trash
+    - Non-destructive user advisory (no auto-merge/auto-delete)
 
 **Completed:**
 - ~~Tag extraction and scoring~~ COMPLETE (TAG-01 through TAG-06, Phases 6-7)
