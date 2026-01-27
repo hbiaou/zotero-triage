@@ -93,7 +93,7 @@ export class SeedPaperPicker {
   private renderFilters(): void {
     const filtersContainer = this.container.createDiv({ cls: 'seed-picker-filters' });
 
-    // Search filter
+    // Search filter (will take full width on its own row due to flex: 1 1 100%)
     this.renderSearchFilter(filtersContainer);
 
     // Year range filters

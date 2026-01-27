@@ -517,6 +517,7 @@
 
 .seed-picker-filters {
   display: flex;
+  flex-wrap: wrap;
   gap: 10px;
   margin-bottom: 15px;
   padding-bottom: 10px;
@@ -525,6 +526,7 @@
 
 .seed-picker-filters select {
   flex: 1;
+  min-width: 120px;
   padding: 4px 8px;
   border: 1px solid var(--background-modifier-border);
   border-radius: 4px;
@@ -532,8 +534,13 @@
   color: var(--text-normal);
 }
 
-/* Search filter styling */
-.seed-picker-search,
+/* Search filter styling - takes full width on its own row */
+.seed-picker-search {
+  flex: 1 1 100%;
+  width: 100%;
+  margin-bottom: 5px;
+}
+
 .triage-search {
   width: 100%;
   margin-bottom: 10px;
