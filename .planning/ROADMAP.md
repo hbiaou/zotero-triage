@@ -4,6 +4,7 @@
 
 - ✅ **v1.0 MVP** - Phases 1-5 (shipped 2026-01-25)
 - ✅ **v1.1 Polish + Tag Support** - Phases 6-8 (shipped 2026-01-27)
+- 📋 **v1.2 Library Scope Filtering & Preflight Checks** - Phases 9-12 (planned)
 
 ## Phases
 
@@ -97,10 +98,73 @@ Plans:
 
 </details>
 
+### 📋 v1.2 Library Scope Filtering & Preflight Checks (Planned)
+
+**Milestone Goal:** Ensure only relevant, high-quality items from user's personal library enter the recommendation pipeline by filtering unwanted sources and detecting issues before onboarding.
+
+#### Phase 9: Library Filtering Foundation
+**Goal**: Plugin queries only personal library items, excluding group libraries, feeds, trash, and retracted items
+**Depends on**: Phase 8
+**Requirements**: SCOPE-01, SCOPE-02, SCOPE-03, SCOPE-04, SCOPE-05, SCOPE-06
+**Success Criteria** (what must be TRUE):
+  1. User sees only personal library items in onboarding seed picker (no group libraries, feeds, or trash)
+  2. User sees transparent scope counts showing what's included vs excluded
+  3. User can configure which libraries to include via settings dropdown
+  4. Library filter selection persists across plugin restarts
+  5. All database queries (onboarding, batch generation, registry) respect library filtering
+**Plans**: TBD
+
+Plans:
+- [ ] TBD
+
+#### Phase 10: Duplicate Detection Service
+**Goal**: Plugin identifies duplicate items across libraries to warn users before profile creation
+**Depends on**: Phase 9
+**Requirements**: PREFLIGHT-01, PREFLIGHT-02, PREFLIGHT-06
+**Success Criteria** (what must be TRUE):
+  1. Plugin detects items with matching DOI, ISBN, or title across libraries
+  2. Plugin displays duplicate count during onboarding without blocking
+  3. Plugin provides deep links to Zotero's duplicate items panel
+  4. Duplicate detection completes within 30 seconds for 5000+ item libraries
+**Plans**: TBD
+
+Plans:
+- [ ] TBD
+
+#### Phase 11: Preflight Modal & Integration
+**Goal**: Users see comprehensive library health check before onboarding with non-blocking advisories
+**Depends on**: Phase 10
+**Requirements**: PREFLIGHT-03, PREFLIGHT-04, PREFLIGHT-05, PREFLIGHT-07, PREFLIGHT-08
+**Success Criteria** (what must be TRUE):
+  1. User sees preflight modal showing trash count, duplicate count, and group library advisories
+  2. User can proceed with onboarding despite warnings (non-blocking design)
+  3. User sees progress feedback during preflight check (5000+ items)
+  4. User can skip preflight check entirely if desired
+  5. Preflight gracefully handles missing tables (Zotero 6 vs 7 compatibility)
+**Plans**: TBD
+
+Plans:
+- [ ] TBD
+
+#### Phase 12: Settings Persistence & UI Polish
+**Goal**: Recommendation settings configured in wizard persist to settings panel with easy reconfiguration
+**Depends on**: Phase 11
+**Requirements**: SETTINGS-01, SETTINGS-02, SETTINGS-03, SETTINGS-04, SETTINGS-05
+**Success Criteria** (what must be TRUE):
+  1. Relevance vs Diversity setting chosen in onboarding persists to settings panel
+  2. User can click "Reconfigure Profile" button to change recommendation settings
+  3. Library filter mode persists across plugin reloads
+  4. Settings panel displays library selector dropdown
+  5. Changing library selection triggers profile re-initialization warning
+**Plans**: TBD
+
+Plans:
+- [ ] TBD
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 6 → 7 → 8
+Phases execute in numeric order: 9 → 10 → 11 → 12
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
@@ -112,3 +176,7 @@ Phases execute in numeric order: 6 → 7 → 8
 | 6. Tag Infrastructure & Extraction | v1.1 | 3/3 | Complete | 2026-01-25 |
 | 7. Tag-Based Recommendations | v1.1 | 3/3 | Complete | 2026-01-26 |
 | 8. UX Enhancements (Progress & Validation) | v1.1 | 3/3 | Complete | 2026-01-27 |
+| 9. Library Filtering Foundation | v1.2 | 0/TBD | Not started | - |
+| 10. Duplicate Detection Service | v1.2 | 0/TBD | Not started | - |
+| 11. Preflight Modal & Integration | v1.2 | 0/TBD | Not started | - |
+| 12. Settings Persistence & UI Polish | v1.2 | 0/TBD | Not started | - |

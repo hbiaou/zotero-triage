@@ -5,78 +5,69 @@
 See: .planning/PROJECT.md (updated 2026-01-27)
 
 **Core value:** Users can progressively process their Zotero backlog without overwhelm, ensuring every imported literature note meets quality standards.
-**Current focus:** Milestone v1.2 - Library Scope Filtering & Preflight Checks
+**Current focus:** Phase 9 - Library Filtering Foundation
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements for v1.2
-Last activity: 2026-01-27 — Milestone v1.2 started
+Phase: 9 of 12 (Library Filtering Foundation)
+Plan: 0 of TBD in current phase
+Status: Ready to plan
+Last activity: 2026-01-27 - Roadmap created for v1.2 milestone (phases 9-12)
 
-Progress: v1.0 + v1.1 shipped (32 plans total). v1.2 requirements in progress.
+Progress: [████████░░░░] 67% (8 of 12 phases complete)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 32 (v1.0: 23, v1.1: 9)
-- Average duration: 37 min
-- Total execution time: 19.75 hours
+- Total plans completed: 27
+- Average duration: ~45 min per plan
+- Total execution time: ~20 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 01-foundation | 4/4 | 28 min | 7 min |
-| 02-batch-workflow | 3/3 | 74 min | 25 min |
-| 03-quality-gates | 3/3 | 945 min | 315 min |
-| 04-onboarding-and-recommendations | 5/5 | 38 min | 8 min |
-| 05-polish | 8/8 | 32 min | 4 min |
-| 06-tag-infrastructure | 3/3 | 14 min | 5 min |
-| 07-tag-recommendations | 3/3 | 17 min | 6 min |
-| 08-ux-enhancements | 3/3 | 30 min | 10 min |
+| 1. Foundation & Setup | 5 | 4h | ~48 min |
+| 2. Onboarding | 3 | 2h | ~40 min |
+| 3. Recommendation Engine | 5 | 4h | ~48 min |
+| 4. Triage Workflow | 5 | 4h | ~48 min |
+| 5. Literature Notes | 5 | 3.5h | ~42 min |
+| 6. Tag Infrastructure | 3 | 2h | ~40 min |
+| 7. Tag Recommendations | 3 | 2h | ~40 min |
+| 8. UX Enhancements | 3 | 2.5h | ~50 min |
 
 **Recent Trend:**
-- v1.0 shipped successfully with 23 plans across 5 phases (2026-01-25)
-- v1.1 shipped successfully with 9 plans across 3 phases (2026-01-27)
-- Phase 6 tag infrastructure COMPLETE (3 plans, 14 min total)
-- Phase 7 tag recommendations COMPLETE (3 plans, 17 min total)
-- Phase 8 UX enhancements COMPLETE (3 plans, 30 min total)
-- Verification workflow caught 3 critical bugs during Phase 7 (stemmer, logging, persistence)
-- Plan 08-03 checkpoint iteration fixed modal sizing and search input functionality (responsive design)
-- Average 10 min per plan across Phase 8 (fast execution for focused UX improvements)
+- v1.0 shipped: 23 plans across 5 phases (2026-01-25)
+- v1.1 shipped: 9 plans across 3 phases (2026-01-27)
+- Average ~45 min per plan
+- Trend: Stable
 
-*Updated after Phase 8 completion and verification - v1.1 milestone shipped*
+*Note: v1.2 phases (9-12) not yet planned*
 
 ## Accumulated Context
 
 ### Decisions
 
-All decisions are logged in PROJECT.md Key Decisions table.
-v1.1 decisions archived in milestones/v1.1-ROADMAP.md.
+Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v1.2 work:
 
-Key patterns from v1.1:
-- Tag-based recommendations with Porter stemming and adaptive learning
-- Throttled progress feedback for large library operations
-- Progressive disclosure for help text
-- Defensive NULL handling and schema validation
+- **Phase 8**: Progressive disclosure for field help (examples visible, explanations expandable)
+- **Phase 7**: Porter stemming for tag matching (linguistic normalization improves matching flexibility)
+- **Phase 6**: SQL-level annotation tag filtering (filter at query time vs post-processing)
+- **Phase 1**: Lazy database initialization (defer connection to first use for fast startup)
 
-### Pending Items for Future Milestones
+### Pending Items for v1.2
 
-**Potential v1.2 candidates:**
+**Current milestone (v1.2) addresses:**
 
-1. **Extend adaptive learning to authors and keywords**
-   - Currently only tags have full adaptive learning (boost/diminish/decay)
-   - Would improve recommendation quality over time for all signals
+1. Library scope filter and preflight check (from accumulated todos)
+   - Exclude group libraries, feeds, trash, retracted items
+   - Query-time filtering at libraryID level
+   - Preflight modal with duplicate detection and trash advisories
 
-2. **Fix Relevance vs Diversity persistence during onboarding**
-   - Setting configured during onboarding wizard doesn't persist
-   - User must reconfigure in settings panel after onboarding
-
-3. **Implement library scope filter and preflight check**
-   - Database queries should exclude group libraries, feeds, trash, retracted items
-   - Target only user's personal library (libraryID where type='user')
-   - Add preflight check in onboarding wizard warning about duplicates and trash
+2. Fix Relevance vs Diversity persistence (from accumulated todos)
+   - Setting configured in wizard now persists to settings panel
+   - Add "Reconfigure Profile" button for easy changes
 
 ### Quick Tasks Completed
 
@@ -88,15 +79,23 @@ Key patterns from v1.1:
 
 ### Blockers/Concerns
 
-None - v1.1 milestone complete and verified.
+**v1.2 Known Constraints:**
+- Library filtering must be query-time (not post-processing) to maintain performance
+- Duplicate detection needs conservative multi-field matching to avoid false positives
+- Preflight checks must be non-blocking (advisory only, never prevent workflow)
+- Zotero 6 vs 7 compatibility requires graceful degradation for missing tables (retractedItems)
+
+**Research flags:**
+- Phase 9: Query performance needs testing with 5000+ items across multiple libraries
+- Phase 11: Preflight must work on both Zotero 6.0+ and 7.x (may need community testing)
 
 ## Session Continuity
 
 Last session: 2026-01-27
-Stopped at: v1.1 milestone completion
+Stopped at: v1.2 roadmap created with phases 9-12, ready for phase 9 planning
 Resume file: None
 
-**Next step:** Complete requirements definition and roadmap for v1.2
+**Next step:** Run `/gsd:plan-phase 9` to create execution plan for Library Filtering Foundation
 
 Config:
 {

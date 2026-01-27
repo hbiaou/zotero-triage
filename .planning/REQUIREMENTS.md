@@ -69,31 +69,37 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SCOPE-01 | TBD | Pending |
-| SCOPE-02 | TBD | Pending |
-| SCOPE-03 | TBD | Pending |
-| SCOPE-04 | TBD | Pending |
-| SCOPE-05 | TBD | Pending |
-| SCOPE-06 | TBD | Pending |
-| PREFLIGHT-01 | TBD | Pending |
-| PREFLIGHT-02 | TBD | Pending |
-| PREFLIGHT-03 | TBD | Pending |
-| PREFLIGHT-04 | TBD | Pending |
-| PREFLIGHT-05 | TBD | Pending |
-| PREFLIGHT-06 | TBD | Pending |
-| PREFLIGHT-07 | TBD | Pending |
-| PREFLIGHT-08 | TBD | Pending |
-| SETTINGS-01 | TBD | Pending |
-| SETTINGS-02 | TBD | Pending |
-| SETTINGS-03 | TBD | Pending |
-| SETTINGS-04 | TBD | Pending |
-| SETTINGS-05 | TBD | Pending |
+| SCOPE-01 | Phase 9 | Pending |
+| SCOPE-02 | Phase 9 | Pending |
+| SCOPE-03 | Phase 9 | Pending |
+| SCOPE-04 | Phase 9 | Pending |
+| SCOPE-05 | Phase 9 | Pending |
+| SCOPE-06 | Phase 9 | Pending |
+| PREFLIGHT-01 | Phase 10 | Pending |
+| PREFLIGHT-02 | Phase 10 | Pending |
+| PREFLIGHT-03 | Phase 11 | Pending |
+| PREFLIGHT-04 | Phase 11 | Pending |
+| PREFLIGHT-05 | Phase 11 | Pending |
+| PREFLIGHT-06 | Phase 10 | Pending |
+| PREFLIGHT-07 | Phase 11 | Pending |
+| PREFLIGHT-08 | Phase 11 | Pending |
+| SETTINGS-01 | Phase 12 | Pending |
+| SETTINGS-02 | Phase 12 | Pending |
+| SETTINGS-03 | Phase 12 | Pending |
+| SETTINGS-04 | Phase 12 | Pending |
+| SETTINGS-05 | Phase 12 | Pending |
 
 **Coverage:**
 - v1.2 requirements: 19 total
-- Mapped to phases: 0 (awaiting roadmap)
-- Unmapped: 19 ⚠️
+- Mapped to phases: 19/19 (100%)
+- Unmapped: 0
+
+**Phase Coverage:**
+- Phase 9 (Library Filtering Foundation): 6 requirements
+- Phase 10 (Duplicate Detection Service): 3 requirements
+- Phase 11 (Preflight Modal & Integration): 5 requirements
+- Phase 12 (Settings Persistence & UI Polish): 5 requirements
 
 ---
 *Requirements defined: 2026-01-27*
-*Last updated: 2026-01-27 after initial definition*
+*Last updated: 2026-01-27 after roadmap creation*
