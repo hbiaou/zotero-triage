@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-01-27)
 
 **Core value:** Users can progressively process their Zotero backlog without overwhelm, ensuring every imported literature note meets quality standards.
-**Current focus:** Ready for next milestone planning
+**Current focus:** Milestone v1.2 - Library Scope Filtering & Preflight Checks
 
 ## Current Position
 
-Phase: Not started
-Plan: Not started
-Status: Ready for next milestone planning
-Last activity: 2026-01-27 — v1.1 milestone complete
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements for v1.2
+Last activity: 2026-01-27 — Milestone v1.2 started
 
-Progress: v1.0 + v1.1 shipped (32 plans total). Ready for new milestone.
+Progress: v1.0 + v1.1 shipped (32 plans total). v1.2 requirements in progress.
 
 ## Performance Metrics
 
@@ -96,7 +96,7 @@ Last session: 2026-01-27
 Stopped at: v1.1 milestone completion
 Resume file: None
 
-**Next step:** `/gsd:new-milestone` to start next milestone cycle
+**Next step:** Complete requirements definition and roadmap for v1.2
 
 Config:
 {

@@ -30,7 +30,16 @@ Users can progressively process their Zotero backlog without overwhelm, ensuring
 
 ### Active
 
-(Empty - ready for next milestone requirements)
+<!-- Current milestone: v1.2 Library Scope Filtering & Preflight Checks -->
+
+- [ ] Library Scope Filter: Exclude group libraries, feeds, trash, and retracted items from all queries
+- [ ] Configurable Library Selection: User-controlled settings for which Zotero libraries/collections to include
+- [ ] Preflight Check: Pre-onboarding validation warning about trash items, duplicates, group libraries, and metadata quality
+- [ ] Blocking Preflight UX: Prevent setup until library scope issues are resolved
+- [ ] Duplicate Detection: Identify same DOI/title across libraries to prevent double-processing
+- [ ] Library Type Detection: Query Zotero schema to distinguish personal vs group vs feed libraries
+- [ ] Relevance vs Diversity Persistence: Fix setting configured in wizard to persist to settings panel
+- [ ] Reconfigure Profile Button: Easy way to change recommendation settings without re-onboarding
 
 ### Out of Scope
 
@@ -60,10 +69,10 @@ Users can progressively process their Zotero backlog without overwhelm, ensuring
 
 **Recommendation engine (validated):** Multi-signal scoring (tags, keywords, authors, recency) with adaptive learning. Porter-stemmed tag matching with top-20 frequency-weighted profiles. Simple frequency-based keyword extraction. No vectors or embeddings needed.
 
-**Known limitations:**
+**Known limitations (being addressed in v1.2):**
 - Adaptive learning only fully implemented for tags (authors/keywords use simpler weight adjustment)
-- Library scope filter not implemented (queries include group libraries, feeds, trash)
-- Relevance vs Diversity setting doesn't persist from onboarding wizard
+- Library scope filter not implemented (queries include group libraries, feeds, trash) ← v1.2 target
+- Relevance vs Diversity setting doesn't persist from onboarding wizard ← v1.2 target
 
 ## Constraints
 
@@ -94,5 +103,17 @@ Users can progressively process their Zotero backlog without overwhelm, ensuring
 | Progressive disclosure for field help | Examples visible, explanations expandable | ✓ Good — Most users understand from examples, details available when needed |
 | SQL-level annotation tag filtering | Filter at query time vs post-processing | ✓ Good — More efficient, reduces data transfer and processing |
 
+## Current Milestone: v1.2 Library Scope Filtering & Preflight Checks
+
+**Goal:** Ensure only relevant, high-quality items from user's personal library enter the recommendation pipeline by filtering unwanted sources and detecting issues before onboarding.
+
+**Target features:**
+- Library scope filtering (exclude groups, trash, feeds) with user configuration
+- Comprehensive preflight check before onboarding (blocking UX)
+- Duplicate detection across libraries
+- Fix relevance vs diversity setting persistence + add reconfigure UI
+
+**Why this milestone matters:** Prevents recommendation pollution from unwanted sources, reduces duplicate processing, improves performance with mixed library types, and eliminates user confusion about what's in scope.
+
 ---
-*Last updated: 2026-01-27 after v1.1 milestone completion*
+*Last updated: 2026-01-27 after starting milestone v1.2*
