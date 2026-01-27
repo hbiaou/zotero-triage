@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-01-25)
 ## Current Position
 
 Phase: 8 of 8 (UX Enhancements)
-Plan: 2 of TBD in current phase
+Plan: 3 of TBD in current phase
 Status: In progress
-Last activity: 2026-01-26 — Completed 08-02-PLAN.md
+Last activity: 2026-01-27 — Completed 08-03-PLAN.md
 
-Progress: [████████░░] 82% (v1.0 complete + Phases 6-7-8 partial: 31/38 total plans)
+Progress: [████████░░] 84% (v1.0 complete + Phases 6-7-8 partial: 32/38 total plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 31 (v1.0: 23, v1.1: 8)
-- Average duration: 38 min
-- Total execution time: 19.5 hours
+- Total plans completed: 32 (v1.0: 23, v1.1: 9)
+- Average duration: 37 min
+- Total execution time: 19.75 hours
 
 **By Phase:**
 
@@ -34,17 +34,18 @@ Progress: [████████░░] 82% (v1.0 complete + Phases 6-7-8 par
 | 05-polish | 8/8 | 32 min | 4 min |
 | 06-tag-infrastructure | 3/3 | 14 min | 5 min |
 | 07-tag-recommendations | 3/3 | 17 min | 6 min |
-| 08-ux-enhancements | 2/TBD | 15 min | 8 min |
+| 08-ux-enhancements | 3/TBD | 30 min | 10 min |
 
 **Recent Trend:**
 - v1.0 shipped successfully with 23 plans across 5 phases
 - v1.1 in progress: Phase 6 tag infrastructure COMPLETE (3 plans, 14 min total)
 - Phase 7 tag recommendations COMPLETE (3 plans, 17 min total)
-- Phase 8 UX enhancements IN PROGRESS (2 plans, 15 min total)
+- Phase 8 UX enhancements IN PROGRESS (3 plans, 30 min total)
 - Verification workflow caught 3 critical bugs during Phase 7 (stemmer, logging, persistence)
-- Average 8 min per plan across Phase 8 (fast execution for focused UX improvements)
+- Plan 08-03 required checkpoint iteration (2 fixes for modal sizing and search input functionality)
+- Average 10 min per plan across Phase 8 (fast execution for focused UX improvements)
 
-*Updated after Phase 8 Plan 02 completion*
+*Updated after Phase 8 Plan 03 completion*
 
 ## Accumulated Context
 
@@ -72,6 +73,9 @@ Recent decisions affecting v1.1 work:
 - **Search scope** (08-02): Title, authors, tags (core identifying fields users remember)
 - **Search persistence** (08-02): Query persists through re-renders for consistent UX during batch processing
 - **Real-time filtering** (08-02): No debounce - filtering fast enough for instant feedback
+- **Modal responsive sizing** (08-03): max-width: 90vw prevents horizontal scroll on narrow screens (800px+)
+- **Scroll preservation pattern** (08-03): Save before action, restore in requestAnimationFrame after DOM update
+- **Search input persistence** (08-03): Restore input.value from state after re-render to survive component updates
 - **Annotation tag filtering** (06-01): SQL-level filtering using NOT LIKE patterns for efficiency
 - **Tag extraction error handling** (06-01): Graceful degradation to empty array; tags are enhancement not core feature
 - **Tag normalization** (06-01, 06-02): Trim whitespace, lowercase normalization, skip empty strings
@@ -142,11 +146,11 @@ Phase 8 (UX Enhancements) scope:
 
 ## Session Continuity
 
-Last session: 2026-01-26
-Stopped at: Completed 08-02-PLAN.md (Search/filter functionality for onboarding and batch processing)
+Last session: 2026-01-27
+Stopped at: Completed 08-03-PLAN.md (Modal sizing and scroll preservation)
 Resume file: None
 
-**Next step:** Phase 8 (UX Enhancements) - continue with 08-03-PLAN.md or execute next plan with `/gsd:execute-plan`
+**Next step:** Phase 8 (UX Enhancements) - continue with additional plans or complete phase
 
 Config:
 {
