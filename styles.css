@@ -430,7 +430,9 @@
 
 .zotero-triage-wizard {
   min-width: 600px;
+  max-width: 90vw;
   max-height: 80vh;
+  overflow-y: auto;
 }
 
 .wizard-progress {
@@ -462,6 +464,18 @@
   margin: 20px 0;
   min-height: 200px;
   max-height: none;
+  overflow-x: hidden;
+  word-wrap: break-word;
+}
+
+.wizard-step-content .seed-picker {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.wizard-step-content .seed-paper-item {
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .wizard-navigation {
