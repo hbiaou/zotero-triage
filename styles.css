@@ -526,6 +526,29 @@
   color: var(--text-normal);
 }
 
+/* Search filter styling */
+.seed-picker-search,
+.triage-search {
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+.search-filter-input {
+  width: 100%;
+  padding: 6px 12px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  background: var(--background-primary);
+  color: var(--text-normal);
+  font-size: 0.95em;
+  box-sizing: border-box;
+}
+
+.search-filter-input:focus {
+  outline: none;
+  border-color: var(--interactive-accent);
+}
+
 .seed-picker-list {
   flex: 1;
   overflow-y: auto;
