@@ -428,6 +428,12 @@
   padding: 20px;
 }
 
+/* Modal wrapper sizing for wizard - targets the outer .modal element */
+.modal:has(.zotero-triage-wizard) {
+  max-width: 90vw !important;
+  width: 90vw;
+}
+
 .zotero-triage-wizard {
   min-width: 600px;
   max-width: 90vw;
