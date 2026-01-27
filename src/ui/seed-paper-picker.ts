@@ -161,15 +161,16 @@ export class SeedPaperPicker {
       placeholder: 'Search by author, title, or tag...'
     });
 
-    // Restore search query value after re-render
-    if (this.searchQuery) {
-      this.searchInput.value = this.searchQuery;
-    }
-
     this.searchInput.addEventListener('input', (e) => {
       this.searchQuery = (e.target as HTMLInputElement).value.toLowerCase();
       this.applyFilters();
     });
+
+    // Force value restoration after event listener attached
+    // This ensures value persists across re-renders triggered by typing
+    if (this.searchInput && this.searchQuery) {
+      this.searchInput.value = this.searchQuery;
+    }
   }
 
   /**
