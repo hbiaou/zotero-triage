@@ -74,16 +74,16 @@ Which phases cover which requirements. Updated during roadmap creation.
 | TAG-04 | Phase 7 | Complete |
 | TAG-05 | Phase 7 | Complete |
 | TAG-06 | Phase 7 | Complete |
-| UX-01 | Phase 8 | Pending |
-| UX-02 | Phase 8 | Pending |
-| UX-03 | Phase 8 | Pending |
-| UX-04 | Phase 8 | Pending |
-| UX-05 | Phase 8 | Pending |
-| UX-06 | Phase 8 | Pending |
-| UX-07 | Phase 8 | Pending |
-| UX-08 | Phase 8 | Pending |
-| UX-09 | Phase 8 | Pending |
-| UX-10 | Phase 8 | Pending |
+| UX-01 | Phase 8 | Complete |
+| UX-02 | Phase 8 | Complete |
+| UX-03 | Phase 8 | Complete |
+| UX-04 | Phase 8 | Complete |
+| UX-05 | Phase 8 | Complete |
+| UX-06 | Phase 8 | Complete |
+| UX-07 | Phase 8 | Complete |
+| UX-08 | Phase 8 | Complete |
+| UX-09 | Phase 8 | Complete |
+| UX-10 | Phase 8 | Complete |
 | VAL-01 | Phase 6 | Complete |
 | VAL-02 | Phase 6 | Complete |
 

@@ -3,7 +3,7 @@
 ## Milestones
 
 - ✅ **v1.0 MVP** - Phases 1-5 (shipped 2026-01-25)
-- 🚧 **v1.1 Polish + Tag Support** - Phases 6-8 (in progress)
+- ✅ **v1.1 Polish + Tag Support** - Phases 6-8 (shipped 2026-01-27)
 
 ## Phases
 
@@ -65,7 +65,7 @@ Plans:
 
 </details>
 
-### 🚧 v1.1 Polish + Tag Support (In Progress)
+### ✅ v1.1 Polish + Tag Support - SHIPPED 2026-01-27
 
 **Milestone Goal:** Enhance user experience with better feedback and guidance, plus add tag-based recommendation signals to improve batch relevance.
 
@@ -120,9 +120,9 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 08-01-PLAN.md — Add throttled progress updates, empty profile warnings, and enhanced override modal guidance
-- [ ] 08-02-PLAN.md — Add search/filter to seed paper picker and batch view
-- [ ] 08-03-PLAN.md — Fix modal sizing and preserve scroll position during item interactions
+- [x] 08-01-PLAN.md — Add throttled progress updates, empty profile warnings, and enhanced override modal guidance
+- [x] 08-02-PLAN.md — Add search/filter to seed paper picker and batch view
+- [x] 08-03-PLAN.md — Fix modal sizing and preserve scroll position during item interactions
 
 ## Progress
 
@@ -138,4 +138,4 @@ Phases execute in numeric order: 6 → 7 → 8
 | 5. Literature Note Generation & Polish | v1.0 | 5/5 | Complete | 2026-01-25 |
 | 6. Tag Infrastructure & Extraction | v1.1 | 3/3 | Complete | 2026-01-25 |
 | 7. Tag-Based Recommendations | v1.1 | 3/3 | Complete | 2026-01-26 |
-| 8. UX Enhancements (Progress & Validation) | v1.1 | 0/3 | Not started | - |
+| 8. UX Enhancements (Progress & Validation) | v1.1 | 3/3 | Complete | 2026-01-27 |
