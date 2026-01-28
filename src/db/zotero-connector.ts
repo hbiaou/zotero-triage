@@ -30,6 +30,7 @@ import { SUPPORTED_SCHEMA_VERSIONS, SchemaCheckResult } from './schema';
 import { processInChunks } from '../utils/async';
 import { getZoteroDataDir, resolvePdfPath } from '../utils/paths';
 import { retryWithBackoff } from './retry-handler';
+import { DuplicateDetectionService, DuplicateGroup } from '../services/duplicate-detection-service';
 
 /**
  * Zotero item with metadata extracted from the EAV schema
@@ -597,6 +598,29 @@ export class ZoteroConnector {
    */
   get itemCount(): number {
     return this.items.length;
+  }
+
+  /**
+   * Detect duplicate items across personal library.
+   * Uses DOI-first hierarchy: DOI → ISBN → normalized title.
+   *
+   * Delegates to DuplicateDetectionService for processing.
+   *
+   * @returns Promise with totalDuplicates count and sampleGroups array
+   */
+  async detectDuplicates(): Promise<{
+    totalDuplicates: number;
+    sampleGroups: DuplicateGroup[];
+  }> {
+    const service = new DuplicateDetectionService(this);
+    return service.detectDuplicates();
+  }
+
+  /**
+   * Check if connector is currently connected to a database
+   */
+  get isConnected(): boolean {
+    return this.db !== null;
   }
 
   /**
