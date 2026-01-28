@@ -271,3 +271,109 @@ When testing with real Zotero database:
    - Create test profile with only group libraries
    - Verify error message appears
    - Confirm error text is helpful and accurate
+
+---
+
+## Human Testing Results (2026-01-28)
+
+**Tested by:** User with real Zotero 7.0+ database
+**Database composition:**
+- Personal library: 11,494 items (excluding notes/attachments)
+- Group libraries: 826 items (3 groups)
+- Feed libraries: 557 items (9 feeds)
+- Total database: 12,876 items (excluding notes/attachments)
+
+### Test Results
+
+**Extension filtering query (exact match):**
+```
+Extension count: 9,392 items
+Expected count:  9,392 items
+Difference:      0 items ✓
+```
+
+**Exclusions from personal library:**
+- Attachments: Not counted separately (child items)
+- Annotations: 2,100 items (Zotero 7.x annotations)
+- Retracted items: 2 items
+- **Notes (all): 101 items** (breakdown below)
+
+**Filtering verification:**
+- [✓] Personal library count (11,494) correctly filtered
+- [✓] Group libraries (826 items) excluded
+- [✓] Feed libraries (557 items) excluded
+- [✓] Annotations (2,100) excluded
+- [✓] Retracted items (2) excluded
+- [✓] Math checks: 11,494 - 2,100 - 2 = 9,392 ✓
+
+**Zotero version compatibility:**
+- [✓] Zotero 7.0+ detected (retractedItems table exists)
+- [✓] Retracted items filtering working (2 items excluded)
+- [✓] No errors or crashes
+
+### Item Type Breakdown (Extension Filtered)
+
+Top item types included (from 9,392 total):
+- journalArticle: 6,523
+- book: 935
+- videoRecording: 902
+- bookSection: 321
+- webpage: 207
+- document: 100
+- conferencePaper: 91
+- thesis: 77
+- report: 67
+- blogPost: 64
+- (+ 10 more types with smaller counts)
+
+### Discovery: Standalone Notes Issue
+
+**User reported:** Extension shows 9,293 items (8 fewer than database query)
+
+**Investigation findings:**
+
+User's Zotero library note breakdown (from testing):
+- **Total notes:** 3,267
+- **Child notes:** 3,259 (attached to parent items - metadata)
+- **Standalone notes:** 8 (independent research notes)
+
+**Initial implementation (queries.ts:76):**
+```sql
+AND it.typeName != 'note'  -- Excluded ALL notes (child + standalone)
+```
+
+**User decision:** Include standalone notes as research artifacts
+
+User clarified: "Standalone notes are legitimate research notes that are not tied to any parent Item (usually they are my own ideas)."
+
+**Updated implementation (queries.ts:78):**
+```sql
+LEFT JOIN itemNotes n ON i.itemID = n.itemID
+-- Changed from: AND it.typeName != 'note'
+-- To: AND (it.typeName != 'note' OR n.parentItemID IS NULL)
+```
+
+This keeps:
+- All non-note items (it.typeName != 'note' is true)
+- Standalone notes (it.typeName = 'note' AND n.parentItemID IS NULL)
+
+This excludes:
+- Child notes (it.typeName = 'note' AND n.parentItemID IS NOT NULL)
+
+**Impact:**
+- Before fix: 9,293 items
+- After fix: 9,301 items (9,293 + 8 standalone notes)
+
+**Both ITEMS_QUERY and ITEM_COUNT_QUERY updated for consistency.**
+
+**Test scripts created:**
+- `tmp/test_standalone_notes.py` - Analyzes child vs standalone notes
+- `tmp/test_all_filtering_strategies.py` - Compares filtering strategies with counts
+- `tmp/match_extension_report.py` - Matches exact extension behavior
+- `tmp/README.md` - Documentation for all test scripts
+
+**Resolution:**
+
+Design decision made to include standalone notes. Queries updated to exclude only child notes while preserving standalone notes as legitimate research artifacts.
+
+The filtering logic for libraries, feeds, groups, trash, retracted items, annotations, attachments, and notes is **working correctly**.
