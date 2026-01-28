@@ -127,10 +127,10 @@ Plans:
   2. Plugin displays duplicate count during onboarding without blocking
   3. Plugin provides deep links to Zotero's duplicate items panel
   4. Duplicate detection completes within 30 seconds for 5000+ item libraries
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
-- [ ] TBD
+- [ ] 10-01-PLAN.md — Implement duplicate detection service with DOI/ISBN/title hierarchy
 
 #### Phase 11: Preflight Modal & Integration
 **Goal**: Users see comprehensive library health check before onboarding with non-blocking advisories
@@ -178,6 +178,6 @@ Phases execute in numeric order: 9 → 10 → 11 → 12
 | 7. Tag-Based Recommendations | v1.1 | 3/3 | Complete | 2026-01-26 |
 | 8. UX Enhancements (Progress & Validation) | v1.1 | 3/3 | Complete | 2026-01-27 |
 | 9. Library Filtering Foundation | v1.2 | 2/2 | Complete | 2026-01-28 |
-| 10. Duplicate Detection Service | v1.2 | 0/TBD | Not started | - |
+| 10. Duplicate Detection Service | v1.2 | 0/1 | Not started | - |
 | 11. Preflight Modal & Integration | v1.2 | 0/TBD | Not started | - |
 | 12. Settings Persistence & UI Polish | v1.2 | 0/TBD | Not started | - |
