@@ -18,12 +18,12 @@ Requirements for milestone v1.2 - Library Scope Filtering & Preflight Checks. Ea
 
 ### Preflight Validation
 
-- [ ] **PREFLIGHT-01**: Plugin queries Zotero's itemRelated table to detect duplicates before onboarding
+- [x] **PREFLIGHT-01**: Plugin queries Zotero's itemRelated table to detect duplicates before onboarding
 - [ ] **PREFLIGHT-02**: Plugin displays duplicate count with advisory message during onboarding
 - [ ] **PREFLIGHT-03**: Plugin queries deletedItems table to count trash volume
 - [ ] **PREFLIGHT-04**: Plugin displays trash count with advisory to empty in Zotero
 - [ ] **PREFLIGHT-05**: Plugin detects group library items and displays exclusion advisory
-- [ ] **PREFLIGHT-06**: Plugin provides deep links (zotero:// URIs) to Zotero Duplicate Items panel
+- [x] **PREFLIGHT-06**: Plugin provides deep links (zotero:// URIs) to Zotero Duplicate Items panel
 - [ ] **PREFLIGHT-07**: Preflight check is non-blocking (user can proceed despite warnings)
 - [ ] **PREFLIGHT-08**: Preflight modal shows progress during query execution (5000+ items)
 
@@ -75,12 +75,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SCOPE-04 | Phase 12 | Pending |
 | SCOPE-05 | Phase 12 | Pending |
 | SCOPE-06 | Phase 9 | Complete |
-| PREFLIGHT-01 | Phase 10 | Pending |
+| PREFLIGHT-01 | Phase 10 | Complete |
 | PREFLIGHT-02 | Phase 10 | Pending |
 | PREFLIGHT-03 | Phase 11 | Pending |
 | PREFLIGHT-04 | Phase 11 | Pending |
 | PREFLIGHT-05 | Phase 11 | Pending |
-| PREFLIGHT-06 | Phase 10 | Pending |
+| PREFLIGHT-06 | Phase 10 | Complete |
 | PREFLIGHT-07 | Phase 11 | Pending |
 | PREFLIGHT-08 | Phase 11 | Pending |
 | SETTINGS-01 | Phase 12 | Pending |
