@@ -26,6 +26,8 @@ SELECT version FROM version WHERE schema = 'userdata'
  * - Attachments (itemType = 'attachment')
  * - Notes (itemType = 'note')
  * - Annotations (itemType = 'annotation')
+ * - Group libraries and feeds (only type='user' personal library)
+ * - Retracted items (Zotero 7.0+, gracefully degrades on 6.x)
  *
  * Returns: itemID, itemKey, dateAdded, dateModified, itemType,
  *          title, doi, date, journal, volume, issue, pages, abstract, publisher, isbn
@@ -41,14 +43,18 @@ WITH itemFields AS (
     f.fieldName,
     idv.value
   FROM items i
+  INNER JOIN libraries l ON i.libraryID = l.libraryID
   JOIN itemTypes it ON i.itemTypeID = it.itemTypeID
   LEFT JOIN itemData id ON i.itemID = id.itemID
   LEFT JOIN fields f ON id.fieldID = f.fieldID
   LEFT JOIN itemDataValues idv ON id.valueID = idv.valueID
+  LEFT JOIN retractedItems ri ON i.itemID = ri.itemID
   WHERE i.itemID NOT IN (SELECT itemID FROM deletedItems)
     AND it.typeName != 'attachment'
     AND it.typeName != 'note'
     AND it.typeName != 'annotation'
+    AND l.type = 'user'
+    AND ri.itemID IS NULL
 )
 SELECT
   itemID,
@@ -159,16 +165,29 @@ ORDER BY c.collectionName
 `;
 
 /**
- * Query to count total items (excluding attachments and notes).
+ * Query to count total items (excluding attachments, notes, and annotations).
  * Used for progress reporting and validation.
+ *
+ * Excludes:
+ * - Items in deletedItems table
+ * - Attachments (itemType = 'attachment')
+ * - Notes (itemType = 'note')
+ * - Annotations (itemType = 'annotation')
+ * - Group libraries and feeds (only type='user' personal library)
+ * - Retracted items (Zotero 7.0+, gracefully degrades on 6.x)
  */
 export const ITEM_COUNT_QUERY = `
 SELECT COUNT(*) as count
 FROM items i
+INNER JOIN libraries l ON i.libraryID = l.libraryID
 JOIN itemTypes it ON i.itemTypeID = it.itemTypeID
+LEFT JOIN retractedItems ri ON i.itemID = ri.itemID
 WHERE i.itemID NOT IN (SELECT itemID FROM deletedItems)
   AND it.typeName != 'attachment'
   AND it.typeName != 'note'
+  AND it.typeName != 'annotation'
+  AND l.type = 'user'
+  AND ri.itemID IS NULL
 `;
 
 /**
