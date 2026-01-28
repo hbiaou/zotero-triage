@@ -220,6 +220,87 @@ WHERE i.itemID NOT IN (SELECT itemID FROM deletedItems)
 `;
 
 /**
+ * Query to detect duplicate items using DOI-first hierarchy:
+ * 1. DOI match (most reliable, required to be present)
+ * 2. ISBN match for books (required to be present)
+ * 3. Normalized title match (exact after normalization)
+ *
+ * Architecture:
+ * - Uses self-join on normalized_items CTE to find matching pairs
+ * - Respects Phase 9 library filtering (personal library only)
+ * - Excludes: deletedItems, attachments, annotations, child notes, group libraries, retracted items
+ * - Title normalization: lowercase, strip leading articles (a/an/the), remove punctuation
+ * - Self-join condition (i1.itemID < i2.itemID) avoids duplicate pairs
+ *
+ * Returns: itemID, itemKey, itemType, title, duplicate_count
+ * Each row represents one item in a duplicate group.
+ * duplicate_count indicates how many items match in the same group.
+ */
+export const DUPLICATES_QUERY = `
+WITH normalized_items AS (
+  SELECT
+    i.itemID,
+    i.key AS itemKey,
+    it.typeName AS itemType,
+    MAX(CASE WHEN fieldName = 'title' THEN value END) AS title,
+    MAX(CASE WHEN fieldName = 'DOI' THEN value END) AS doi,
+    MAX(CASE WHEN fieldName = 'ISBN' THEN value END) AS isbn,
+    LOWER(TRIM(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(
+      MAX(CASE WHEN fieldName = 'title' THEN value END),
+      'a ', ''), 'an ', ''), 'the ', ''), '.', ''), ',', ''), ':', ''), '!', ''))) AS normalized_title
+  FROM items i
+  INNER JOIN libraries l ON i.libraryID = l.libraryID
+  JOIN itemTypes it ON i.itemTypeID = it.itemTypeID
+  LEFT JOIN itemData id ON i.itemID = id.itemID
+  LEFT JOIN fields f ON id.fieldID = f.fieldID
+  LEFT JOIN itemDataValues idv ON id.valueID = idv.valueID
+  LEFT JOIN retractedItems ri ON i.itemID = ri.itemID
+  LEFT JOIN itemNotes n ON i.itemID = n.itemID
+  WHERE i.itemID NOT IN (SELECT itemID FROM deletedItems)
+    AND it.typeName NOT IN ('attachment', 'annotation')
+    AND (it.typeName != 'note' OR n.parentItemID IS NULL)
+    AND l.type = 'user'
+    AND ri.itemID IS NULL
+  GROUP BY i.itemID
+),
+duplicate_groups AS (
+  SELECT
+    i1.itemID,
+    i1.itemKey,
+    i1.itemType,
+    i1.title,
+    CASE
+      -- DOI match (highest priority)
+      WHEN i1.doi IS NOT NULL AND i1.doi = i2.doi THEN 'doi:' || i1.doi
+      -- ISBN match (second priority, books only)
+      WHEN i1.itemType IN ('book', 'bookSection') AND i1.isbn IS NOT NULL AND i1.isbn = i2.isbn
+           THEN 'isbn:' || i1.isbn
+      -- Normalized title match (third priority)
+      WHEN i1.normalized_title IS NOT NULL AND i1.normalized_title = i2.normalized_title
+           AND i1.normalized_title != '' THEN 'title:' || i1.normalized_title
+      ELSE NULL
+    END AS match_basis
+  FROM normalized_items i1
+  JOIN normalized_items i2
+    ON i1.itemID < i2.itemID
+    AND (
+      (i1.doi IS NOT NULL AND i1.doi = i2.doi)
+      OR (i1.itemType IN ('book', 'bookSection') AND i1.isbn IS NOT NULL AND i1.isbn = i2.isbn)
+      OR (i1.normalized_title IS NOT NULL AND i1.normalized_title = i2.normalized_title AND i1.normalized_title != '')
+    )
+)
+SELECT
+  itemID,
+  itemKey,
+  itemType,
+  title,
+  COUNT(*) OVER (PARTITION BY match_basis) AS duplicate_count
+FROM duplicate_groups
+WHERE match_basis IS NOT NULL
+ORDER BY match_basis, itemID
+`;
+
+/**
  * Creator row from CREATORS_QUERY result
  */
 export interface CreatorRow {
