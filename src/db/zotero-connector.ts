@@ -170,6 +170,16 @@ export class ZoteroConnector {
         // Continue anyway - tags are optional enhancement
       }
 
+      // Validate library filtering schema (non-blocking)
+      const librarySchemaCheck = await this.validateLibraryFilterSchema();
+      if (!librarySchemaCheck.valid) {
+        console.warn('Library filter schema validation issues:', librarySchemaCheck.issues);
+        // Continue anyway - will handle missing tables in queries
+      }
+      if (!librarySchemaCheck.hasRetractedItems) {
+        console.info('Zotero 6.x detected - retracted items filtering unavailable');
+      }
+
       // Clear cached items on new connection
       this.items = [];
       this.isLoaded = false;
@@ -284,6 +294,62 @@ export class ZoteroConnector {
       console.warn(`Could not validate tag schema: ${errorMessage}`);
       return {
         valid: false,
+        issues: [`Schema validation failed: ${errorMessage}`]
+      };
+    }
+  }
+
+  /**
+   * Validate that schema supports library filtering.
+   * Checks for libraries table (required) and retractedItems table (optional, Zotero 7.0+).
+   *
+   * @returns Validation result with retractedItems availability flag
+   */
+  async validateLibraryFilterSchema(): Promise<{
+    valid: boolean;
+    hasRetractedItems: boolean;
+    issues: string[];
+  }> {
+    if (!this.db) {
+      return {
+        valid: false,
+        hasRetractedItems: false,
+        issues: ['Database not connected']
+      };
+    }
+
+    const issues: string[] = [];
+
+    try {
+      // Check libraries table exists (required)
+      const librariesCheck = this.db.exec(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name='libraries'"
+      );
+      if (librariesCheck.length === 0 || librariesCheck[0].values.length === 0) {
+        issues.push('libraries table not found - schema may be corrupted');
+      }
+
+      // Check retractedItems table exists (optional, Zotero 7.0+)
+      const retractedCheck = this.db.exec(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name='retractedItems'"
+      );
+      const hasRetractedItems = retractedCheck.length > 0 && retractedCheck[0].values.length > 0;
+
+      if (!hasRetractedItems) {
+        console.info('retractedItems table not found - assuming Zotero 6.x (graceful degradation)');
+      }
+
+      return {
+        valid: issues.length === 0,
+        hasRetractedItems,
+        issues
+      };
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      console.error('Library filter schema validation failed:', errorMessage);
+      return {
+        valid: false,
+        hasRetractedItems: false,
         issues: [`Schema validation failed: ${errorMessage}`]
       };
     }
