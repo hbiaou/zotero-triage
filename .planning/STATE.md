@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-01-27)
 ## Current Position
 
 Phase: 9 of 12 (Library Filtering Foundation)
-Plan: 0 of TBD in current phase
-Status: Ready to plan
-Last activity: 2026-01-27 - Roadmap created for v1.2 milestone (phases 9-12)
+Plan: 1 of TBD in current phase
+Status: In progress
+Last activity: 2026-01-28 - Completed 09-01-PLAN.md (Library Filtering Foundation)
 
-Progress: [████████░░░░] 67% (8 of 12 phases complete)
+Progress: [████████░░░░] 67% (8 of 12 phases complete, 1 plan in phase 9)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 27
-- Average duration: ~45 min per plan
-- Total execution time: ~20 hours
+- Total plans completed: 28
+- Average duration: ~46 min per plan
+- Total execution time: ~21.5 hours
 
 **By Phase:**
 
@@ -35,14 +35,14 @@ Progress: [████████░░░░] 67% (8 of 12 phases complete)
 | 6. Tag Infrastructure | 3 | 2h | ~40 min |
 | 7. Tag Recommendations | 3 | 2h | ~40 min |
 | 8. UX Enhancements | 3 | 2.5h | ~50 min |
+| 9. Library Filtering | 1 | 50min | ~50 min |
 
 **Recent Trend:**
 - v1.0 shipped: 23 plans across 5 phases (2026-01-25)
 - v1.1 shipped: 9 plans across 3 phases (2026-01-27)
-- Average ~45 min per plan
+- v1.2 in progress: 1 plan in phase 9 (2026-01-28)
+- Average ~46 min per plan
 - Trend: Stable
-
-*Note: v1.2 phases (9-12) not yet planned*
 
 ## Accumulated Context
 
@@ -51,6 +51,9 @@ Progress: [████████░░░░] 67% (8 of 12 phases complete)
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting v1.2 work:
 
+- **Phase 9**: SQL-level library filtering via INNER JOIN (filter at query time vs post-processing for performance)
+- **Phase 9**: LEFT JOIN for retractedItems (graceful Zotero 6.x/7.x compatibility)
+- **Phase 9**: Consistent exclusion lists between ITEMS_QUERY and ITEM_COUNT_QUERY (annotation added to count query)
 - **Phase 8**: Progressive disclosure for field help (examples visible, explanations expandable)
 - **Phase 7**: Porter stemming for tag matching (linguistic normalization improves matching flexibility)
 - **Phase 6**: SQL-level annotation tag filtering (filter at query time vs post-processing)
@@ -80,22 +83,22 @@ Recent decisions affecting v1.2 work:
 ### Blockers/Concerns
 
 **v1.2 Known Constraints:**
-- Library filtering must be query-time (not post-processing) to maintain performance
+- ~~Library filtering must be query-time (not post-processing) to maintain performance~~ (DONE - Phase 9)
 - Duplicate detection needs conservative multi-field matching to avoid false positives
 - Preflight checks must be non-blocking (advisory only, never prevent workflow)
-- Zotero 6 vs 7 compatibility requires graceful degradation for missing tables (retractedItems)
+- ~~Zotero 6 vs 7 compatibility requires graceful degradation for missing tables (retractedItems)~~ (DONE - Phase 9)
 
 **Research flags:**
-- Phase 9: Query performance needs testing with 5000+ items across multiple libraries
+- Phase 9: Query performance needs testing with 5000+ items across multiple libraries (may need community testing)
 - Phase 11: Preflight must work on both Zotero 6.0+ and 7.x (may need community testing)
 
 ## Session Continuity
 
-Last session: 2026-01-27
-Stopped at: v1.2 roadmap created with phases 9-12, ready for phase 9 planning
+Last session: 2026-01-28
+Stopped at: Completed 09-01-PLAN.md
 Resume file: None
 
-**Next step:** Run `/gsd:plan-phase 9` to create execution plan for Library Filtering Foundation
+**Next step:** Continue with remaining plans in Phase 9 (if any) or plan Phase 10 (Reconfigure Profile)
 
 Config:
 {
