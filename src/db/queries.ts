@@ -11,6 +11,27 @@
  */
 
 /**
+ * LIBRARY FILTERING ARCHITECTURE
+ *
+ * All item queries in this plugin flow through ITEMS_QUERY and ITEM_COUNT_QUERY.
+ * These queries apply library filtering (personal library only) at the SQL level.
+ *
+ * Query execution points:
+ * - ZoteroConnector.loadItems() executes ITEMS_QUERY and ITEM_COUNT_QUERY
+ * - loadItems() is called from:
+ *   - src/ui/setup-wizard-modal.ts (onboarding seed picker)
+ *   - src/main.ts (batch generation, triage view)
+ *
+ * No other code paths query items table directly. All plugin features that need
+ * items use the in-memory items array populated by loadItems().
+ *
+ * This centralization ensures:
+ * - Library filtering is applied consistently across all features
+ * - No code path can accidentally bypass filtering
+ * - Onboarding, batch generation, and registry all work with filtered item set
+ */
+
+/**
  * Query to get the schema version from the version table.
  * Used to verify database compatibility before querying.
  */
