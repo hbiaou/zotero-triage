@@ -9,12 +9,12 @@ Requirements for milestone v1.2 - Library Scope Filtering & Preflight Checks. Ea
 
 ### Scope Filtering (Query-level)
 
-- [ ] **SCOPE-01**: Plugin filters ITEMS_QUERY to personal library only (exclude group libraries, feeds)
-- [ ] **SCOPE-02**: Plugin excludes retracted items from queries (Zotero 7+ with graceful degradation)
+- [x] **SCOPE-01**: Plugin filters ITEMS_QUERY to personal library only (exclude group libraries, feeds)
+- [x] **SCOPE-02**: Plugin excludes retracted items from queries (Zotero 7+ with graceful degradation)
 - [ ] **SCOPE-03**: Plugin displays transparent scope counts (personal items, excluded groups, excluded feeds, trash)
 - [ ] **SCOPE-04**: User can configure which libraries to include via settings dropdown
 - [ ] **SCOPE-05**: Plugin persists library filter selection across restarts
-- [ ] **SCOPE-06**: Plugin applies library filtering to all database queries (onboarding, batch generation, registry)
+- [x] **SCOPE-06**: Plugin applies library filtering to all database queries (onboarding, batch generation, registry)
 
 ### Preflight Validation
 
@@ -69,12 +69,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SCOPE-01 | Phase 9 | Pending |
-| SCOPE-02 | Phase 9 | Pending |
-| SCOPE-03 | Phase 9 | Pending |
-| SCOPE-04 | Phase 9 | Pending |
-| SCOPE-05 | Phase 9 | Pending |
-| SCOPE-06 | Phase 9 | Pending |
+| SCOPE-01 | Phase 9 | Complete |
+| SCOPE-02 | Phase 9 | Complete |
+| SCOPE-03 | Phase 12 | Pending |
+| SCOPE-04 | Phase 12 | Pending |
+| SCOPE-05 | Phase 12 | Pending |
+| SCOPE-06 | Phase 9 | Complete |
 | PREFLIGHT-01 | Phase 10 | Pending |
 | PREFLIGHT-02 | Phase 10 | Pending |
 | PREFLIGHT-03 | Phase 11 | Pending |
