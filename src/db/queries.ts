@@ -45,10 +45,13 @@ SELECT version FROM version WHERE schema = 'userdata'
  * Excludes:
  * - Items in deletedItems table
  * - Attachments (itemType = 'attachment')
- * - Notes (itemType = 'note')
+ * - Child notes (itemType = 'note' with parentItemID)
  * - Annotations (itemType = 'annotation')
  * - Group libraries and feeds (only type='user' personal library)
  * - Retracted items (Zotero 7.0+, gracefully degrades on 6.x)
+ *
+ * Includes:
+ * - Standalone notes (itemType = 'note' without parentItemID - legitimate research notes)
  *
  * Returns: itemID, itemKey, dateAdded, dateModified, itemType,
  *          title, doi, date, journal, volume, issue, pages, abstract, publisher, isbn
@@ -70,9 +73,10 @@ WITH itemFields AS (
   LEFT JOIN fields f ON id.fieldID = f.fieldID
   LEFT JOIN itemDataValues idv ON id.valueID = idv.valueID
   LEFT JOIN retractedItems ri ON i.itemID = ri.itemID
+  LEFT JOIN itemNotes n ON i.itemID = n.itemID
   WHERE i.itemID NOT IN (SELECT itemID FROM deletedItems)
     AND it.typeName != 'attachment'
-    AND it.typeName != 'note'
+    AND (it.typeName != 'note' OR n.parentItemID IS NULL)
     AND it.typeName != 'annotation'
     AND l.type = 'user'
     AND ri.itemID IS NULL
@@ -186,16 +190,19 @@ ORDER BY c.collectionName
 `;
 
 /**
- * Query to count total items (excluding attachments, notes, and annotations).
+ * Query to count total items (excluding attachments, child notes, and annotations).
  * Used for progress reporting and validation.
  *
  * Excludes:
  * - Items in deletedItems table
  * - Attachments (itemType = 'attachment')
- * - Notes (itemType = 'note')
+ * - Child notes (itemType = 'note' with parentItemID)
  * - Annotations (itemType = 'annotation')
  * - Group libraries and feeds (only type='user' personal library)
  * - Retracted items (Zotero 7.0+, gracefully degrades on 6.x)
+ *
+ * Includes:
+ * - Standalone notes (itemType = 'note' without parentItemID - legitimate research notes)
  */
 export const ITEM_COUNT_QUERY = `
 SELECT COUNT(*) as count
@@ -203,9 +210,10 @@ FROM items i
 INNER JOIN libraries l ON i.libraryID = l.libraryID
 JOIN itemTypes it ON i.itemTypeID = it.itemTypeID
 LEFT JOIN retractedItems ri ON i.itemID = ri.itemID
+LEFT JOIN itemNotes n ON i.itemID = n.itemID
 WHERE i.itemID NOT IN (SELECT itemID FROM deletedItems)
   AND it.typeName != 'attachment'
-  AND it.typeName != 'note'
+  AND (it.typeName != 'note' OR n.parentItemID IS NULL)
   AND it.typeName != 'annotation'
   AND l.type = 'user'
   AND ri.itemID IS NULL
