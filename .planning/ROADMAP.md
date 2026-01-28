@@ -142,10 +142,11 @@ Plans:
   3. User sees progress feedback during preflight check (5000+ items)
   4. User can skip preflight check entirely if desired
   5. Preflight gracefully handles missing tables (Zotero 6 vs 7 compatibility)
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] TBD
+- [ ] 11-01-PLAN.md — Create PreflightService and PreflightModal with color-coded severity display
+- [ ] 11-02-PLAN.md — Integrate preflight modal into startup and settings flows
 
 #### Phase 12: Settings Persistence & UI Polish
 **Goal**: Recommendation settings configured in wizard persist to settings panel with easy reconfiguration
@@ -179,5 +180,5 @@ Phases execute in numeric order: 9 → 10 → 11 → 12
 | 8. UX Enhancements (Progress & Validation) | v1.1 | 3/3 | Complete | 2026-01-27 |
 | 9. Library Filtering Foundation | v1.2 | 2/2 | Complete | 2026-01-28 |
 | 10. Duplicate Detection Service | v1.2 | 1/1 | Complete | 2026-01-28 |
-| 11. Preflight Modal & Integration | v1.2 | 0/TBD | Not started | - |
+| 11. Preflight Modal & Integration | v1.2 | 0/2 | Not started | - |
 | 12. Settings Persistence & UI Polish | v1.2 | 0/TBD | Not started | - |
