@@ -9,19 +9,19 @@ See: .planning/PROJECT.md (updated 2026-01-27)
 
 ## Current Position
 
-Phase: 9 of 12 (Library Filtering Foundation)
-Plan: 2 of 2 in current phase
+Phase: 10 of 12 (Duplicate Detection Service)
+Plan: 1 of 1 in current phase
 Status: Phase complete
-Last activity: 2026-01-28 - Completed 09-02-PLAN.md (Database Verification)
+Last activity: 2026-01-28 - Completed 10-01-PLAN.md (Duplicate Detection Service)
 
-Progress: [█████████░░░] 75% (9 of 12 phases complete)
+Progress: [█████████░░░] 83% (10 of 12 phases complete)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 29
-- Average duration: ~48 min per plan
-- Total execution time: ~23.5 hours
+- Total plans completed: 30
+- Average duration: ~46 min per plan
+- Total execution time: ~23 hours
 
 **By Phase:**
 
@@ -36,13 +36,14 @@ Progress: [█████████░░░] 75% (9 of 12 phases complete)
 | 7. Tag Recommendations | 3 | 2h | ~40 min |
 | 8. UX Enhancements | 3 | 2.5h | ~50 min |
 | 9. Library Filtering | 2 | 2h | ~62 min |
+| 10. Duplicate Detection | 1 | 4min | ~4 min |
 
 **Recent Trend:**
 - v1.0 shipped: 23 plans across 5 phases (2026-01-25)
 - v1.1 shipped: 9 plans across 3 phases (2026-01-27)
-- v1.2 in progress: 2 plans in phase 9 (2026-01-28)
-- Average ~48 min per plan
-- Trend: Stable
+- v1.2 in progress: 3 plans in phases 9-10 (2026-01-28)
+- Average ~46 min per plan
+- Trend: Stable (faster tasks balanced by complex ones)
 
 ## Accumulated Context
 
@@ -51,6 +52,9 @@ Progress: [█████████░░░] 75% (9 of 12 phases complete)
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting v1.2 work:
 
+- **Phase 10**: Single SQL self-join query for duplicate detection (DOI/ISBN/title in one query vs separate queries)
+- **Phase 10**: SQL-based title normalization (LOWER, REPLACE, TRIM in query vs client-side JavaScript)
+- **Phase 10**: Graceful degradation for duplicate detection errors (return 0 duplicates vs throwing)
 - **Phase 9**: Include standalone notes as research artifacts (exclude only child notes with parentItemID)
 - **Phase 9**: SQL-level library filtering via INNER JOIN (filter at query time vs post-processing for performance)
 - **Phase 9**: LEFT JOIN for retractedItems (graceful Zotero 6.x/7.x compatibility)
@@ -86,20 +90,21 @@ Recent decisions affecting v1.2 work:
 **v1.2 Known Constraints:**
 - ~~Library filtering must be query-time (not post-processing) to maintain performance~~ (DONE - Phase 9)
 - ~~Query performance needs testing with 5000+ items across multiple libraries~~ (TESTED - Phase 9: 12,876 items, no issues)
-- Duplicate detection needs conservative multi-field matching to avoid false positives
+- ~~Duplicate detection needs conservative multi-field matching to avoid false positives~~ (DONE - Phase 10: DOI-first hierarchy with exact normalized title match)
 - Preflight checks must be non-blocking (advisory only, never prevent workflow)
 - ~~Zotero 6 vs 7 compatibility requires graceful degradation for missing tables (retractedItems)~~ (DONE - Phase 9)
 
 **Research flags:**
 - Phase 11: Preflight must work on both Zotero 6.0+ and 7.x (Zotero 7.0+ tested in Phase 9, need Zotero 6.x testing)
+- Phase 11: No direct zotero:// URI to "Duplicate Items" collection - need UI instructions for manual navigation
 
 ## Session Continuity
 
 Last session: 2026-01-28
-Stopped at: Completed 09-02-PLAN.md (Phase 9 complete)
+Stopped at: Completed 10-01-PLAN.md (Phase 10 complete)
 Resume file: None
 
-**Next step:** Plan Phase 10 (Reconfigure Profile) - library filtering foundation complete and production-validated
+**Next step:** Plan Phase 11 (Preflight Modal Integration) - duplicate detection backend complete and ready for UI integration
 
 Config:
 {
