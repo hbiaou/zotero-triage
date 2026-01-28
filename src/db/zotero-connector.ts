@@ -372,6 +372,16 @@ export class ZoteroConnector {
       const countResult = this.db.exec(ITEM_COUNT_QUERY);
       const totalItems = countResult[0]?.values[0]?.[0] as number || 0;
 
+      // Check for empty personal library
+      if (totalItems === 0) {
+        throw new Error(
+          'No items found in your personal Zotero library. ' +
+          'This plugin only works with personal library items (not group libraries or feeds). ' +
+          'If you have items in Zotero, they may be in group libraries or trash. ' +
+          'Please ensure you have items in your personal library before using this plugin.'
+        );
+      }
+
       // Call progress callback initially
       if (onProgress) {
         onProgress(0, totalItems);
