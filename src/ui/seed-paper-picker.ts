@@ -136,6 +136,7 @@ export class SeedPaperPicker {
     typeSelect.createEl('option', { text: 'Journal Article', value: 'journalArticle' });
     typeSelect.createEl('option', { text: 'Book', value: 'book' });
     typeSelect.createEl('option', { text: 'Conference Paper', value: 'conferencePaper' });
+    typeSelect.createEl('option', { text: 'Video Recording', value: 'videoRecording' });
     typeSelect.value = this.itemType;
     typeSelect.addEventListener('change', () => {
       this.itemType = typeSelect.value;
