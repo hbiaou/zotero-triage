@@ -429,10 +429,25 @@ export class ZoteroConnector {
         async (row) => {
           const itemID = row[colIndex.itemID] as number;
           const itemKey = row[colIndex.itemKey] as string;
+          const itemType = row[colIndex.itemType] as string;
+          const title = (row[colIndex.title] as string) || 'Untitled';
 
           // Get creators for this item
           const creatorsResult = this.db!.exec(CREATORS_QUERY, [itemID]);
           const authors: string[] = [];
+
+          // DEBUG (Quick task 007): Log all creators for videoRecording items to identify actual creator types
+          if (itemType === 'videoRecording' && creatorsResult.length > 0) {
+            const creatorCols = creatorsResult[0].columns;
+            console.log(`[Quick-007 Debug] videoRecording: "${title}"`);
+            for (const creatorRow of creatorsResult[0].values) {
+              const creatorType = creatorRow[creatorCols.indexOf('creatorType')] as string;
+              const firstName = creatorRow[creatorCols.indexOf('firstName')] as string | null;
+              const lastName = creatorRow[creatorCols.indexOf('lastName')] as string;
+              console.log(`  - creatorType: "${creatorType}", name: "${lastName}${firstName ? ', ' + firstName : ''}"`);
+            }
+          }
+
           if (creatorsResult.length > 0) {
             const creatorCols = creatorsResult[0].columns;
             for (const creatorRow of creatorsResult[0].values) {
