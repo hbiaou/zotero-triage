@@ -2,19 +2,18 @@
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-01-27)
+See: .planning/PROJECT.md (updated 2026-01-29)
 
 **Core value:** Users can progressively process their Zotero backlog without overwhelm, ensuring every imported literature note meets quality standards.
-**Current focus:** v1.2 milestone complete - all phases shipped
+**Current focus:** Ready to plan next milestone
 
 ## Current Position
 
-Phase: 13 of 13 (Library Statistics Display Integration)
-Plan: 1 of 1 in current phase
-Status: Phase complete
-Last activity: 2026-01-29 - Completed 13-01-PLAN.md (Library Statistics Display Integration)
+Milestone: v1.2 complete
+Status: Ready for next milestone planning
+Last activity: 2026-01-29 - v1.2 milestone archived
 
-Progress: [█████████████] 100% (13 of 13 phases complete)
+Progress: v1.2 shipped (13 phases, 35 plans total across all milestones)
 
 ## Performance Metrics
 
@@ -84,19 +83,25 @@ Recent decisions affecting v1.2+ work:
 - **Phase 6**: SQL-level annotation tag filtering (filter at query time vs post-processing)
 - **Phase 1**: Lazy database initialization (defer connection to first use for fast startup)
 
-### Pending Items for v1.2
+### Completed Milestones
 
-**v1.2 COMPLETE (2026-01-29):**
+**v1.2 Library Scope Filtering & Preflight Checks (Shipped 2026-01-29):**
+- Query-level library filtering with SQL INNER/LEFT JOIN pattern
+- Duplicate detection service with DOI-first hierarchy
+- Color-coded preflight check system (trash/duplicates/groups)
+- Settings persistence architecture (preferences survive restarts)
+- Library scope transparency display
 
-1. ~~Library scope filter and preflight check~~ (DONE - Phases 9-11)
-   - ~~Exclude group libraries, feeds, trash, retracted items~~ (DONE)
-   - ~~Query-time filtering at libraryID level~~ (DONE)
-   - ~~Preflight modal with duplicate detection and trash advisories~~ (DONE)
+**v1.1 Polish + Tag Support (Shipped 2026-01-27):**
+- Tag-based recommendations with Porter stemming
+- Throttled progress tracking for large libraries
+- Enhanced validation UX with progressive disclosure
+- Search/filter functionality in seed picker and batch view
 
-2. ~~Fix Relevance vs Diversity persistence~~ (DONE - Phase 12)
-   - ~~Setting configured in wizard now persists to settings panel~~ (DONE - Plan 12-01)
-   - ~~Add "Reconfigure Profile" button for easy changes~~ (DONE - Plan 12-02)
-   - ~~Polished settings UI with logical grouping~~ (DONE - Plan 12-02)
+**v1.0 MVP (Shipped 2026-01-25):**
+- Progressive triage workflow with quality gates
+- Intelligent onboarding with seed paper selection
+- Adaptive learning engine with multi-signal scoring
 
 ### Quick Tasks Completed
 
@@ -108,24 +113,15 @@ Recent decisions affecting v1.2+ work:
 
 ### Blockers/Concerns
 
-**v1.2 Known Constraints:**
-- ~~Library filtering must be query-time (not post-processing) to maintain performance~~ (DONE - Phase 9)
-- ~~Query performance needs testing with 5000+ items across multiple libraries~~ (TESTED - Phase 9: 12,876 items, no issues)
-- ~~Duplicate detection needs conservative multi-field matching to avoid false positives~~ (DONE - Phase 10: DOI-first hierarchy with exact normalized title match)
-- ~~Preflight checks must be non-blocking (advisory only, never prevent workflow)~~ (DONE - Phase 11: Skip button, graceful error handling)
-- ~~Zotero 6 vs 7 compatibility requires graceful degradation for missing tables (retractedItems)~~ (DONE - Phase 9, extended in Phase 11 for deletedItems)
-
-**Research flags:**
-- Phase 11: Preflight must work on both Zotero 6.0+ and 7.x (Zotero 7.0+ tested in Phase 9, need Zotero 6.x testing)
-- Phase 11: No direct zotero:// URI to "Duplicate Items" collection - need UI instructions for manual navigation
+None - v1.2 complete and production-ready
 
 ## Session Continuity
 
 Last session: 2026-01-29
-Stopped at: Completed 13-01-PLAN.md (Library Statistics Display Integration)
+Stopped at: v1.2 milestone archived
 Resume file: None
 
-**Next step:** Phase 13 complete - gap closure complete. Library statistics display fully functional in settings panel.
+**Next step:** Run `/gsd:new-milestone` to start next milestone with fresh REQUIREMENTS.md and ROADMAP.md
 
 Config:
 {

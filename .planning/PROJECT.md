@@ -27,19 +27,18 @@ Users can progressively process their Zotero backlog without overwhelm, ensuring
 - ✓ Enhanced Validation UX: Field explanations in override modal, aggregated warnings, empty profile warnings — v1.1
 - ✓ Search/Filter Functionality: Real-time filtering by author/title/tags in onboarding and batch views — v1.1
 - ✓ Responsive Modal UX: 90vw max-width, scroll preservation during interactions — v1.1
+- ✓ Library Scope Filter: Exclude group libraries, feeds, trash, and retracted items from all queries via SQL INNER/LEFT JOIN — v1.2
+- ✓ Configurable Library Selection: User-controlled settings for which Zotero libraries to include with dropdown selector — v1.2
+- ✓ Preflight Check: Pre-onboarding validation warning about trash items, duplicates, group libraries with color-coded severity — v1.2
+- ✓ Non-blocking Preflight UX: Advisory-only health check with skip capability, never prevents onboarding — v1.2
+- ✓ Duplicate Detection: Identify same DOI/ISBN/title across libraries with self-join query — v1.2
+- ✓ Library Type Detection: Query Zotero schema to distinguish personal vs group vs feed libraries — v1.2
+- ✓ Relevance vs Diversity Persistence: Setting configured in wizard persists to settings panel — v1.2
+- ✓ Reconfigure Profile Button: Change recommendation settings without re-onboarding, pre-selects existing seed papers — v1.2
 
 ### Active
 
-<!-- Current milestone: v1.2 Library Scope Filtering & Preflight Checks -->
-
-- [ ] Library Scope Filter: Exclude group libraries, feeds, trash, and retracted items from all queries
-- [ ] Configurable Library Selection: User-controlled settings for which Zotero libraries/collections to include
-- [ ] Preflight Check: Pre-onboarding validation warning about trash items, duplicates, group libraries, and metadata quality
-- [ ] Blocking Preflight UX: Prevent setup until library scope issues are resolved
-- [ ] Duplicate Detection: Identify same DOI/title across libraries to prevent double-processing
-- [ ] Library Type Detection: Query Zotero schema to distinguish personal vs group vs feed libraries
-- [ ] Relevance vs Diversity Persistence: Fix setting configured in wizard to persist to settings panel
-- [ ] Reconfigure Profile Button: Easy way to change recommendation settings without re-onboarding
+<!-- Next milestone requirements will be added here -->
 
 ### Out of Scope
 
@@ -52,12 +51,14 @@ Users can progressively process their Zotero backlog without overwhelm, ensuring
 
 ## Context
 
-**Current state (v1.1 shipped):**
-- Plugin built with TypeScript, ~7,092 LOC
+**Current state (v1.2 shipped):**
+- Plugin built with TypeScript, 9,340 LOC
 - Tech stack: Obsidian Plugin API, sql.js for SQLite, Zod for validation, Porter stemming for tag normalization
-- Successfully handles 5000+ item libraries with lazy initialization (<50ms startup) and throttled progress feedback
-- Adaptive learning refines recommendations from user feedback with weight decay mechanism (exponential moving average)
+- Successfully handles 12,876+ item libraries with query-level filtering and preflight health checks
+- Library filtering tested with production database: 11,494 personal items → 9,392 after exclusions (groups, feeds, annotations, trash, retracted)
+- Adaptive learning refines recommendations from user feedback with weight decay mechanism
 - Tag-based recommendations complement keyword/author signals for improved batch relevance
+- Preflight check system provides color-coded advisories (duplicates, trash, groups) before onboarding
 
 **Target users:** Researchers and academics with large Zotero libraries (3000-5000+ items) who feel overwhelmed by the prospect of bulk importing. They want sustainable daily processing, not a one-time dump.
 
@@ -69,10 +70,10 @@ Users can progressively process their Zotero backlog without overwhelm, ensuring
 
 **Recommendation engine (validated):** Multi-signal scoring (tags, keywords, authors, recency) with adaptive learning. Porter-stemmed tag matching with top-20 frequency-weighted profiles. Simple frequency-based keyword extraction. No vectors or embeddings needed.
 
-**Known limitations (being addressed in v1.2):**
+**Known limitations:**
 - Adaptive learning only fully implemented for tags (authors/keywords use simpler weight adjustment)
-- Library scope filter not implemented (queries include group libraries, feeds, trash) ← v1.2 target
-- Relevance vs Diversity setting doesn't persist from onboarding wizard ← v1.2 target
+- No PDF text extraction or semantic search (deferred to v2)
+- No bidirectional syncing to Zotero (read-only architecture is intentional)
 
 ## Constraints
 
@@ -102,18 +103,14 @@ Users can progressively process their Zotero backlog without overwhelm, ensuring
 | Throttled progress (500ms, 100-item batches) | Prevent UI jank during large library scoring | ✓ Good — Responsive feedback without performance degradation |
 | Progressive disclosure for field help | Examples visible, explanations expandable | ✓ Good — Most users understand from examples, details available when needed |
 | SQL-level annotation tag filtering | Filter at query time vs post-processing | ✓ Good — More efficient, reduces data transfer and processing |
-
-## Current Milestone: v1.2 Library Scope Filtering & Preflight Checks
-
-**Goal:** Ensure only relevant, high-quality items from user's personal library enter the recommendation pipeline by filtering unwanted sources and detecting issues before onboarding.
-
-**Target features:**
-- Library scope filtering (exclude groups, trash, feeds) with user configuration
-- Comprehensive preflight check before onboarding (blocking UX)
-- Duplicate detection across libraries
-- Fix relevance vs diversity setting persistence + add reconfigure UI
-
-**Why this milestone matters:** Prevents recommendation pollution from unwanted sources, reduces duplicate processing, improves performance with mixed library types, and eliminates user confusion about what's in scope.
+| SQL-level library filtering (INNER JOIN) | Query-time filtering vs post-processing for performance | ✓ Good — Centralized architecture prevents bypass paths, tested with 12,876 items |
+| DOI-first duplicate hierarchy | DOI → ISBN → normalized title for conservative matching | ✓ Good — Low false positives, matches Zotero's native algorithm |
+| Sequential preflight checks | Run checks one at a time vs parallel | ✓ Good — Simpler UI progress updates, predictable timing |
+| Color-coded severity levels | Red (critical), yellow (warning), blue (info) | ✓ Good — PatternFly standards, clear visual hierarchy |
+| Non-blocking preflight design | Advisory-only with skip button vs mandatory check | ✓ Good — Respects user autonomy, never prevents workflow |
+| Settings-first architecture | Preferences persist in settings independent of profile | ✓ Good — Enables reconfiguration without re-running wizard |
+| Encapsulated query methods | Specific typed methods (queryLibraryStats) vs generic query(sql) | ✓ Good — Type safety, maintainability, follows detectDuplicates pattern |
+| Standalone notes inclusion | Include independent research notes, exclude only child notes | ✓ Good — User feedback validated this distinction |
 
 ---
-*Last updated: 2026-01-27 after starting milestone v1.2*
+*Last updated: 2026-01-29 after v1.2 milestone completion*

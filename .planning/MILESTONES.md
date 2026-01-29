@@ -1,5 +1,32 @@
 # Project Milestones: Zotero Triage
 
+## v1.2 Library Scope Filtering & Preflight Checks (Shipped: 2026-01-29)
+
+**Delivered:** Ensure only relevant, high-quality items from user's personal library enter the recommendation pipeline by filtering unwanted sources and detecting issues before onboarding.
+
+**Phases completed:** 9-13 (8 plans total)
+
+**Key accomplishments:**
+
+- **Query-level Library Filtering**: All database queries filter to personal library only, excluding group libraries, feeds, trash, and retracted items via SQL INNER/LEFT JOIN pattern with Zotero 6/7 compatibility
+- **Duplicate Detection Service**: DOI-first hierarchy (DOI → ISBN → normalized title) with self-join SQL query, providing duplicate counts and sample groups with graceful error handling
+- **Comprehensive Preflight Check System**: Color-coded advisory modal (red/yellow/blue severity) with sequential health checks (trash/duplicates/groups), non-blocking design, 15-second timeout message for large libraries
+- **Settings Persistence Architecture**: Recommendation preferences (relevance vs diversity, recency boost, library filter) persist from wizard to settings panel with full reconfiguration support
+- **Library Scope Transparency**: Real-time statistics display showing personal items, excluded groups/feeds/trash with queryLibraryStats() encapsulated method pattern
+
+**Stats:**
+
+- 40 files created/modified
+- 9,340 lines of TypeScript
+- 5 phases, 8 plans, 19 v1.2 requirements satisfied
+- 7 days from start to ship (2026-01-22 → 2026-01-29)
+
+**Git range:** `a8e966a` (feat(09-01)) → `ff4b385` (feat(13-01))
+
+**What's next:** Ready for v1.3 or v2.0 planning - potential focus areas include advanced filtering (metadata quality scoring, retraction checking), export functionality, or batch processing optimizations.
+
+---
+
 ## v1.1 Polish + Tag Support (Shipped: 2026-01-27)
 
 **Delivered:** Enhanced user experience with comprehensive UX improvements and tag-based recommendation signals for improved batch relevance.
