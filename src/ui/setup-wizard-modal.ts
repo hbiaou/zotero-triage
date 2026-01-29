@@ -42,6 +42,7 @@ export class SetupWizardModal extends Modal {
   private connector: ZoteroConnector;
   private onComplete: (seedPaperIds: string[]) => void;
   private onSkip: () => void;
+  private existingSeedIds?: string[];
 
   private currentStep: WizardStep = 'database';
   private wizardData: WizardData = {
@@ -63,18 +64,21 @@ export class SetupWizardModal extends Modal {
    * @param plugin - Zotero Triage plugin instance
    * @param onComplete - Callback when wizard completes (receives seed paper IDs only)
    * @param onSkip - Callback when user skips wizard
+   * @param existingSeedIds - Optional pre-selected seed paper IDs for reconfiguration
    */
   constructor(
     app: App,
     plugin: ZoteroTriagePlugin,
     onComplete: (seedPaperIds: string[]) => void,
-    onSkip: () => void
+    onSkip: () => void,
+    existingSeedIds?: string[]
   ) {
     super(app);
     this.plugin = plugin;
     this.connector = plugin.connector;
     this.onComplete = onComplete;
     this.onSkip = onSkip;
+    this.existingSeedIds = existingSeedIds;
 
     // Initialize with current settings if available
     this.wizardData.dbPath = plugin.settings.zoteroDbPath || '';
@@ -321,7 +325,8 @@ export class SetupWizardModal extends Modal {
       (selectedIds) => {
         this.wizardData.seedPaperIds = selectedIds;
         countDiv.setText(this.getSelectionCountText());
-      }
+      },
+      this.existingSeedIds // Pass pre-selected IDs for reconfiguration
     );
   }
 

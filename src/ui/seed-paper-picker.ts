@@ -45,15 +45,22 @@ export class SeedPaperPicker {
    * @param container - HTML element to render into
    * @param connector - ZoteroConnector with loaded items
    * @param onSelectionChange - Callback when selection changes
+   * @param preSelectedIds - Optional pre-selected paper IDs for reconfiguration
    */
   constructor(
     container: HTMLElement,
     connector: ZoteroConnector,
-    onSelectionChange: SelectionChangeCallback
+    onSelectionChange: SelectionChangeCallback,
+    preSelectedIds?: string[]
   ) {
     this.container = container;
     this.connector = connector;
     this.onSelectionChange = onSelectionChange;
+
+    // Pre-select papers if provided
+    if (preSelectedIds) {
+      this.selectedIds = new Set(preSelectedIds);
+    }
 
     this.initialize();
   }

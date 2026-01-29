@@ -234,13 +234,17 @@ export class ZoteroTriageSettingTab extends PluginSettingTab {
         .setDesc(`Profile configured with ${seedCount} seed papers`);
 
       profileStatus.addButton(button => button
-        .setButtonText('Re-run Wizard')
+        .setButtonText('Reconfigure Profile')
         .onClick(async () => {
           // Check that connector has items loaded
           if (!(this.plugin as any).connector.itemsLoaded) {
             new Notice('Please configure database and load items first');
             return;
           }
+
+          // Get existing profile to pre-select seed papers
+          const existingProfile = profileService.getProfile();
+          const existingSeedIds = existingProfile?.seedPaperIds || [];
 
           // Ensure connector initialized
           this.plugin.ensureConnectorInitialized();
@@ -276,8 +280,9 @@ export class ZoteroTriageSettingTab extends PluginSettingTab {
                   this.display(); // Refresh settings
                 },
                 () => {
-                  new Notice('Wizard cancelled');
-                }
+                  new Notice('Reconfiguration cancelled');
+                },
+                existingSeedIds // Pass existing seed IDs to pre-select
               );
               wizard.open();
             }
