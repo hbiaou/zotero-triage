@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-01-27)
 ## Current Position
 
 Phase: 12 of 12 (Settings Persistence & UI Polish)
-Plan: 1 of 2 in current phase
-Status: In progress
-Last activity: 2026-01-29 - Completed 12-01-PLAN.md (Settings Persistence)
+Plan: 2 of 2 in current phase
+Status: Phase complete
+Last activity: 2026-01-29 - Completed 12-02-PLAN.md (Settings UI Polish)
 
-Progress: [███████████░] 96% (11.5 of 12 phases complete)
+Progress: [████████████] 100% (12 of 12 phases complete)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 33
-- Average duration: ~40 min per plan
-- Total execution time: ~23 hours 18 minutes
+- Total plans completed: 34
+- Average duration: ~41 min per plan
+- Total execution time: ~23 hours 24 minutes
 
 **By Phase:**
 
@@ -38,14 +38,14 @@ Progress: [███████████░] 96% (11.5 of 12 phases complete
 | 9. Library Filtering | 2 | 2h | ~62 min |
 | 10. Duplicate Detection | 1 | 4min | ~4 min |
 | 11. Preflight Modal | 2 | 10min | ~5 min |
-| 12. Settings Persistence | 1 | 8min | ~8 min |
+| 12. Settings Persistence | 2 | 14min | ~7 min |
 
 **Recent Trend:**
 - v1.0 shipped: 23 plans across 5 phases (2026-01-25)
 - v1.1 shipped: 9 plans across 3 phases (2026-01-27)
-- v1.2 in progress: 6 plans in phases 9-12 (2026-01-29)
-- Average ~40 min per plan
-- Trend: Fast execution on simple tasks (phases 10-12: 4-8 min avg)
+- v1.2 complete: 6 plans in phases 9-12 (2026-01-29)
+- Average ~41 min per plan
+- Trend: Fast execution on simple tasks (phases 10-12: 4-7 min avg)
 
 ## Accumulated Context
 
@@ -54,10 +54,15 @@ Progress: [███████████░] 96% (11.5 of 12 phases complete
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting v1.2 work:
 
-- **Phase 12**: Settings become single source of truth for recommendation preferences (not stored only in profile)
-- **Phase 12**: Wizard saves preferences to settings before calling completion callback (settings-first architecture)
-- **Phase 12**: Profile initializer reads preferences from settings instead of wizard parameters (decoupled flow)
-- **Phase 12**: onComplete callback signature simplified to accept only seedPaperIds array (preferences in settings)
+- **Phase 12 (Plan 02)**: Library Scope section renders at top for immediate visibility (affects all recommendations)
+- **Phase 12 (Plan 02)**: Async statistics with graceful degradation (settings panel loads even if database not connected)
+- **Phase 12 (Plan 02)**: Library filter change shows confirmation warning if profile exists (prevent accidental misconfiguration)
+- **Phase 12 (Plan 02)**: Reconfiguration via constructor parameters (existingSeedIds) instead of state mutation (cleaner API)
+- **Phase 12 (Plan 02)**: Button text "Reconfigure Profile" instead of "Re-run Wizard" (clarity of purpose)
+- **Phase 12 (Plan 01)**: Settings become single source of truth for recommendation preferences (not stored only in profile)
+- **Phase 12 (Plan 01)**: Wizard saves preferences to settings before calling completion callback (settings-first architecture)
+- **Phase 12 (Plan 01)**: Profile initializer reads preferences from settings instead of wizard parameters (decoupled flow)
+- **Phase 12 (Plan 01)**: onComplete callback signature simplified to accept only seedPaperIds array (preferences in settings)
 - **Phase 11**: Extract openSetupWizardAfterPreflight() method in main.ts (separate method for clarity vs inline callback)
 - **Phase 11**: Inline wizard creation in settings.ts button handlers (isolated handlers vs helper method extraction)
 - **Phase 11**: ensureConnectorInitialized() as fire-and-forget async wrapper (modal handles errors vs making showSetupWizard async)
@@ -78,16 +83,17 @@ Recent decisions affecting v1.2 work:
 
 ### Pending Items for v1.2
 
-**Current milestone (v1.2) addresses:**
+**v1.2 COMPLETE (2026-01-29):**
 
-1. Library scope filter and preflight check (from accumulated todos)
-   - Exclude group libraries, feeds, trash, retracted items
-   - Query-time filtering at libraryID level
-   - Preflight modal with duplicate detection and trash advisories
+1. ~~Library scope filter and preflight check~~ (DONE - Phases 9-11)
+   - ~~Exclude group libraries, feeds, trash, retracted items~~ (DONE)
+   - ~~Query-time filtering at libraryID level~~ (DONE)
+   - ~~Preflight modal with duplicate detection and trash advisories~~ (DONE)
 
-2. ~~Fix Relevance vs Diversity persistence (from accumulated todos)~~ (DONE - Phase 12)
+2. ~~Fix Relevance vs Diversity persistence~~ (DONE - Phase 12)
    - ~~Setting configured in wizard now persists to settings panel~~ (DONE - Plan 12-01)
-   - Add "Reconfigure Profile" button for easy changes (Plan 12-02)
+   - ~~Add "Reconfigure Profile" button for easy changes~~ (DONE - Plan 12-02)
+   - ~~Polished settings UI with logical grouping~~ (DONE - Plan 12-02)
 
 ### Quick Tasks Completed
 
@@ -113,10 +119,10 @@ Recent decisions affecting v1.2 work:
 ## Session Continuity
 
 Last session: 2026-01-29
-Stopped at: Completed 12-01-PLAN.md (Settings Persistence)
+Stopped at: Completed 12-02-PLAN.md (Settings UI Polish)
 Resume file: None
 
-**Next step:** Continue Phase 12 - Plan 02 (Settings UI Polish)
+**Next step:** Phase 12 complete - v1.2 feature complete. Ready for final verification and release.
 
 Config:
 {
