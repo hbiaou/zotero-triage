@@ -142,6 +142,33 @@ export class ProfileService {
   }
 
   /**
+   * Update profile with partial updates (immediate save)
+   * Use for critical operations that must persist immediately
+   * For frequent updates during triage, use updateProfile() instead
+   * @param updates - Partial profile data to merge
+   */
+  async updateProfileImmediate(updates: Partial<UserProfile>): Promise<void> {
+    const current = this.getProfile();
+    if (!current) {
+      throw new Error('Cannot update profile: no profile exists');
+    }
+
+    // Merge updates
+    const updated: UserProfile = {
+      ...current,
+      ...updates,
+      updatedAt: Date.now()
+    };
+
+    // Update settings
+    const settings = (this.plugin as any).settings;
+    settings.userProfile = this.serializeProfile(updated);
+
+    // Immediate save (no debounce)
+    await this.saveToSettings();
+  }
+
+  /**
    * Clear profile (reset to null)
    */
   clearProfile(): void {
