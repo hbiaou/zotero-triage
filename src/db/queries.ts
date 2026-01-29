@@ -301,6 +301,31 @@ ORDER BY match_basis, itemID
 `;
 
 /**
+ * Query to count items in trash (deletedItems table).
+ * Used for preflight health check.
+ *
+ * Returns count for personal library only (type='user').
+ */
+export const TRASH_COUNT_QUERY = `
+SELECT COUNT(*) as count
+FROM deletedItems
+WHERE libraryID = (SELECT libraryID FROM libraries WHERE type = 'user' LIMIT 1)
+`;
+
+/**
+ * Query to check if group libraries exist.
+ * Used for preflight health check.
+ *
+ * Returns count of libraries that are not personal (type != 'user').
+ * Group libraries include: type='group', type='feed', etc.
+ */
+export const GROUP_LIBRARY_QUERY = `
+SELECT COUNT(*) as count
+FROM libraries
+WHERE type != 'user'
+`;
+
+/**
  * Creator row from CREATORS_QUERY result
  */
 export interface CreatorRow {
