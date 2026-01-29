@@ -313,8 +313,8 @@ export class ZoteroTriageSettingTab extends PluginSettingTab {
               const wizard = new SetupWizardModal(
                 this.app,
                 this.plugin,
-                async (profile) => {
-                  await profileInitializer.initializeProfile(profile.seedPaperIds, profile.preferences);
+                async (seedPaperIds) => {
+                  await profileInitializer.initializeProfile(seedPaperIds);
                   new Notice('Profile created successfully');
                   this.display(); // Refresh settings
                 },
@@ -367,15 +367,13 @@ export class ZoteroTriageSettingTab extends PluginSettingTab {
               const wizard = new SetupWizardModal(
                 this.app,
                 this.plugin,
-                async (newProfile) => {
+                async (seedPaperIds) => {
                   // Clear existing profile first
                   profileService.clearProfile();
 
                   // Initialize new profile
-                  await profileInitializer.initializeProfile(
-                    newProfile.seedPaperIds,
-                    newProfile.preferences
-                  );
+                  // Preferences already saved to settings by wizard
+                  await profileInitializer.initializeProfile(seedPaperIds);
 
                   new Notice('Profile updated successfully');
                   this.display(); // Refresh settings

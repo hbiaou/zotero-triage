@@ -409,15 +409,10 @@ export default class ZoteroTriagePlugin extends Plugin {
     const wizard = new SetupWizardModal(
       this.app,
       this,
-      async (wizardData) => {
-        // Initialize profile from wizard data
-        await this.profileInitializer.initializeProfile(
-          wizardData.seedPaperIds,
-          {
-            relevanceVsDiversity: wizardData.relevanceVsDiversity,
-            recencyBoost: wizardData.recencyBoost
-          }
-        );
+      async (seedPaperIds) => {
+        // Initialize profile from seed papers
+        // Preferences are already saved to settings by wizard
+        await this.profileInitializer.initializeProfile(seedPaperIds);
         new Notice('Setup complete! Your profile is ready.');
       },
       () => {

@@ -40,7 +40,7 @@ interface WizardData {
 export class SetupWizardModal extends Modal {
   private plugin: ZoteroTriagePlugin;
   private connector: ZoteroConnector;
-  private onComplete: (profile: UserProfile) => void;
+  private onComplete: (seedPaperIds: string[]) => void;
   private onSkip: () => void;
 
   private currentStep: WizardStep = 'database';
@@ -61,13 +61,13 @@ export class SetupWizardModal extends Modal {
    * Create a new SetupWizardModal
    * @param app - Obsidian app instance
    * @param plugin - Zotero Triage plugin instance
-   * @param onComplete - Callback when wizard completes (receives profile data)
+   * @param onComplete - Callback when wizard completes (receives seed paper IDs only)
    * @param onSkip - Callback when user skips wizard
    */
   constructor(
     app: App,
     plugin: ZoteroTriagePlugin,
-    onComplete: (profile: UserProfile) => void,
+    onComplete: (seedPaperIds: string[]) => void,
     onSkip: () => void
   ) {
     super(app);
@@ -488,23 +488,18 @@ export class SetupWizardModal extends Modal {
       return;
     }
 
-    // Save database path and preferences to plugin settings
+    // Save database path and ALL preferences to plugin settings
     this.plugin.settings.zoteroDbPath = this.wizardData.dbPath;
     this.plugin.settings.batchSize = this.wizardData.preferences.batchSize;
     this.plugin.settings.qualityGate.enabled = this.wizardData.preferences.qualityGateEnabled;
+    // Save recommendation preferences (NEW - these now persist to settings)
+    this.plugin.settings.relevanceVsDiversity = this.wizardData.preferences.relevanceVsDiversity;
+    this.plugin.settings.recencyBoost = this.wizardData.preferences.recencyBoost;
     await this.plugin.saveSettings();
 
-    // Create profile data (initialization happens in caller via ProfileInitializer)
-    const profileData = {
-      seedPaperIds: this.wizardData.seedPaperIds,
-      preferences: {
-        relevanceVsDiversity: this.wizardData.preferences.relevanceVsDiversity,
-        recencyBoost: this.wizardData.preferences.recencyBoost
-      }
-    };
-
-    // Call completion callback
-    this.onComplete(profileData as any); // Type assertion - caller will handle full profile creation
+    // Call completion callback with only seed paper IDs
+    // Profile creation will read preferences from settings
+    this.onComplete(this.wizardData.seedPaperIds);
 
     this.close();
   }
