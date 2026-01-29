@@ -227,10 +227,12 @@ WHERE i.itemID NOT IN (SELECT itemID FROM deletedItems)
  *
  * Architecture:
  * - Uses self-join on normalized_items CTE to find matching pairs
+ * - Changed from i1.itemID < i2.itemID to i1.itemID != i2.itemID with GROUP BY to avoid double-counting
+ * - Each item appears once in results (not once per pair)
+ * - duplicate_count shows total items in that group
  * - Respects Phase 9 library filtering (personal library only)
  * - Excludes: deletedItems, attachments, annotations, child notes, group libraries, retracted items
  * - Title normalization: lowercase, strip leading articles (a/an/the), remove punctuation
- * - Self-join condition (i1.itemID < i2.itemID) avoids duplicate pairs
  *
  * Returns: itemID, itemKey, itemType, title, duplicate_count
  * Each row represents one item in a duplicate group.
@@ -282,7 +284,7 @@ duplicate_groups AS (
     END AS match_basis
   FROM normalized_items i1
   JOIN normalized_items i2
-    ON i1.itemID < i2.itemID
+    ON i1.itemID != i2.itemID
     AND (
       (i1.doi IS NOT NULL AND i1.doi = i2.doi)
       OR (i1.itemType IN ('book', 'bookSection') AND i1.isbn IS NOT NULL AND i1.isbn = i2.isbn)
@@ -297,6 +299,7 @@ SELECT
   COUNT(*) OVER (PARTITION BY match_basis) AS duplicate_count
 FROM duplicate_groups
 WHERE match_basis IS NOT NULL
+GROUP BY itemID, itemKey, itemType, title, match_basis
 ORDER BY match_basis, itemID
 `;
 
@@ -304,12 +307,19 @@ ORDER BY match_basis, itemID
  * Query to count items in trash (deletedItems table).
  * Used for preflight health check.
  *
- * Returns count for personal library only (type='user').
+ * Architecture:
+ * - JOINs items table to access libraryID (deletedItems has no libraryID column)
+ * - Filters to personal library only (type='user')
+ * - Uses INNER JOIN pattern for performance (deletedItems always has corresponding items row)
+ *
+ * Returns count for personal library trash items.
  */
 export const TRASH_COUNT_QUERY = `
 SELECT COUNT(*) as count
-FROM deletedItems
-WHERE libraryID = (SELECT libraryID FROM libraries WHERE type = 'user' LIMIT 1)
+FROM deletedItems di
+INNER JOIN items i ON di.itemID = i.itemID
+INNER JOIN libraries l ON i.libraryID = l.libraryID
+WHERE l.type = 'user'
 `;
 
 /**
