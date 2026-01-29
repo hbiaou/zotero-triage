@@ -19,6 +19,8 @@ import { SetupWizardModal } from './ui/setup-wizard-modal';
 import { extractKeywordsFromMultiple } from './profile/keyword-extractor';
 import { MemoryMonitor } from './performance/memory-monitor';
 import { ConnectionError } from './error/app-error';
+import { PreflightModal } from './ui/preflight-modal';
+import { DuplicateDetectionService } from './services/duplicate-detection-service';
 
 /**
  * Zotero Triage Plugin
@@ -174,6 +176,23 @@ export default class ZoteroTriagePlugin extends Plugin {
         err instanceof Error ? err.message : String(err)
       );
     }
+  }
+
+  /**
+   * Synchronously ensure connector is initialized (for non-async contexts)
+   * Triggers connection if not already connected
+   */
+  ensureConnectorInitialized(): void {
+    // If already initialized, nothing to do
+    if (this.connectorInitialized) {
+      return;
+    }
+
+    // Trigger connection asynchronously (don't wait)
+    // PreflightModal will handle connection errors gracefully
+    this.ensureConnected().catch(err => {
+      console.error('Failed to connect to database:', err);
+    });
   }
 
   async onunload(): Promise<void> {
@@ -362,6 +381,31 @@ export default class ZoteroTriagePlugin extends Plugin {
    * Used for first-time configuration or manual re-runs
    */
   private showSetupWizard(): void {
+    // Ensure connector is initialized (needed for preflight)
+    this.ensureConnectorInitialized();
+
+    // Create duplicate detection service (needed by PreflightModal)
+    const duplicateService = new DuplicateDetectionService(this.connector);
+
+    // Show preflight modal BEFORE wizard
+    const preflight = new PreflightModal(
+      this.app,
+      this.connector,
+      duplicateService,
+      () => {
+        // onComplete callback: open wizard after preflight acknowledged
+        this.openSetupWizardAfterPreflight();
+      }
+    );
+
+    preflight.open();
+  }
+
+  /**
+   * Open setup wizard after preflight check acknowledged.
+   * Extracted to separate method for clarity and reusability.
+   */
+  private openSetupWizardAfterPreflight(): void {
     const wizard = new SetupWizardModal(
       this.app,
       this,
