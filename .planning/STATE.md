@@ -5,7 +5,7 @@
 See: .planning/PROJECT.md (updated 2026-01-27)
 
 **Core value:** Users can progressively process their Zotero backlog without overwhelm, ensuring every imported literature note meets quality standards.
-**Current focus:** Phase 12 - Settings Persistence & UI Polish
+**Current focus:** v1.2 milestone complete - all phases shipped
 
 ## Current Position
 

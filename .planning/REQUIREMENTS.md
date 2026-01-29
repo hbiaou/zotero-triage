@@ -29,11 +29,11 @@ Requirements for milestone v1.2 - Library Scope Filtering & Preflight Checks. Ea
 
 ### Settings & Persistence
 
-- [ ] **SETTINGS-01**: Relevance vs Diversity setting configured in onboarding wizard persists to settings panel
-- [ ] **SETTINGS-02**: User can access "Reconfigure Profile" button in settings to change recommendation settings
-- [ ] **SETTINGS-03**: Library filter mode persists across plugin reloads
-- [ ] **SETTINGS-04**: Settings panel displays library selector dropdown (choose personal libraries)
-- [ ] **SETTINGS-05**: Changing library selection in settings triggers profile re-initialization warning
+- [x] **SETTINGS-01**: Relevance vs Diversity setting configured in onboarding wizard persists to settings panel
+- [x] **SETTINGS-02**: User can access "Reconfigure Profile" button in settings to change recommendation settings
+- [x] **SETTINGS-03**: Library filter mode persists across plugin reloads
+- [x] **SETTINGS-04**: Settings panel displays library selector dropdown (choose personal libraries)
+- [x] **SETTINGS-05**: Changing library selection in settings triggers profile re-initialization warning
 
 ## v2 Requirements
 

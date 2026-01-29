@@ -4,7 +4,7 @@
 
 - ✅ **v1.0 MVP** - Phases 1-5 (shipped 2026-01-25)
 - ✅ **v1.1 Polish + Tag Support** - Phases 6-8 (shipped 2026-01-27)
-- 📋 **v1.2 Library Scope Filtering & Preflight Checks** - Phases 9-12 (planned)
+- ✅ **v1.2 Library Scope Filtering & Preflight Checks** - Phases 9-12 (shipped 2026-01-29)
 
 ## Phases
 
@@ -161,8 +161,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 12-01-PLAN.md — Settings persistence infrastructure (recommendation preferences, library filter)
-- [ ] 12-02-PLAN.md — Settings panel UI (sliders, dropdowns, scope counts, reconfigure button)
+- [x] 12-01-PLAN.md — Settings persistence infrastructure (recommendation preferences, library filter)
+- [x] 12-02-PLAN.md — Settings panel UI (sliders, dropdowns, scope counts, reconfigure button)
 
 ## Progress
 
@@ -182,4 +182,4 @@ Phases execute in numeric order: 9 → 10 → 11 → 12
 | 9. Library Filtering Foundation | v1.2 | 2/2 | Complete | 2026-01-28 |
 | 10. Duplicate Detection Service | v1.2 | 1/1 | Complete | 2026-01-28 |
 | 11. Preflight Modal & Integration | v1.2 | 2/2 | Complete | 2026-01-29 |
-| 12. Settings Persistence & UI Polish | v1.2 | 0/2 | Not started | - |
+| 12. Settings Persistence & UI Polish | v1.2 | 2/2 | Complete | 2026-01-29 |
