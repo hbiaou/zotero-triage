@@ -11,7 +11,7 @@ See: .planning/PROJECT.md (updated 2026-01-29)
 
 Milestone: v1.2 complete
 Status: Ready for next milestone planning
-Last activity: 2026-01-29 - Completed quick task 006: Add video recording support to item type
+Last activity: 2026-01-30 - Completed quick task 008: Fix profile persistence after onboarding
 
 Progress: v1.2 shipped (13 phases, 35 plans total across all milestones)
 
@@ -55,6 +55,8 @@ Progress: v1.2 shipped (13 phases, 35 plans total across all milestones)
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting v1.2+ work:
 
+- **Quick 008**: Dual save pattern (debounced for frequent updates, immediate for critical operations) instead of removing debounce entirely
+- **Quick 008**: Use await in profile initialization to guarantee save completion before returning
 - **Quick 006**: Include director and presenter creator types alongside author/editor (video recording support for YouTube lectures/tutorials)
 - **Quick 006**: Place videoRecording filter after conferencePaper for alphabetical ordering
 - **Phase 13 (Plan 01)**: Encapsulated query methods pattern (specific typed methods vs generic query() method for type safety and maintainability)
@@ -115,6 +117,7 @@ Recent decisions affecting v1.2+ work:
 | 004 | Fix preflight check failure handling to skip checks instead of reopening onboarding | 2026-01-29 | 9f5d463 | [004-fix-preflight-check-failure-handling-to-](./quick/004-fix-preflight-check-failure-handling-to-/) |
 | 005 | Fix database connection errors during preflight checks | 2026-01-29 | 3fa1b21 | [005-fix-database-connection-errors-during-pr](./quick/005-fix-database-connection-errors-during-pr/) |
 | 006 | Add video recording support to item type | 2026-01-29 | 1d34805 | [006-add-video-recording-support-to-item-type](./quick/006-add-video-recording-support-to-item-type/) |
+| 008 | Fix profile not being saved after onboarding completion | 2026-01-30 | f9dc038 | [008-fix-profile-not-being-saved-after-comple](./quick/008-fix-profile-not-being-saved-after-comple/) |
 
 ### Blockers/Concerns
 
@@ -122,8 +125,8 @@ None - v1.2 complete and production-ready
 
 ## Session Continuity
 
-Last session: 2026-01-29
-Stopped at: Quick task 006 completed
+Last session: 2026-01-30
+Stopped at: Quick task 008 completed
 Resume file: None
 
 **Next step:** Run `/gsd:new-milestone` to start next milestone with fresh REQUIREMENTS.md and ROADMAP.md
