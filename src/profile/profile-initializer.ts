@@ -46,14 +46,12 @@ export class ProfileInitializer {
    * 4. Frequency becomes initial weight (appears in 5 papers = weight 5.0)
    * 5. Create and persist profile
    *
+   * Preferences (relevanceVsDiversity, recencyBoost) are read from plugin settings.
+   *
    * @param seedPaperIds - Array of Zotero item IDs to use as seeds
-   * @param preferences - User preferences for recommendations
    * @returns Created profile
    */
-  async initializeProfile(
-    seedPaperIds: string[],
-    preferences: { relevanceVsDiversity: number; recencyBoost: boolean }
-  ): Promise<UserProfile> {
+  async initializeProfile(seedPaperIds: string[]): Promise<UserProfile> {
     // Step 1: Fetch seed papers
     const seedPapers = await this.fetchSeedPapers(seedPaperIds);
 
@@ -76,6 +74,13 @@ export class ProfileInitializer {
         10000
       );
     }
+
+    // Read preferences from plugin settings (source of truth)
+    const pluginSettings = (this.connector as any).plugin.settings;
+    const preferences = {
+      relevanceVsDiversity: pluginSettings.relevanceVsDiversity,
+      recencyBoost: pluginSettings.recencyBoost
+    };
 
     // Create profile via ProfileService
     const profile = this.profileService.createProfile(
