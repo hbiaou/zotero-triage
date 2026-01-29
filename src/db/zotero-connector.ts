@@ -443,8 +443,11 @@ export class ZoteroConnector {
                 creatorType: creatorRow[creatorCols.indexOf('creatorType')] as string,
                 orderIndex: creatorRow[creatorCols.indexOf('orderIndex')] as number
               };
-              // Only include authors and editors, not translators etc.
-              if (creator.creatorType === 'author' || creator.creatorType === 'editor') {
+              // Include primary creator types: author, editor (standard), director, presenter (videos)
+              if (creator.creatorType === 'author' ||
+                  creator.creatorType === 'editor' ||
+                  creator.creatorType === 'director' ||
+                  creator.creatorType === 'presenter') {
                 authors.push(formatCreator(creator));
               }
             }
