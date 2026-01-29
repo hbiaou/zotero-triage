@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-01-27)
 
 **Core value:** Users can progressively process their Zotero backlog without overwhelm, ensuring every imported literature note meets quality standards.
-**Current focus:** Phase 11 - Preflight Modal & Integration
+**Current focus:** Phase 12 - Settings Persistence & UI Polish
 
 ## Current Position
 
-Phase: 11 of 12 (Preflight Modal & Integration)
-Plan: 2 of 2 in current phase
-Status: Phase complete
-Last activity: 2026-01-29 - Completed 11-02-PLAN.md (Preflight Integration)
+Phase: 12 of 12 (Settings Persistence & UI Polish)
+Plan: 1 of 2 in current phase
+Status: In progress
+Last activity: 2026-01-29 - Completed 12-01-PLAN.md (Settings Persistence)
 
-Progress: [███████████░] 92% (11 of 12 phases complete)
+Progress: [███████████░] 96% (11.5 of 12 phases complete)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 32
-- Average duration: ~42 min per plan
-- Total execution time: ~23 hours 10 minutes
+- Total plans completed: 33
+- Average duration: ~40 min per plan
+- Total execution time: ~23 hours 18 minutes
 
 **By Phase:**
 
@@ -38,13 +38,14 @@ Progress: [███████████░] 92% (11 of 12 phases complete)
 | 9. Library Filtering | 2 | 2h | ~62 min |
 | 10. Duplicate Detection | 1 | 4min | ~4 min |
 | 11. Preflight Modal | 2 | 10min | ~5 min |
+| 12. Settings Persistence | 1 | 8min | ~8 min |
 
 **Recent Trend:**
 - v1.0 shipped: 23 plans across 5 phases (2026-01-25)
 - v1.1 shipped: 9 plans across 3 phases (2026-01-27)
-- v1.2 in progress: 5 plans in phases 9-11 (2026-01-29)
-- Average ~42 min per plan
-- Trend: Fast execution on simple tasks (phases 10-11: 4-5 min avg)
+- v1.2 in progress: 6 plans in phases 9-12 (2026-01-29)
+- Average ~40 min per plan
+- Trend: Fast execution on simple tasks (phases 10-12: 4-8 min avg)
 
 ## Accumulated Context
 
@@ -53,6 +54,10 @@ Progress: [███████████░] 92% (11 of 12 phases complete)
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting v1.2 work:
 
+- **Phase 12**: Settings become single source of truth for recommendation preferences (not stored only in profile)
+- **Phase 12**: Wizard saves preferences to settings before calling completion callback (settings-first architecture)
+- **Phase 12**: Profile initializer reads preferences from settings instead of wizard parameters (decoupled flow)
+- **Phase 12**: onComplete callback signature simplified to accept only seedPaperIds array (preferences in settings)
 - **Phase 11**: Extract openSetupWizardAfterPreflight() method in main.ts (separate method for clarity vs inline callback)
 - **Phase 11**: Inline wizard creation in settings.ts button handlers (isolated handlers vs helper method extraction)
 - **Phase 11**: ensureConnectorInitialized() as fire-and-forget async wrapper (modal handles errors vs making showSetupWizard async)
@@ -80,9 +85,9 @@ Recent decisions affecting v1.2 work:
    - Query-time filtering at libraryID level
    - Preflight modal with duplicate detection and trash advisories
 
-2. Fix Relevance vs Diversity persistence (from accumulated todos)
-   - Setting configured in wizard now persists to settings panel
-   - Add "Reconfigure Profile" button for easy changes
+2. ~~Fix Relevance vs Diversity persistence (from accumulated todos)~~ (DONE - Phase 12)
+   - ~~Setting configured in wizard now persists to settings panel~~ (DONE - Plan 12-01)
+   - Add "Reconfigure Profile" button for easy changes (Plan 12-02)
 
 ### Quick Tasks Completed
 
@@ -108,10 +113,10 @@ Recent decisions affecting v1.2 work:
 ## Session Continuity
 
 Last session: 2026-01-29
-Stopped at: Completed 11-02-PLAN.md (Preflight Integration)
+Stopped at: Completed 12-01-PLAN.md (Settings Persistence)
 Resume file: None
 
-**Next step:** Phase 11 complete - ready for Phase 12 (Final Polish & Documentation)
+**Next step:** Continue Phase 12 - Plan 02 (Settings UI Polish)
 
 Config:
 {
