@@ -27,6 +27,20 @@ export interface ZoteroTriageSettings {
    * 0.0 = disable tag scoring, 3.0 = strong tag preference
    */
   tagWeight: number;
+  /**
+   * Relevance vs Diversity balance (0-1)
+   * 0 = pure relevance (highest scored items)
+   * 1 = maximum diversity (balanced across signal types)
+   */
+  relevanceVsDiversity: number;
+  /** Whether to boost recent publications in recommendations */
+  recencyBoost: boolean;
+  /**
+   * Library filter mode
+   * 'personal' = user library only (excludes group libraries, feeds)
+   * 'all' = all libraries (user + groups)
+   */
+  libraryFilterMode: 'personal' | 'all';
 }
 
 import { DEFAULT_QUALITY_GATE_CONFIG } from './validation/types';
@@ -40,7 +54,10 @@ export const DEFAULT_SETTINGS: ZoteroTriageSettings = {
   batchSize: 5,
   qualityGate: DEFAULT_QUALITY_GATE_CONFIG,
   userProfile: null,
-  tagWeight: 1.5  // Default from CONTEXT.md decision
+  tagWeight: 1.5,  // Default from CONTEXT.md decision
+  relevanceVsDiversity: 0,  // Pure relevance by default
+  recencyBoost: true,  // Boost recent publications
+  libraryFilterMode: 'personal'  // User library only
 };
 
 /**
