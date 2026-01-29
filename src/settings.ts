@@ -19,6 +19,7 @@ import { extractKeywordsFromMultiple } from './profile/keyword-extractor';
 import type ZoteroTriagePlugin from './main';
 import { PreflightModal } from './ui/preflight-modal';
 import { DuplicateDetectionService } from './services/duplicate-detection-service';
+import { LIBRARY_STATS_QUERY } from './db/queries';
 
 /**
  * Settings tab for Zotero Triage plugin configuration
@@ -37,120 +38,16 @@ export class ZoteroTriageSettingTab extends PluginSettingTab {
 
     containerEl.createEl('h1', { text: 'Zotero Triage Settings' });
 
-    // Database Path Section
-    containerEl.createEl('h2', { text: 'Zotero Database' });
+    // Section 1: Library Scope (NEW - render first)
+    this.renderLibraryScopeSection(containerEl);
 
-    new Setting(containerEl)
-      .setName('Zotero Database Path')
-      .setDesc('Path to your zotero.sqlite file')
-      .addText(text => text
-        .setPlaceholder('C:\\Users\\...\\Zotero\\zotero.sqlite')
-        .setValue(this.plugin.settings.zoteroDbPath)
-        .onChange(async (value) => {
-          this.plugin.settings.zoteroDbPath = value;
-          await this.plugin.saveSettings();
-        }));
+    // Section 2: Database Configuration
+    this.renderDatabaseSection(containerEl);
 
-    // Auto-detect and Browse buttons
-    new Setting(containerEl)
-      .setName('Database Detection')
-      .setDesc('Auto-detect Zotero database location or browse manually')
-      .addButton(button => button
-        .setButtonText('Auto-detect')
-        .onClick(async () => {
-          const detectedPath = detectZoteroPath();
-          if (detectedPath) {
-            this.plugin.settings.zoteroDbPath = detectedPath;
-            await this.plugin.saveSettings();
-            new Notice(`Database found: ${detectedPath}`);
-            this.display(); // Refresh to show new path
-          } else {
-            new Notice('Could not auto-detect. Please set path manually.');
-          }
-        }))
-      .addButton(button => button
-        .setButtonText('Browse')
-        .onClick(async () => {
-          // Use Electron's dialog if available
-          try {
-            // eslint-disable-next-line @typescript-eslint/no-var-requires
-            const { remote } = require('@electron/remote');
-            const result = await remote.dialog.showOpenDialog({
-              title: 'Select Zotero Database',
-              filters: [
-                { name: 'SQLite Database', extensions: ['sqlite'] }
-              ],
-              properties: ['openFile']
-            });
-            if (!result.canceled && result.filePaths.length > 0) {
-              this.plugin.settings.zoteroDbPath = result.filePaths[0];
-              await this.plugin.saveSettings();
-              this.display();
-            }
-          } catch {
-            // Fallback: electron remote not available
-            new Notice('File browser not available. Please enter the path manually.');
-          }
-        }));
+    // Section 3: Recommendation Settings (was inline, now extracted)
+    this.renderRecommendationSection(containerEl);
 
-    // Test Connection Section
-    new Setting(containerEl)
-      .setName('Test Connection')
-      .setDesc('Verify database access and check item count')
-      .addButton(button => button
-        .setButtonText('Test Connection')
-        .setCta()
-        .onClick(async () => {
-          const dbPath = this.plugin.settings.zoteroDbPath;
-
-          if (!dbPath) {
-            new Notice('Please set the database path first.');
-            return;
-          }
-
-          if (!fs.existsSync(dbPath)) {
-            new Notice(`Database file not found: ${dbPath}`);
-            return;
-          }
-
-          try {
-            button.setDisabled(true);
-            button.setButtonText('Testing...');
-
-            const result = await this.plugin.connector.testConnection(dbPath);
-
-            if (result.success) {
-              new Notice(`Connection successful! Found ${result.itemCount} items (schema v${result.schemaVersion})`);
-            } else {
-              new Notice(`Connection failed: ${result.error}`);
-            }
-          } catch (err) {
-            const errorMessage = err instanceof Error ? err.message : String(err);
-            new Notice(`Connection failed: ${errorMessage}`);
-          } finally {
-            button.setDisabled(false);
-            button.setButtonText('Test Connection');
-          }
-        }));
-
-    // Connection Status Display
-    this.displayConnectionStatus(containerEl);
-
-    // Output Folder Section
-    containerEl.createEl('h2', { text: 'Output Settings' });
-
-    new Setting(containerEl)
-      .setName('Output Folder')
-      .setDesc('Folder for literature notes (relative to vault root)')
-      .addText(text => text
-        .setPlaceholder('10_Literature')
-        .setValue(this.plugin.settings.outputFolder)
-        .onChange(async (value) => {
-          this.plugin.settings.outputFolder = value;
-          await this.plugin.saveSettings();
-        }));
-
-    // Batch Settings Section
+    // Section 4: Batch Settings (keep inline for brevity)
     containerEl.createEl('h2', { text: 'Batch Settings' });
 
     new Setting(containerEl)
@@ -165,22 +62,7 @@ export class ZoteroTriageSettingTab extends PluginSettingTab {
           await this.plugin.saveSettings();
         }));
 
-    // Recommendation Settings Section
-    containerEl.createEl('h2', { text: 'Recommendation Settings' });
-
-    new Setting(containerEl)
-      .setName('Tag weight')
-      .setDesc('Importance of tag matches in recommendations (0.0 = disabled, 3.0 = very important)')
-      .addSlider(slider => slider
-        .setLimits(0, 3.0, 0.1)
-        .setValue(this.plugin.settings.tagWeight)
-        .setDynamicTooltip()
-        .onChange(async (value) => {
-          this.plugin.settings.tagWeight = value;
-          await this.plugin.saveSettings();
-        }));
-
-    // Quality Gates Section
+    // Section 5: Quality Gates (keep inline)
     containerEl.createEl('h2', { text: 'Quality Gates' });
 
     containerEl.createDiv({
@@ -265,7 +147,21 @@ export class ZoteroTriageSettingTab extends PluginSettingTab {
           }));
     });
 
-    // Research Profile Section
+    // Section 6: Output Settings (moved after Quality Gates)
+    containerEl.createEl('h2', { text: 'Output Settings' });
+
+    new Setting(containerEl)
+      .setName('Output Folder')
+      .setDesc('Folder for literature notes (relative to vault root)')
+      .addText(text => text
+        .setPlaceholder('10_Literature')
+        .setValue(this.plugin.settings.outputFolder)
+        .onChange(async (value) => {
+          this.plugin.settings.outputFolder = value;
+          await this.plugin.saveSettings();
+        }));
+
+    // Section 7: Research Profile (keep at end)
     containerEl.createEl('h2', { text: 'Research Profile' });
 
     const profileService = (this.plugin as any).profileService;
@@ -411,6 +307,136 @@ export class ZoteroTriageSettingTab extends PluginSettingTab {
         }
       );
     }
+  }
+
+  /**
+   * Render Library Scope section (Section 1)
+   */
+  private renderLibraryScopeSection(containerEl: HTMLElement): void {
+    // Placeholder - will be implemented in Task 4
+    // This method will contain library filter dropdown and statistics display
+  }
+
+  /**
+   * Render Database Configuration section (Section 2)
+   */
+  private renderDatabaseSection(containerEl: HTMLElement): void {
+    containerEl.createEl('h2', { text: 'Zotero Database' });
+
+    new Setting(containerEl)
+      .setName('Zotero Database Path')
+      .setDesc('Path to your zotero.sqlite file')
+      .addText(text => text
+        .setPlaceholder('C:\\Users\\...\\Zotero\\zotero.sqlite')
+        .setValue(this.plugin.settings.zoteroDbPath)
+        .onChange(async (value) => {
+          this.plugin.settings.zoteroDbPath = value;
+          await this.plugin.saveSettings();
+        }));
+
+    // Auto-detect and Browse buttons
+    new Setting(containerEl)
+      .setName('Database Detection')
+      .setDesc('Auto-detect Zotero database location or browse manually')
+      .addButton(button => button
+        .setButtonText('Auto-detect')
+        .onClick(async () => {
+          const detectedPath = detectZoteroPath();
+          if (detectedPath) {
+            this.plugin.settings.zoteroDbPath = detectedPath;
+            await this.plugin.saveSettings();
+            new Notice(`Database found: ${detectedPath}`);
+            this.display(); // Refresh to show new path
+          } else {
+            new Notice('Could not auto-detect. Please set path manually.');
+          }
+        }))
+      .addButton(button => button
+        .setButtonText('Browse')
+        .onClick(async () => {
+          // Use Electron's dialog if available
+          try {
+            // eslint-disable-next-line @typescript-eslint/no-var-requires
+            const { remote } = require('@electron/remote');
+            const result = await remote.dialog.showOpenDialog({
+              title: 'Select Zotero Database',
+              filters: [
+                { name: 'SQLite Database', extensions: ['sqlite'] }
+              ],
+              properties: ['openFile']
+            });
+            if (!result.canceled && result.filePaths.length > 0) {
+              this.plugin.settings.zoteroDbPath = result.filePaths[0];
+              await this.plugin.saveSettings();
+              this.display();
+            }
+          } catch {
+            // Fallback: electron remote not available
+            new Notice('File browser not available. Please enter the path manually.');
+          }
+        }));
+
+    // Test Connection Section
+    new Setting(containerEl)
+      .setName('Test Connection')
+      .setDesc('Verify database access and check item count')
+      .addButton(button => button
+        .setButtonText('Test Connection')
+        .setCta()
+        .onClick(async () => {
+          const dbPath = this.plugin.settings.zoteroDbPath;
+
+          if (!dbPath) {
+            new Notice('Please set the database path first.');
+            return;
+          }
+
+          if (!fs.existsSync(dbPath)) {
+            new Notice(`Database file not found: ${dbPath}`);
+            return;
+          }
+
+          try {
+            button.setDisabled(true);
+            button.setButtonText('Testing...');
+
+            const result = await this.plugin.connector.testConnection(dbPath);
+
+            if (result.success) {
+              new Notice(`Connection successful! Found ${result.itemCount} items (schema v${result.schemaVersion})`);
+            } else {
+              new Notice(`Connection failed: ${result.error}`);
+            }
+          } catch (err) {
+            const errorMessage = err instanceof Error ? err.message : String(err);
+            new Notice(`Connection failed: ${errorMessage}`);
+          } finally {
+            button.setDisabled(false);
+            button.setButtonText('Test Connection');
+          }
+        }));
+
+    // Connection Status Display
+    this.displayConnectionStatus(containerEl);
+  }
+
+  /**
+   * Render Recommendation Settings section (Section 3)
+   */
+  private renderRecommendationSection(containerEl: HTMLElement): void {
+    containerEl.createEl('h2', { text: 'Recommendation Settings' });
+
+    new Setting(containerEl)
+      .setName('Tag weight')
+      .setDesc('Importance of tag matches in recommendations (0.0 = disabled, 3.0 = very important)')
+      .addSlider(slider => slider
+        .setLimits(0, 3.0, 0.1)
+        .setValue(this.plugin.settings.tagWeight)
+        .setDynamicTooltip()
+        .onChange(async (value) => {
+          this.plugin.settings.tagWeight = value;
+          await this.plugin.saveSettings();
+        }));
   }
 
   /**
