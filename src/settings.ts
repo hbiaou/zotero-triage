@@ -17,6 +17,8 @@ import { ProfileEditor } from './ui/profile-editor';
 import { ProfileInitializer } from './profile/profile-initializer';
 import { extractKeywordsFromMultiple } from './profile/keyword-extractor';
 import type ZoteroTriagePlugin from './main';
+import { PreflightModal } from './ui/preflight-modal';
+import { DuplicateDetectionService } from './services/duplicate-detection-service';
 
 /**
  * Settings tab for Zotero Triage plugin configuration
@@ -289,25 +291,41 @@ export class ZoteroTriageSettingTab extends PluginSettingTab {
             return;
           }
 
-          const profileInitializer = new ProfileInitializer(
-            (this.plugin as any).connector,
-            profileService,
-            extractKeywordsFromMultiple
-          );
+          // Ensure connector initialized
+          this.plugin.ensureConnectorInitialized();
 
-          const wizard = new SetupWizardModal(
+          // Create duplicate service
+          const duplicateService = new DuplicateDetectionService(this.plugin.connector);
+
+          // Show preflight first
+          const preflight = new PreflightModal(
             this.app,
-            this.plugin,
-            async (profile) => {
-              await profileInitializer.initializeProfile(profile.seedPaperIds, profile.preferences);
-              new Notice('Profile created successfully');
-              this.display(); // Refresh settings
-            },
+            this.plugin.connector,
+            duplicateService,
             () => {
-              new Notice('Setup skipped — you can configure manually later');
+              // Open wizard after preflight acknowledged
+              const profileInitializer = new ProfileInitializer(
+                (this.plugin as any).connector,
+                profileService,
+                extractKeywordsFromMultiple
+              );
+
+              const wizard = new SetupWizardModal(
+                this.app,
+                this.plugin,
+                async (profile) => {
+                  await profileInitializer.initializeProfile(profile.seedPaperIds, profile.preferences);
+                  new Notice('Profile created successfully');
+                  this.display(); // Refresh settings
+                },
+                () => {
+                  new Notice('Setup skipped — you can configure manually later');
+                }
+              );
+              wizard.open();
             }
           );
-          wizard.open();
+          preflight.open();
         }));
     } else {
       // Profile exists - show management buttons and editor
@@ -327,33 +345,49 @@ export class ZoteroTriageSettingTab extends PluginSettingTab {
             return;
           }
 
-          const profileInitializer = new ProfileInitializer(
-            (this.plugin as any).connector,
-            profileService,
-            extractKeywordsFromMultiple
-          );
+          // Ensure connector initialized
+          this.plugin.ensureConnectorInitialized();
 
-          const wizard = new SetupWizardModal(
+          // Create duplicate service
+          const duplicateService = new DuplicateDetectionService(this.plugin.connector);
+
+          // Show preflight first
+          const preflight = new PreflightModal(
             this.app,
-            this.plugin,
-            async (newProfile) => {
-              // Clear existing profile first
-              profileService.clearProfile();
-
-              // Initialize new profile
-              await profileInitializer.initializeProfile(
-                newProfile.seedPaperIds,
-                newProfile.preferences
+            this.plugin.connector,
+            duplicateService,
+            () => {
+              // Open wizard after preflight acknowledged
+              const profileInitializer = new ProfileInitializer(
+                (this.plugin as any).connector,
+                profileService,
+                extractKeywordsFromMultiple
               );
 
-              new Notice('Profile updated successfully');
-              this.display(); // Refresh settings
-            },
-            () => {
-              new Notice('Wizard cancelled');
+              const wizard = new SetupWizardModal(
+                this.app,
+                this.plugin,
+                async (newProfile) => {
+                  // Clear existing profile first
+                  profileService.clearProfile();
+
+                  // Initialize new profile
+                  await profileInitializer.initializeProfile(
+                    newProfile.seedPaperIds,
+                    newProfile.preferences
+                  );
+
+                  new Notice('Profile updated successfully');
+                  this.display(); // Refresh settings
+                },
+                () => {
+                  new Notice('Wizard cancelled');
+                }
+              );
+              wizard.open();
             }
           );
-          wizard.open();
+          preflight.open();
         }));
 
       profileStatus.addButton(button => button
