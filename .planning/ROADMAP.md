@@ -145,8 +145,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 11-01-PLAN.md — Create PreflightService and PreflightModal with color-coded severity display
-- [ ] 11-02-PLAN.md — Integrate preflight modal into startup and settings flows
+- [x] 11-01-PLAN.md — Create PreflightService and PreflightModal with color-coded severity display
+- [x] 11-02-PLAN.md — Integrate preflight modal into startup and settings flows
 
 #### Phase 12: Settings Persistence & UI Polish
 **Goal**: Recommendation settings configured in wizard persist to settings panel with easy reconfiguration
@@ -180,5 +180,5 @@ Phases execute in numeric order: 9 → 10 → 11 → 12
 | 8. UX Enhancements (Progress & Validation) | v1.1 | 3/3 | Complete | 2026-01-27 |
 | 9. Library Filtering Foundation | v1.2 | 2/2 | Complete | 2026-01-28 |
 | 10. Duplicate Detection Service | v1.2 | 1/1 | Complete | 2026-01-28 |
-| 11. Preflight Modal & Integration | v1.2 | 0/2 | Not started | - |
+| 11. Preflight Modal & Integration | v1.2 | 2/2 | Complete | 2026-01-29 |
 | 12. Settings Persistence & UI Polish | v1.2 | 0/TBD | Not started | - |
