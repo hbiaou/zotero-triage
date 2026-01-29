@@ -93,8 +93,8 @@ export class ProfileInitializer {
     profile.authors = authors;
     profile.keywords = keywords;
 
-    // Persist the updated profile
-    this.profileService.updateProfile(profile);
+    // Persist the updated profile immediately (critical operation)
+    await this.profileService.updateProfileImmediate(profile);
 
     return profile;
   }
