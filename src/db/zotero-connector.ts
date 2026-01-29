@@ -22,6 +22,7 @@ import {
   ITEM_TAGS_QUERY,
   ITEM_COLLECTIONS_QUERY,
   ITEM_COUNT_QUERY,
+  LIBRARY_STATS_QUERY,
   formatCreator,
   parseYear,
   CreatorRow
@@ -614,6 +615,70 @@ export class ZoteroConnector {
   }> {
     const service = new DuplicateDetectionService(this);
     return service.detectDuplicates();
+  }
+
+  /**
+   * Query library statistics for scope transparency.
+   *
+   * Returns counts for each library type and trash status:
+   * - personalCount: Items in personal library (type='user'), not in trash
+   * - groupCount: Items in group libraries (type='group'), not in trash
+   * - feedCount: Items in feeds (type='feed'), not in trash
+   * - trashCount: Items in trash (deletedItems), from all libraries
+   *
+   * Used by settings panel to display transparent scope information.
+   *
+   * @returns Promise with statistics object
+   * @throws Error if database not connected
+   */
+  async queryLibraryStats(): Promise<{
+    personalCount: number;
+    groupCount: number;
+    feedCount: number;
+    trashCount: number;
+  }> {
+    if (!this.db) {
+      throw new Error('Database not connected. Call connect() first.');
+    }
+
+    try {
+      const results = this.db.exec(LIBRARY_STATS_QUERY);
+
+      // Empty result handling (no items in database)
+      if (!results || results.length === 0) {
+        return {
+          personalCount: 0,
+          groupCount: 0,
+          feedCount: 0,
+          trashCount: 0
+        };
+      }
+
+      const [result] = results;
+      if (!result.values || result.values.length === 0) {
+        return {
+          personalCount: 0,
+          groupCount: 0,
+          feedCount: 0,
+          trashCount: 0
+        };
+      }
+
+      // Parse column-indexed results
+      const columns = result.columns;
+      const row = result.values[0];
+
+      return {
+        personalCount: (row[columns.indexOf('personalCount')] as number) || 0,
+        groupCount: (row[columns.indexOf('groupCount')] as number) || 0,
+        feedCount: (row[columns.indexOf('feedCount')] as number) || 0,
+        trashCount: (row[columns.indexOf('trashCount')] as number) || 0
+      };
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      console.error('Library stats query failed:', errorMessage);
+      throw new Error(`Failed to query library statistics: ${errorMessage}`);
+    }
   }
 
   /**
