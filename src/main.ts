@@ -381,6 +381,13 @@ export default class ZoteroTriagePlugin extends Plugin {
    * Used for first-time configuration or manual re-runs
    */
   private showSetupWizard(): void {
+    // Guard: Don't show wizard if profile already exists
+    // This prevents reopening wizard when users with existing profiles
+    // encounter database errors and click "I Understand" on preflight modal
+    if (this.profileService.hasProfile()) {
+      return;
+    }
+
     // Ensure connector is initialized (needed for preflight)
     this.ensureConnectorInitialized();
 
