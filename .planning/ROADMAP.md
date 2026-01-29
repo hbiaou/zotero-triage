@@ -178,7 +178,7 @@ Plans:
 **Plans**: 1 plan
 
 Plans:
-- [ ] 13-01-PLAN.md — Add getLibraryStats() to ZoteroConnector and wire to settings display
+- [ ] 13-01-PLAN.md — Add queryLibraryStats() to ZoteroConnector and wire to settings display
 
 ## Progress
 
