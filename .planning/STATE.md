@@ -11,7 +11,7 @@ See: .planning/PROJECT.md (updated 2026-01-29)
 
 Milestone: v1.2 complete
 Status: Ready for next milestone planning
-Last activity: 2026-01-30 - Completed quick task 008: Fix profile persistence after onboarding
+Last activity: 2026-01-30 - Completed quick task 009: Fix preflight check SQL errors
 
 Progress: v1.2 shipped (13 phases, 35 plans total across all milestones)
 
@@ -55,6 +55,8 @@ Progress: v1.2 shipped (13 phases, 35 plans total across all milestones)
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting v1.2+ work:
 
+- **Quick 009**: INNER JOIN pattern for deletedItems libraryID access (JOIN to items/libraries tables, not direct column access)
+- **Quick 009**: GROUP BY deduplication for duplicate detection (i1.itemID != i2.itemID with GROUP BY vs i1.itemID < i2.itemID without)
 - **Quick 008**: Dual save pattern (debounced for frequent updates, immediate for critical operations) instead of removing debounce entirely
 - **Quick 008**: Use await in profile initialization to guarantee save completion before returning
 - **Quick 006**: Include director and presenter creator types alongside author/editor (video recording support for YouTube lectures/tutorials)
@@ -118,6 +120,7 @@ Recent decisions affecting v1.2+ work:
 | 005 | Fix database connection errors during preflight checks | 2026-01-29 | 3fa1b21 | [005-fix-database-connection-errors-during-pr](./quick/005-fix-database-connection-errors-during-pr/) |
 | 006 | Add video recording support to item type | 2026-01-29 | 1d34805 | [006-add-video-recording-support-to-item-type](./quick/006-add-video-recording-support-to-item-type/) |
 | 008 | Fix profile not being saved after onboarding completion | 2026-01-30 | f9dc038 | [008-fix-profile-not-being-saved-after-comple](./quick/008-fix-profile-not-being-saved-after-comple/) |
+| 009 | Fix preflight check SQL errors (trash libraryID and duplicate count) | 2026-01-30 | 7645a53 | [009-fix-preflight-check-errors-sql-libraryid](./quick/009-fix-preflight-check-errors-sql-libraryid/) |
 
 ### Blockers/Concerns
 
@@ -126,7 +129,7 @@ None - v1.2 complete and production-ready
 ## Session Continuity
 
 Last session: 2026-01-30
-Stopped at: Quick task 008 completed
+Stopped at: Quick task 009 completed
 Resume file: None
 
 **Next step:** Run `/gsd:new-milestone` to start next milestone with fresh REQUIREMENTS.md and ROADMAP.md
