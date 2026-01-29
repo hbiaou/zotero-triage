@@ -9,19 +9,19 @@ See: .planning/PROJECT.md (updated 2026-01-27)
 
 ## Current Position
 
-Phase: 10 of 12 (Duplicate Detection Service)
-Plan: 1 of 1 in current phase
-Status: Phase complete
-Last activity: 2026-01-28 - Completed 10-01-PLAN.md (Duplicate Detection Service)
+Phase: 11 of 12 (Preflight Modal & Integration)
+Plan: 1 of 2 in current phase
+Status: In progress
+Last activity: 2026-01-29 - Completed 11-01-PLAN.md (Preflight Service & Modal)
 
-Progress: [██████████░░] 83% (10 of 12 phases complete)
+Progress: [██████████░░] 87% (10.5 of 12 phases complete)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 30
-- Average duration: ~46 min per plan
-- Total execution time: ~23 hours
+- Total plans completed: 31
+- Average duration: ~44 min per plan
+- Total execution time: ~23 hours 6 minutes
 
 **By Phase:**
 
@@ -37,13 +37,14 @@ Progress: [██████████░░] 83% (10 of 12 phases complete)
 | 8. UX Enhancements | 3 | 2.5h | ~50 min |
 | 9. Library Filtering | 2 | 2h | ~62 min |
 | 10. Duplicate Detection | 1 | 4min | ~4 min |
+| 11. Preflight Modal | 1 | 6min | ~6 min |
 
 **Recent Trend:**
 - v1.0 shipped: 23 plans across 5 phases (2026-01-25)
 - v1.1 shipped: 9 plans across 3 phases (2026-01-27)
-- v1.2 in progress: 3 plans in phases 9-10 (2026-01-28)
-- Average ~46 min per plan
-- Trend: Stable (faster tasks balanced by complex ones)
+- v1.2 in progress: 4 plans in phases 9-11 (2026-01-29)
+- Average ~44 min per plan
+- Trend: Fast execution on simple tasks (phases 10-11: 4-6 min)
 
 ## Accumulated Context
 
@@ -52,6 +53,9 @@ Progress: [██████████░░] 83% (10 of 12 phases complete)
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting v1.2 work:
 
+- **Phase 11**: Sequential check execution for preflight (trash → duplicates → groups for UI simplicity vs parallel for speed)
+- **Phase 11**: Color-coded severity levels (red/yellow/blue PatternFly standards vs single warning color)
+- **Phase 11**: Zotero 6/7 compatibility via sqlite_master table check (graceful degradation for deletedItems)
 - **Phase 10**: Single SQL self-join query for duplicate detection (DOI/ISBN/title in one query vs separate queries)
 - **Phase 10**: SQL-based title normalization (LOWER, REPLACE, TRIM in query vs client-side JavaScript)
 - **Phase 10**: Graceful degradation for duplicate detection errors (return 0 duplicates vs throwing)
@@ -91,8 +95,8 @@ Recent decisions affecting v1.2 work:
 - ~~Library filtering must be query-time (not post-processing) to maintain performance~~ (DONE - Phase 9)
 - ~~Query performance needs testing with 5000+ items across multiple libraries~~ (TESTED - Phase 9: 12,876 items, no issues)
 - ~~Duplicate detection needs conservative multi-field matching to avoid false positives~~ (DONE - Phase 10: DOI-first hierarchy with exact normalized title match)
-- Preflight checks must be non-blocking (advisory only, never prevent workflow)
-- ~~Zotero 6 vs 7 compatibility requires graceful degradation for missing tables (retractedItems)~~ (DONE - Phase 9)
+- ~~Preflight checks must be non-blocking (advisory only, never prevent workflow)~~ (DONE - Phase 11: Skip button, graceful error handling)
+- ~~Zotero 6 vs 7 compatibility requires graceful degradation for missing tables (retractedItems)~~ (DONE - Phase 9, extended in Phase 11 for deletedItems)
 
 **Research flags:**
 - Phase 11: Preflight must work on both Zotero 6.0+ and 7.x (Zotero 7.0+ tested in Phase 9, need Zotero 6.x testing)
@@ -100,11 +104,11 @@ Recent decisions affecting v1.2 work:
 
 ## Session Continuity
 
-Last session: 2026-01-28
-Stopped at: Completed 10-01-PLAN.md (Phase 10 complete)
+Last session: 2026-01-29
+Stopped at: Completed 11-01-PLAN.md (Preflight Service & Modal)
 Resume file: None
 
-**Next step:** Plan Phase 11 (Preflight Modal Integration) - duplicate detection backend complete and ready for UI integration
+**Next step:** Execute 11-02-PLAN.md (Preflight Integration) - wire PreflightModal into setup wizard flow
 
 Config:
 {
