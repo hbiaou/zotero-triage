@@ -11,9 +11,9 @@ Requirements for milestone v1.2 - Library Scope Filtering & Preflight Checks. Ea
 
 - [x] **SCOPE-01**: Plugin filters ITEMS_QUERY to personal library only (exclude group libraries, feeds)
 - [x] **SCOPE-02**: Plugin excludes retracted items from queries (Zotero 7+ with graceful degradation)
-- [ ] **SCOPE-03**: Plugin displays transparent scope counts (personal items, excluded groups, excluded feeds, trash)
-- [ ] **SCOPE-04**: User can configure which libraries to include via settings dropdown
-- [ ] **SCOPE-05**: Plugin persists library filter selection across restarts
+- [x] **SCOPE-03**: Plugin displays transparent scope counts (personal items, excluded groups, excluded feeds, trash)
+- [x] **SCOPE-04**: User can configure which libraries to include via settings dropdown
+- [x] **SCOPE-05**: Plugin persists library filter selection across restarts
 - [x] **SCOPE-06**: Plugin applies library filtering to all database queries (onboarding, batch generation, registry)
 
 ### Preflight Validation
@@ -71,9 +71,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 |-------------|-------|--------|
 | SCOPE-01 | Phase 9 | Complete |
 | SCOPE-02 | Phase 9 | Complete |
-| SCOPE-03 | Phase 12 | Pending |
-| SCOPE-04 | Phase 12 | Pending |
-| SCOPE-05 | Phase 12 | Pending |
+| SCOPE-03 | Phase 13 | Complete |
+| SCOPE-04 | Phase 12 | Complete |
+| SCOPE-05 | Phase 12 | Complete |
 | SCOPE-06 | Phase 9 | Complete |
 | PREFLIGHT-01 | Phase 10 | Complete |
 | PREFLIGHT-02 | Phase 11 | Complete |
@@ -83,11 +83,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PREFLIGHT-06 | Phase 10 | Complete |
 | PREFLIGHT-07 | Phase 11 | Complete |
 | PREFLIGHT-08 | Phase 11 | Complete |
-| SETTINGS-01 | Phase 12 | Pending |
-| SETTINGS-02 | Phase 12 | Pending |
-| SETTINGS-03 | Phase 12 | Pending |
-| SETTINGS-04 | Phase 12 | Pending |
-| SETTINGS-05 | Phase 12 | Pending |
+| SETTINGS-01 | Phase 12 | Complete |
+| SETTINGS-02 | Phase 12 | Complete |
+| SETTINGS-03 | Phase 12 | Complete |
+| SETTINGS-04 | Phase 12 | Complete |
+| SETTINGS-05 | Phase 12 | Complete |
 
 **Coverage:**
 - v1.2 requirements: 19 total
@@ -95,10 +95,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 - Unmapped: 0
 
 **Phase Coverage:**
-- Phase 9 (Library Filtering Foundation): 6 requirements
-- Phase 10 (Duplicate Detection Service): 3 requirements
-- Phase 11 (Preflight Modal & Integration): 5 requirements
-- Phase 12 (Settings Persistence & UI Polish): 5 requirements
+- Phase 9 (Library Filtering Foundation): 3 requirements (SCOPE-01, SCOPE-02, SCOPE-06)
+- Phase 10 (Duplicate Detection Service): 2 requirements (PREFLIGHT-01, PREFLIGHT-06)
+- Phase 11 (Preflight Modal & Integration): 5 requirements (PREFLIGHT-02, PREFLIGHT-03, PREFLIGHT-04, PREFLIGHT-05, PREFLIGHT-07, PREFLIGHT-08)
+- Phase 12 (Settings Persistence & UI Polish): 7 requirements (SCOPE-04, SCOPE-05, SETTINGS-01, SETTINGS-02, SETTINGS-03, SETTINGS-04, SETTINGS-05)
+- Phase 13 (Library Statistics Display): 1 requirement (SCOPE-03)
 
 ---
 *Requirements defined: 2026-01-27*

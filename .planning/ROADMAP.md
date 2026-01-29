@@ -178,7 +178,7 @@ Plans:
 **Plans**: 1 plan
 
 Plans:
-- [ ] 13-01-PLAN.md — Add queryLibraryStats() to ZoteroConnector and wire to settings display
+- [x] 13-01-PLAN.md — Add queryLibraryStats() to ZoteroConnector and wire to settings display
 
 ## Progress
 
@@ -199,4 +199,4 @@ Phases execute in numeric order: 9 → 10 → 11 → 12 → 13
 | 10. Duplicate Detection Service | v1.2 | 1/1 | Complete | 2026-01-28 |
 | 11. Preflight Modal & Integration | v1.2 | 2/2 | Complete | 2026-01-29 |
 | 12. Settings Persistence & UI Polish | v1.2 | 2/2 | Complete | 2026-01-29 |
-| 13. Library Statistics Display Integration | v1.2 | 0/1 | Pending | - |
+| 13. Library Statistics Display Integration | v1.2 | 1/1 | Complete | 2026-01-29 |
