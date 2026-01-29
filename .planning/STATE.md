@@ -11,7 +11,7 @@ See: .planning/PROJECT.md (updated 2026-01-29)
 
 Milestone: v1.2 complete
 Status: Ready for next milestone planning
-Last activity: 2026-01-29 - v1.2 milestone archived
+Last activity: 2026-01-29 - Completed quick task 004: Fix preflight check failure handling to skip checks instead of reopening onboarding
 
 Progress: v1.2 shipped (13 phases, 35 plans total across all milestones)
 
@@ -110,6 +110,7 @@ Recent decisions affecting v1.2+ work:
 | 001 | Add visual status indicators for processed items in batch | 2026-01-25 | a3d13ec | [001-add-visual-status-indicators](./quick/001-add-visual-status-indicators/) |
 | 002 | Fix modal sizing and persistent settings warning | 2026-01-25 | 222f510 | [002-fix-modal-sizing-and-persistent-settings](./quick/002-fix-modal-sizing-and-persistent-settings/) |
 | 003 | Fix wizard modal sizing and search input functionality | 2026-01-27 | 2311dd6 | [003-1-the-issue-with-the-triage-setup-wizard](./quick/003-1-the-issue-with-the-triage-setup-wizard/) |
+| 004 | Fix preflight check failure handling to skip checks instead of reopening onboarding | 2026-01-29 | 9f5d463 | [004-fix-preflight-check-failure-handling-to-](./quick/004-fix-preflight-check-failure-handling-to-/) |
 
 ### Blockers/Concerns
 
