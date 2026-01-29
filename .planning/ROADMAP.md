@@ -4,7 +4,7 @@
 
 - ✅ **v1.0 MVP** - Phases 1-5 (shipped 2026-01-25)
 - ✅ **v1.1 Polish + Tag Support** - Phases 6-8 (shipped 2026-01-27)
-- ✅ **v1.2 Library Scope Filtering & Preflight Checks** - Phases 9-12 (shipped 2026-01-29)
+- 🚧 **v1.2 Library Scope Filtering & Preflight Checks** - Phases 9-13 (in progress)
 
 ## Phases
 
@@ -98,7 +98,7 @@ Plans:
 
 </details>
 
-### 📋 v1.2 Library Scope Filtering & Preflight Checks (Planned)
+### 🚧 v1.2 Library Scope Filtering & Preflight Checks (In Progress - Phase 13)
 
 **Milestone Goal:** Ensure only relevant, high-quality items from user's personal library enter the recommendation pipeline by filtering unwanted sources and detecting issues before onboarding.
 
@@ -164,10 +164,26 @@ Plans:
 - [x] 12-01-PLAN.md — Settings persistence infrastructure (recommendation preferences, library filter)
 - [x] 12-02-PLAN.md — Settings panel UI (sliders, dropdowns, scope counts, reconfigure button)
 
+#### Phase 13: Library Statistics Display Integration
+**Goal**: Library scope transparency statistics display correctly in settings panel
+**Depends on**: Phase 12
+**Requirements**: SCOPE-03
+**Gap Closure**: Closes integration gap from v1.2 audit (connector.query() missing), restores E2E flow "Library Scope Transparency Display"
+**Success Criteria** (what must be TRUE):
+  1. ZoteroConnector provides method to query library statistics
+  2. Settings panel successfully executes LIBRARY_STATS_QUERY without errors
+  3. User sees transparent scope counts (personal items, excluded groups, excluded feeds, trash)
+  4. Statistics display works when database is connected
+  5. Graceful error handling when database not connected
+**Plans**: 1 plan
+
+Plans:
+- [ ] 13-01-PLAN.md — Add getLibraryStats() to ZoteroConnector and wire to settings display
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 9 → 10 → 11 → 12
+Phases execute in numeric order: 9 → 10 → 11 → 12 → 13
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
@@ -183,3 +199,4 @@ Phases execute in numeric order: 9 → 10 → 11 → 12
 | 10. Duplicate Detection Service | v1.2 | 1/1 | Complete | 2026-01-28 |
 | 11. Preflight Modal & Integration | v1.2 | 2/2 | Complete | 2026-01-29 |
 | 12. Settings Persistence & UI Polish | v1.2 | 2/2 | Complete | 2026-01-29 |
+| 13. Library Statistics Display Integration | v1.2 | 0/1 | Pending | - |
