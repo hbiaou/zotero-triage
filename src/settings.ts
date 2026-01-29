@@ -38,8 +38,9 @@ export class ZoteroTriageSettingTab extends PluginSettingTab {
 
     containerEl.createEl('h1', { text: 'Zotero Triage Settings' });
 
-    // Section 1: Library Scope (NEW - render first)
-    this.renderLibraryScopeSection(containerEl);
+    // Section 1: Library Scope (NEW - render first, async for query)
+    // Use void to handle async without awaiting in sync display()
+    void this.renderLibraryScopeSection(containerEl);
 
     // Section 2: Database Configuration
     this.renderDatabaseSection(containerEl);
@@ -312,9 +313,79 @@ export class ZoteroTriageSettingTab extends PluginSettingTab {
   /**
    * Render Library Scope section (Section 1)
    */
-  private renderLibraryScopeSection(containerEl: HTMLElement): void {
-    // Placeholder - will be implemented in Task 4
-    // This method will contain library filter dropdown and statistics display
+  private async renderLibraryScopeSection(containerEl: HTMLElement): Promise<void> {
+    containerEl.createEl('h2', { text: 'Library Scope' });
+    containerEl.createDiv({
+      cls: 'setting-item-description',
+      text: 'Configure which Zotero libraries are included in recommendations and triage workflow.'
+    });
+
+    // Library filter dropdown
+    new Setting(containerEl)
+      .setName('Library filter')
+      .setDesc('Choose which libraries to include')
+      .addDropdown(dropdown => dropdown
+        .addOption('personal', 'Personal library only (recommended)')
+        .addOption('all', 'All libraries (personal + groups + feeds)')
+        .setValue(this.plugin.settings.libraryFilterMode)
+        .onChange(async (value: 'personal' | 'all') => {
+          // Access profileService using existing pattern
+          const profileService = (this.plugin as any).profileService;
+
+          // Show warning if profile exists and filter is changing
+          if (profileService?.hasProfile() && value !== this.plugin.settings.libraryFilterMode) {
+            const confirmed = confirm(
+              'Changing library scope will affect which items are recommended. ' +
+              'You may want to reconfigure your profile after this change. Continue?'
+            );
+            if (!confirmed) {
+              dropdown.setValue(this.plugin.settings.libraryFilterMode);
+              return;
+            }
+          }
+
+          this.plugin.settings.libraryFilterMode = value;
+          await this.plugin.saveSettings();
+          this.display(); // Refresh to update stats
+        }));
+
+    // Scope transparency counts (execute query and display)
+    try {
+      // Execute LIBRARY_STATS_QUERY to get counts
+      const stats = await this.plugin.connector.query(LIBRARY_STATS_QUERY);
+      const row = stats[0] || { personalCount: 0, groupCount: 0, feedCount: 0, trashCount: 0 };
+
+      const statsContainer = containerEl.createDiv({ cls: 'library-scope-stats' });
+      statsContainer.createEl('h3', { text: 'Library Statistics' });
+
+      statsContainer.createEl('p', {
+        text: `✓ Personal library: ${row.personalCount} items (included in recommendations)`
+      });
+
+      if (row.groupCount > 0) {
+        statsContainer.createEl('p', {
+          text: `⊘ Group libraries: ${row.groupCount} items (excluded)`
+        });
+      }
+
+      if (row.feedCount > 0) {
+        statsContainer.createEl('p', {
+          text: `⊘ Feeds: ${row.feedCount} items (excluded)`
+        });
+      }
+
+      if (row.trashCount > 0) {
+        statsContainer.createEl('p', {
+          text: `🗑 Trash: ${row.trashCount} items (excluded)`
+        });
+      }
+    } catch (err) {
+      // Graceful degradation if query fails
+      containerEl.createEl('p', {
+        cls: 'setting-item-description',
+        text: 'Library statistics unavailable (database not connected)'
+      });
+    }
   }
 
   /**
