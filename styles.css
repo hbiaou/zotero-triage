@@ -690,6 +690,168 @@
 }
 
 /* ==========================================================================
+   Preflight Modal
+   ========================================================================== */
+
+/* Preflight modal container */
+.zotero-triage-preflight {
+  max-width: 600px;
+}
+
+/* Skip button positioning */
+.zotero-triage-preflight .preflight-skip-button {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  opacity: 0.7;
+}
+
+.zotero-triage-preflight .preflight-skip-button:hover {
+  opacity: 1;
+}
+
+/* Advisory cards */
+.preflight-advisory {
+  padding: 12px;
+  border-radius: 6px;
+  margin-bottom: 12px;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+/* Critical severity (duplicates) - Red */
+.preflight-advisory.critical {
+  background: rgba(255, 82, 82, 0.1);
+  border-left: 4px solid var(--text-error);
+}
+
+.preflight-advisory.critical .advisory-icon {
+  color: var(--text-error);
+}
+
+/* Warning severity (trash) - Orange/Yellow */
+.preflight-advisory.warning {
+  background: rgba(255, 184, 0, 0.1);
+  border-left: 4px solid #ffb800;
+}
+
+.preflight-advisory.warning .advisory-icon {
+  color: #ffb800;
+}
+
+/* Info severity (group libraries) - Blue */
+.preflight-advisory.info {
+  background: rgba(0, 123, 255, 0.1);
+  border-left: 4px solid var(--text-accent);
+}
+
+.preflight-advisory.info .advisory-icon {
+  color: var(--text-accent);
+}
+
+/* Error severity (check failures) - Gray */
+.preflight-advisory.error {
+  background: rgba(128, 128, 128, 0.1);
+  border-left: 4px solid var(--text-muted);
+}
+
+.preflight-advisory.error .advisory-icon {
+  color: var(--text-muted);
+}
+
+.advisory-icon {
+  font-size: 1.5em;
+  line-height: 1;
+}
+
+.advisory-content {
+  flex: 1;
+}
+
+.advisory-count {
+  font-weight: 600;
+  font-size: 1.1em;
+  margin-bottom: 4px;
+}
+
+.advisory-message {
+  color: var(--text-normal);
+  font-size: 0.95em;
+  margin-bottom: 4px;
+}
+
+.advisory-action {
+  color: var(--text-muted);
+  font-size: 0.85em;
+}
+
+.preflight-timeout-notice {
+  color: var(--text-warning);
+  font-style: italic;
+  margin-top: 8px;
+}
+
+/* Progress spinner */
+.preflight-progress {
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.preflight-spinner {
+  width: 40px;
+  height: 40px;
+  margin: 0 auto 16px;
+  border: 3px solid var(--background-modifier-border);
+  border-top-color: var(--interactive-accent);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.progress-message {
+  color: var(--text-muted);
+  font-size: 0.95em;
+}
+
+/* Results container */
+.preflight-results {
+  margin-bottom: 20px;
+}
+
+/* All clear message */
+.preflight-all-clear {
+  text-align: center;
+  padding: 20px;
+  color: var(--text-success);
+  font-weight: 500;
+}
+
+/* Acknowledge button */
+.preflight-acknowledge-btn {
+  display: block;
+  margin: 20px auto 0;
+  padding: 10px 30px;
+}
+
+/* Error display */
+.preflight-error-message {
+  padding: 12px;
+  margin: 12px 0;
+  background: var(--background-secondary);
+  border-radius: 4px;
+  color: var(--text-error);
+}
+
+.preflight-bypass-message {
+  margin: 12px 0;
+  color: var(--text-muted);
+}
+
+/* ==========================================================================
    Utility Classes
    ========================================================================== */
 
