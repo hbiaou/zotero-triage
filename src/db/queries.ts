@@ -326,6 +326,36 @@ WHERE type != 'user'
 `;
 
 /**
+ * Query library statistics for scope transparency in settings panel.
+ *
+ * Returns counts for each library type and trash status:
+ * - personalCount: Items in personal library (type='user'), not in trash
+ * - groupCount: Items in group libraries (type='group'), not in trash
+ * - feedCount: Items in feeds (type='feed'), not in trash
+ * - trashCount: Items in trash (deletedItems), from all libraries
+ *
+ * Respects same exclusions as ITEMS_QUERY:
+ * - No attachments, annotations, or child notes
+ * - Includes standalone notes
+ *
+ * Used to provide transparent scope information in settings panel.
+ */
+export const LIBRARY_STATS_QUERY = `
+SELECT
+  COUNT(CASE WHEN l.type = 'user' AND di.itemID IS NULL THEN 1 END) as personalCount,
+  COUNT(CASE WHEN l.type = 'group' AND di.itemID IS NULL THEN 1 END) as groupCount,
+  COUNT(CASE WHEN l.type = 'feed' AND di.itemID IS NULL THEN 1 END) as feedCount,
+  COUNT(CASE WHEN di.itemID IS NOT NULL THEN 1 END) as trashCount
+FROM items i
+INNER JOIN libraries l ON i.libraryID = l.libraryID
+INNER JOIN itemTypes it ON i.itemTypeID = it.itemTypeID
+LEFT JOIN deletedItems di ON i.itemID = di.itemID
+LEFT JOIN itemNotes n ON i.itemID = n.itemID
+WHERE it.typeName NOT IN ('attachment', 'annotation')
+  AND (it.typeName != 'note' OR n.parentItemID IS NULL)
+`;
+
+/**
  * Creator row from CREATORS_QUERY result
  */
 export interface CreatorRow {
