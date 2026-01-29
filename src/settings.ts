@@ -426,6 +426,31 @@ export class ZoteroTriageSettingTab extends PluginSettingTab {
   private renderRecommendationSection(containerEl: HTMLElement): void {
     containerEl.createEl('h2', { text: 'Recommendation Settings' });
 
+    // Relevance vs Diversity slider
+    new Setting(containerEl)
+      .setName('Relevance vs Diversity')
+      .setDesc('Balance between similar items (0 = pure relevance) and diverse topics (1 = maximum diversity)')
+      .addSlider(slider => slider
+        .setLimits(0, 1.0, 0.1)
+        .setValue(this.plugin.settings.relevanceVsDiversity)
+        .setDynamicTooltip()
+        .onChange(async (value) => {
+          this.plugin.settings.relevanceVsDiversity = value;
+          await this.plugin.saveSettings();
+        }));
+
+    // Recency Boost toggle
+    new Setting(containerEl)
+      .setName('Recency boost')
+      .setDesc('Prioritize recently published items in recommendations')
+      .addToggle(toggle => toggle
+        .setValue(this.plugin.settings.recencyBoost)
+        .onChange(async (value) => {
+          this.plugin.settings.recencyBoost = value;
+          await this.plugin.saveSettings();
+        }));
+
+    // Tag weight slider (existing)
     new Setting(containerEl)
       .setName('Tag weight')
       .setDesc('Importance of tag matches in recommendations (0.0 = disabled, 3.0 = very important)')
