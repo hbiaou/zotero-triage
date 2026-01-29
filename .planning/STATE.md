@@ -11,7 +11,7 @@ See: .planning/PROJECT.md (updated 2026-01-29)
 
 Milestone: v1.2 complete
 Status: Ready for next milestone planning
-Last activity: 2026-01-29 - Completed quick task 004: Fix preflight check failure handling to skip checks instead of reopening onboarding
+Last activity: 2026-01-29 - Completed quick task 005: Fix database connection errors during preflight checks
 
 Progress: v1.2 shipped (13 phases, 35 plans total across all milestones)
 
@@ -111,6 +111,7 @@ Recent decisions affecting v1.2+ work:
 | 002 | Fix modal sizing and persistent settings warning | 2026-01-25 | 222f510 | [002-fix-modal-sizing-and-persistent-settings](./quick/002-fix-modal-sizing-and-persistent-settings/) |
 | 003 | Fix wizard modal sizing and search input functionality | 2026-01-27 | 2311dd6 | [003-1-the-issue-with-the-triage-setup-wizard](./quick/003-1-the-issue-with-the-triage-setup-wizard/) |
 | 004 | Fix preflight check failure handling to skip checks instead of reopening onboarding | 2026-01-29 | 9f5d463 | [004-fix-preflight-check-failure-handling-to-](./quick/004-fix-preflight-check-failure-handling-to-/) |
+| 005 | Fix database connection errors during preflight checks | 2026-01-29 | 3fa1b21 | [005-fix-database-connection-errors-during-pr](./quick/005-fix-database-connection-errors-during-pr/) |
 
 ### Blockers/Concerns
 
@@ -119,7 +120,7 @@ None - v1.2 complete and production-ready
 ## Session Continuity
 
 Last session: 2026-01-29
-Stopped at: v1.2 milestone archived
+Stopped at: Quick task 005 completed
 Resume file: None
 
 **Next step:** Run `/gsd:new-milestone` to start next milestone with fresh REQUIREMENTS.md and ROADMAP.md
