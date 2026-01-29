@@ -158,10 +158,11 @@ Plans:
   3. Library filter mode persists across plugin reloads
   4. Settings panel displays library selector dropdown
   5. Changing library selection triggers profile re-initialization warning
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] TBD
+- [ ] 12-01-PLAN.md — Settings persistence infrastructure (recommendation preferences, library filter)
+- [ ] 12-02-PLAN.md — Settings panel UI (sliders, dropdowns, scope counts, reconfigure button)
 
 ## Progress
 
@@ -181,4 +182,4 @@ Phases execute in numeric order: 9 → 10 → 11 → 12
 | 9. Library Filtering Foundation | v1.2 | 2/2 | Complete | 2026-01-28 |
 | 10. Duplicate Detection Service | v1.2 | 1/1 | Complete | 2026-01-28 |
 | 11. Preflight Modal & Integration | v1.2 | 2/2 | Complete | 2026-01-29 |
-| 12. Settings Persistence & UI Polish | v1.2 | 0/TBD | Not started | - |
+| 12. Settings Persistence & UI Polish | v1.2 | 0/2 | Not started | - |
