@@ -380,7 +380,7 @@ export default class ZoteroTriagePlugin extends Plugin {
    * Show the setup wizard modal
    * Used for first-time configuration or manual re-runs
    */
-  private showSetupWizard(): void {
+  private async showSetupWizard(): Promise<void> {
     // Guard: Don't show wizard if profile already exists
     // This prevents reopening wizard when users with existing profiles
     // encounter database errors and click "I Understand" on preflight modal
@@ -388,8 +388,17 @@ export default class ZoteroTriagePlugin extends Plugin {
       return;
     }
 
-    // Ensure connector is initialized (needed for preflight)
-    this.ensureConnectorInitialized();
+    // Ensure database connection is established before preflight checks
+    try {
+      await this.ensureConnected();
+    } catch (err) {
+      // Connection failed - show notice and skip preflight (go straight to wizard)
+      const message = err instanceof Error ? err.message : String(err);
+      new Notice(`Database connection failed: ${message}`);
+      // Open wizard in disconnected state
+      this.openSetupWizardAfterPreflight();
+      return;
+    }
 
     // Create duplicate detection service (needed by PreflightModal)
     const duplicateService = new DuplicateDetectionService(this.connector);
