@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-01-27)
 
 **Core value:** Users can progressively process their Zotero backlog without overwhelm, ensuring every imported literature note meets quality standards.
-**Current focus:** Phase 10 - Duplicate Detection Service
+**Current focus:** Phase 11 - Preflight Modal & Integration
 
 ## Current Position
 
 Phase: 11 of 12 (Preflight Modal & Integration)
-Plan: 1 of 2 in current phase
-Status: In progress
-Last activity: 2026-01-29 - Completed 11-01-PLAN.md (Preflight Service & Modal)
+Plan: 2 of 2 in current phase
+Status: Phase complete
+Last activity: 2026-01-29 - Completed 11-02-PLAN.md (Preflight Integration)
 
-Progress: [██████████░░] 87% (10.5 of 12 phases complete)
+Progress: [███████████░] 92% (11 of 12 phases complete)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 31
-- Average duration: ~44 min per plan
-- Total execution time: ~23 hours 6 minutes
+- Total plans completed: 32
+- Average duration: ~42 min per plan
+- Total execution time: ~23 hours 10 minutes
 
 **By Phase:**
 
@@ -37,14 +37,14 @@ Progress: [██████████░░] 87% (10.5 of 12 phases complete
 | 8. UX Enhancements | 3 | 2.5h | ~50 min |
 | 9. Library Filtering | 2 | 2h | ~62 min |
 | 10. Duplicate Detection | 1 | 4min | ~4 min |
-| 11. Preflight Modal | 1 | 6min | ~6 min |
+| 11. Preflight Modal | 2 | 10min | ~5 min |
 
 **Recent Trend:**
 - v1.0 shipped: 23 plans across 5 phases (2026-01-25)
 - v1.1 shipped: 9 plans across 3 phases (2026-01-27)
-- v1.2 in progress: 4 plans in phases 9-11 (2026-01-29)
-- Average ~44 min per plan
-- Trend: Fast execution on simple tasks (phases 10-11: 4-6 min)
+- v1.2 in progress: 5 plans in phases 9-11 (2026-01-29)
+- Average ~42 min per plan
+- Trend: Fast execution on simple tasks (phases 10-11: 4-5 min avg)
 
 ## Accumulated Context
 
@@ -53,6 +53,9 @@ Progress: [██████████░░] 87% (10.5 of 12 phases complete
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting v1.2 work:
 
+- **Phase 11**: Extract openSetupWizardAfterPreflight() method in main.ts (separate method for clarity vs inline callback)
+- **Phase 11**: Inline wizard creation in settings.ts button handlers (isolated handlers vs helper method extraction)
+- **Phase 11**: ensureConnectorInitialized() as fire-and-forget async wrapper (modal handles errors vs making showSetupWizard async)
 - **Phase 11**: Sequential check execution for preflight (trash → duplicates → groups for UI simplicity vs parallel for speed)
 - **Phase 11**: Color-coded severity levels (red/yellow/blue PatternFly standards vs single warning color)
 - **Phase 11**: Zotero 6/7 compatibility via sqlite_master table check (graceful degradation for deletedItems)
@@ -105,10 +108,10 @@ Recent decisions affecting v1.2 work:
 ## Session Continuity
 
 Last session: 2026-01-29
-Stopped at: Completed 11-01-PLAN.md (Preflight Service & Modal)
+Stopped at: Completed 11-02-PLAN.md (Preflight Integration)
 Resume file: None
 
-**Next step:** Execute 11-02-PLAN.md (Preflight Integration) - wire PreflightModal into setup wizard flow
+**Next step:** Phase 11 complete - ready for Phase 12 (Final Polish & Documentation)
 
 Config:
 {
