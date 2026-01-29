@@ -187,8 +187,35 @@ export class ZoteroTriageSettingTab extends PluginSettingTab {
             return;
           }
 
-          // Ensure connector initialized
-          this.plugin.ensureConnectorInitialized();
+          // Ensure database connection is established before preflight checks
+          try {
+            await this.plugin.ensureConnected();
+          } catch (err) {
+            // Connection failed - show notice and skip preflight
+            const message = err instanceof Error ? err.message : String(err);
+            new Notice(`Database connection failed: ${message}`);
+            // Open wizard in disconnected state
+            const profileInitializer = new ProfileInitializer(
+              (this.plugin as any).connector,
+              profileService,
+              extractKeywordsFromMultiple
+            );
+
+            const wizard = new SetupWizardModal(
+              this.app,
+              this.plugin,
+              async (seedPaperIds) => {
+                await profileInitializer.initializeProfile(seedPaperIds);
+                new Notice('Profile created successfully');
+                this.display(); // Refresh settings
+              },
+              () => {
+                new Notice('Setup skipped — you can configure manually later');
+              }
+            );
+            wizard.open();
+            return;
+          }
 
           // Create duplicate service
           const duplicateService = new DuplicateDetectionService(this.plugin.connector);
@@ -245,8 +272,42 @@ export class ZoteroTriageSettingTab extends PluginSettingTab {
           const existingProfile = profileService.getProfile();
           const existingSeedIds = existingProfile?.seedPaperIds || [];
 
-          // Ensure connector initialized
-          this.plugin.ensureConnectorInitialized();
+          // Ensure database connection is established before preflight checks
+          try {
+            await this.plugin.ensureConnected();
+          } catch (err) {
+            // Connection failed - show notice and skip preflight
+            const message = err instanceof Error ? err.message : String(err);
+            new Notice(`Database connection failed: ${message}`);
+            // Open wizard in disconnected state
+            const profileInitializer = new ProfileInitializer(
+              (this.plugin as any).connector,
+              profileService,
+              extractKeywordsFromMultiple
+            );
+
+            const wizard = new SetupWizardModal(
+              this.app,
+              this.plugin,
+              async (seedPaperIds) => {
+                // Clear existing profile first
+                profileService.clearProfile();
+
+                // Initialize new profile
+                // Preferences already saved to settings by wizard
+                await profileInitializer.initializeProfile(seedPaperIds);
+
+                new Notice('Profile updated successfully');
+                this.display(); // Refresh settings
+              },
+              () => {
+                new Notice('Reconfiguration cancelled');
+              },
+              existingSeedIds // Pass existing seed IDs to pre-select
+            );
+            wizard.open();
+            return;
+          }
 
           // Create duplicate service
           const duplicateService = new DuplicateDetectionService(this.plugin.connector);
