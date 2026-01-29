@@ -19,7 +19,6 @@ import { extractKeywordsFromMultiple } from './profile/keyword-extractor';
 import type ZoteroTriagePlugin from './main';
 import { PreflightModal } from './ui/preflight-modal';
 import { DuplicateDetectionService } from './services/duplicate-detection-service';
-import { LIBRARY_STATS_QUERY } from './db/queries';
 
 /**
  * Settings tab for Zotero Triage plugin configuration
@@ -356,9 +355,9 @@ export class ZoteroTriageSettingTab extends PluginSettingTab {
 
     // Scope transparency counts (execute query and display)
     try {
-      // Execute LIBRARY_STATS_QUERY to get counts
-      const stats = await this.plugin.connector.query(LIBRARY_STATS_QUERY);
-      const row = stats[0] || { personalCount: 0, groupCount: 0, feedCount: 0, trashCount: 0 };
+      // Execute queryLibraryStats() to get counts
+      const stats = await this.plugin.connector.queryLibraryStats();
+      const row = stats; // stats is already the typed object we need
 
       const statsContainer = containerEl.createDiv({ cls: 'library-scope-stats' });
       statsContainer.createEl('h3', { text: 'Library Statistics' });
