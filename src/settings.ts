@@ -191,9 +191,12 @@ export class ZoteroTriageSettingTab extends PluginSettingTab {
           try {
             await this.plugin.ensureConnected();
           } catch (err) {
-            // Connection failed - show notice and skip preflight
-            const message = err instanceof Error ? err.message : String(err);
-            new Notice(`Database connection failed: ${message}`);
+            // Connection failed - skip preflight
+            // Only show notice if profile exists (troubleshooting mode)
+            if (profileService?.hasProfile()) {
+              const message = err instanceof Error ? err.message : String(err);
+              new Notice(`Database connection failed: ${message}`);
+            }
             // Open wizard in disconnected state
             const profileInitializer = new ProfileInitializer(
               this.plugin,
@@ -278,9 +281,12 @@ export class ZoteroTriageSettingTab extends PluginSettingTab {
           try {
             await this.plugin.ensureConnected();
           } catch (err) {
-            // Connection failed - show notice and skip preflight
-            const message = err instanceof Error ? err.message : String(err);
-            new Notice(`Database connection failed: ${message}`);
+            // Connection failed - skip preflight
+            // Only show notice if profile exists (troubleshooting mode)
+            if (profileService?.hasProfile()) {
+              const message = err instanceof Error ? err.message : String(err);
+              new Notice(`Database connection failed: ${message}`);
+            }
             // Open wizard in disconnected state
             const profileInitializer = new ProfileInitializer(
               this.plugin,

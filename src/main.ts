@@ -393,9 +393,13 @@ export default class ZoteroTriagePlugin extends Plugin {
     try {
       await this.ensureConnected();
     } catch (err) {
-      // Connection failed - show notice and skip preflight (go straight to wizard)
-      const message = err instanceof Error ? err.message : String(err);
-      new Notice(`Database connection failed: ${message}`);
+      // Connection failed - skip preflight (go straight to wizard)
+      // Only show notice if profile exists (troubleshooting mode)
+      // Silent for first-time users (profile not configured = expected state)
+      if (this.profileService.hasProfile()) {
+        const message = err instanceof Error ? err.message : String(err);
+        new Notice(`Database connection failed: ${message}`);
+      }
       // Open wizard in disconnected state
       this.openSetupWizardAfterPreflight();
       return;
