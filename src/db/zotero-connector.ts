@@ -436,17 +436,6 @@ export class ZoteroConnector {
           const creatorsResult = this.db!.exec(CREATORS_QUERY, [itemID]);
           const authors: string[] = [];
 
-          // DEBUG (Quick task 007): Diagnostic for specific problematic items
-          if (itemID === 61359 || (itemType === 'videoRecording' && title.includes('Clawdbot'))) {
-            console.log(`[Quick-007 DIAGNOSTIC] itemID: ${itemID}, title: "${title}"`);
-            console.log(`  creatorsResult.length: ${creatorsResult.length}`);
-            if (creatorsResult.length > 0) {
-              console.log(`  creatorsResult[0].columns:`, creatorsResult[0].columns);
-              console.log(`  creatorsResult[0].values.length: ${creatorsResult[0].values.length}`);
-              console.log(`  All values:`, creatorsResult[0].values);
-            }
-          }
-
           if (creatorsResult.length > 0) {
             const creatorCols = creatorsResult[0].columns;
             for (const creatorRow of creatorsResult[0].values) {
@@ -458,17 +447,14 @@ export class ZoteroConnector {
                 orderIndex: creatorRow[creatorCols.indexOf('orderIndex')] as number
               };
 
-              // DEBUG: Log creator details for problematic items
-              if (itemID === 61359 || (itemType === 'videoRecording' && title.includes('Clawdbot'))) {
-                console.log(`  Creator parsed:`, creator);
-              }
-
               // Quick task 007: Include all primary creator types
               // - Standard academic: author, editor
+              // - Generic: creator (Zotero's default/generic type)
               // - Video recordings: director, presenter, producer, castMember, contributor, scriptwriter, guest
               // For video items, we're inclusive to capture YouTube channels, podcasters, etc.
               const includedTypes = [
                 'author', 'editor',                                    // Academic papers, books
+                'creator',                                             // Generic/default creator type
                 'director', 'presenter', 'producer', 'contributor',    // Video recordings
                 'castMember', 'scriptwriter', 'guest', 'podcaster',   // Media content
                 'interviewee', 'interviewer'                           // Interviews
@@ -476,11 +462,6 @@ export class ZoteroConnector {
 
               if (includedTypes.includes(creator.creatorType)) {
                 authors.push(formatCreator(creator));
-              } else {
-                // DEBUG: Log when creator type is NOT included
-                if (itemID === 61359 || (itemType === 'videoRecording' && title.includes('Clawdbot'))) {
-                  console.log(`  ⚠️ Creator type "${creator.creatorType}" NOT in includedTypes list!`);
-                }
               }
             }
           }
