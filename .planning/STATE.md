@@ -11,7 +11,7 @@ See: .planning/PROJECT.md (updated 2026-01-29)
 
 Milestone: v1.2 complete
 Status: Ready for next milestone planning
-Last activity: 2026-01-30 - Completed quick task 010: Fix profile initialization error
+Last activity: 2026-01-30 - Completed quick task 007: Debug and fix unknown authors issue for video recordings
 
 Progress: v1.2 shipped (13 phases, 35 plans total across all milestones)
 
@@ -55,6 +55,7 @@ Progress: v1.2 shipped (13 phases, 35 plans total across all milestones)
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting v1.2+ work:
 
+- **Quick 007**: Include generic 'creator' type in creator filter (Zotero's default type when no specific role assigned, critical for YouTube imports)
 - **Quick 010**: Pass plugin reference directly to ProfileInitializer constructor (direct reference vs fragile connector chain for reliable settings access)
 - **Quick 009**: INNER JOIN pattern for deletedItems libraryID access (JOIN to items/libraries tables, not direct column access)
 - **Quick 009**: GROUP BY deduplication for duplicate detection (i1.itemID != i2.itemID with GROUP BY vs i1.itemID < i2.itemID without)
@@ -120,6 +121,7 @@ Recent decisions affecting v1.2+ work:
 | 004 | Fix preflight check failure handling to skip checks instead of reopening onboarding | 2026-01-29 | 9f5d463 | [004-fix-preflight-check-failure-handling-to-](./quick/004-fix-preflight-check-failure-handling-to-/) |
 | 005 | Fix database connection errors during preflight checks | 2026-01-29 | 3fa1b21 | [005-fix-database-connection-errors-during-pr](./quick/005-fix-database-connection-errors-during-pr/) |
 | 006 | Add video recording support to item type | 2026-01-29 | 1d34805 | [006-add-video-recording-support-to-item-type](./quick/006-add-video-recording-support-to-item-type/) |
+| 007 | Debug and fix unknown authors issue for video recordings | 2026-01-30 | b164502 | [007-debug-and-fix-unknown-authors-issue-for-](./quick/007-debug-and-fix-unknown-authors-issue-for-/) |
 | 008 | Fix profile not being saved after onboarding completion | 2026-01-30 | f9dc038 | [008-fix-profile-not-being-saved-after-comple](./quick/008-fix-profile-not-being-saved-after-comple/) |
 | 009 | Fix preflight check SQL errors (trash libraryID and duplicate count) | 2026-01-30 | 7645a53 | [009-fix-preflight-check-errors-sql-libraryid](./quick/009-fix-preflight-check-errors-sql-libraryid/) |
 | 010 | Fix profile initialization error (TypeError accessing settings) | 2026-01-30 | 9164d3a | [010-fix-profile-initialization-error-cannot-](./quick/010-fix-profile-initialization-error-cannot-/) |
@@ -131,7 +133,7 @@ None - v1.2 complete and production-ready
 ## Session Continuity
 
 Last session: 2026-01-30
-Stopped at: Quick task 010 completed
+Stopped at: Quick task 007 completed (video author issue fixed)
 Resume file: None
 
 **Next step:** Run `/gsd:new-milestone` to start next milestone with fresh REQUIREMENTS.md and ROADMAP.md
