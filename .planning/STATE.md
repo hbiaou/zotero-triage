@@ -9,11 +9,10 @@ See: .planning/PROJECT.md (updated 2026-01-29)
 
 ## Current Position
 
-Milestone: v1.2 complete
-Status: Ready for next milestone planning
-Last activity: 2026-01-30 - Completed quick task 012: Suppress database connection warning for first-time users
-
-Progress: v1.2 shipped (13 phases, 35 plans total across all milestones)
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements for v2.0 milestone
+Last activity: 2026-01-30 — Milestone v2.0 started (The Enrichment Engine)
 
 ## Performance Metrics
 

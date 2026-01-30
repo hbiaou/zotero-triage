@@ -38,16 +38,33 @@ Users can progressively process their Zotero backlog without overwhelm, ensuring
 
 ### Active
 
-<!-- Next milestone requirements will be added here -->
+**v2.0 Milestone: The Enrichment Engine**
+
+Goal: Transform stub literature notes into fully enriched, evidence-based knowledge artifacts using AI-powered classification, extraction, and template-based generation.
+
+Target features:
+- BYOK AI service layer (OpenAI, Google, Anthropic, OpenRouter) with encrypted API key storage
+- Smart domain classification (Academic, Software, Farming, General) driving template selection
+- Evidence hierarchy enforcement (PDF fulltext → Zotero notes → Abstract, never metadata-only)
+- Template-based enrichment with YAML frontmatter (4 domain templates)
+- Map-reduce processing for long content (books/theses with 50k+ tokens)
+- Blocking enrichment during Accept action (user sees progress, gets enriched note immediately)
+- Queue management for metadata-only items (batch retry when evidence added)
+- Auto-fetch video transcripts from YouTube/Vimeo URLs
+- Item type priority for template selection (Articles/Books stay ACADEMIC, domain affects Videos/Webpages)
+- PDF text extraction via Zotero fulltext cache (leverages existing extraction)
 
 ### Out of Scope
 
-- Atomic note extraction (breaking papers into smaller notes) — Deferred to v2
-- Semantic search / Embeddings — Deferred to v2 (simple keyword matching sufficient for MVP)
-- PDF text extraction — Deferred to v2
-- Bi-directional syncing (writing back to Zotero) — Deferred to v2 (read-only safer for MVP)
-- Cloud services or external APIs — Local-first architecture (permanent constraint)
-- Bulk "import all" button — Defeats core purpose (prevents importer's block)
+- Atomic note extraction (breaking papers into smaller notes) — Deferred to v2.1+
+- Semantic search / Embeddings — Deferred to v2.1+ (simple keyword matching sufficient for v1)
+- Separate chapter notes for books — Deferred to v2.1+ (embedded chapter summaries sufficient for v2.0)
+- Per-operation model selection — Deferred to v2.1+ (one global model keeps v2.0 simple)
+- Hybrid PDF extraction (pdf-parse fallback) — Deferred to v2.1+ (Zotero fulltext cache sufficient)
+- Migration tools for existing stub notes — Not needed (no active users yet)
+- Bi-directional syncing (writing back to Zotero) — Permanent exclusion (read-only safer)
+- Cloud services or external APIs — Permanent exclusion (local-first architecture, BYOK only)
+- Bulk "import all" button — Permanent exclusion (defeats core purpose)
 
 ## Context
 
@@ -113,4 +130,4 @@ Users can progressively process their Zotero backlog without overwhelm, ensuring
 | Standalone notes inclusion | Include independent research notes, exclude only child notes | ✓ Good — User feedback validated this distinction |
 
 ---
-*Last updated: 2026-01-29 after v1.2 milestone completion*
+*Last updated: 2026-01-30 after v2.0 milestone start*
