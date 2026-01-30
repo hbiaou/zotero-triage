@@ -141,20 +141,97 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| AI-01 to AI-10 | TBD | Pending |
-| EXTRACT-01 to EXTRACT-11 | TBD | Pending |
-| CLASSIFY-01 to CLASSIFY-10 | TBD | Pending |
-| ENRICH-01 to ENRICH-13 | TBD | Pending |
-| OUTPUT-01 to OUTPUT-12 | TBD | Pending |
-| LONG-01 to LONG-08 | TBD | Pending |
-| REGISTRY-01 to REGISTRY-06 | TBD | Pending |
-| SETTINGS-01 to SETTINGS-07 | TBD | Pending |
+| AI-01 | Phase 14 | Pending |
+| AI-02 | Phase 14 | Pending |
+| AI-03 | Phase 14 | Pending |
+| AI-04 | Phase 14 | Pending |
+| AI-05 | Phase 14 | Pending |
+| AI-06 | Phase 14 | Pending |
+| AI-07 | Phase 14 | Pending |
+| AI-08 | Phase 19 | Pending |
+| AI-09 | Phase 19 | Pending |
+| AI-10 | Phase 14 | Pending |
+| EXTRACT-01 | Phase 14 | Pending |
+| EXTRACT-02 | Phase 14 | Pending |
+| EXTRACT-03 | Phase 14 | Pending |
+| EXTRACT-04 | Phase 14 | Pending |
+| EXTRACT-05 | Phase 18 | Pending |
+| EXTRACT-06 | Phase 15 | Pending |
+| EXTRACT-07 | Phase 15 | Pending |
+| EXTRACT-08 | Phase 14 | Pending |
+| EXTRACT-09 | Phase 15 | Pending |
+| EXTRACT-10 | Phase 15 | Pending |
+| EXTRACT-11 | Phase 15 | Pending |
+| CLASSIFY-01 | Phase 15 | Pending |
+| CLASSIFY-02 | Phase 15 | Pending |
+| CLASSIFY-03 | Phase 15 | Pending |
+| CLASSIFY-04 | Phase 15 | Pending |
+| CLASSIFY-05 | Phase 15 | Pending |
+| CLASSIFY-06 | Phase 15 | Pending |
+| CLASSIFY-07 | Phase 15 | Pending |
+| CLASSIFY-08 | Phase 15 | Pending |
+| CLASSIFY-09 | Phase 15 | Pending |
+| CLASSIFY-10 | Phase 15 | Pending |
+| ENRICH-01 | Phase 16 | Pending |
+| ENRICH-02 | Phase 16 | Pending |
+| ENRICH-03 | Phase 16 | Pending |
+| ENRICH-04 | Phase 16 | Pending |
+| ENRICH-05 | Phase 16 | Pending |
+| ENRICH-06 | Phase 16 | Pending |
+| ENRICH-07 | Phase 16 | Pending |
+| ENRICH-08 | Phase 16 | Pending |
+| ENRICH-09 | Phase 16 | Pending |
+| ENRICH-10 | Phase 16 | Pending |
+| ENRICH-11 | Phase 16 | Pending |
+| ENRICH-12 | Phase 16 | Pending |
+| ENRICH-13 | Phase 16 | Pending |
+| OUTPUT-01 | Phase 16 | Pending |
+| OUTPUT-02 | Phase 16 | Pending |
+| OUTPUT-03 | Phase 16 | Pending |
+| OUTPUT-04 | Phase 16 | Pending |
+| OUTPUT-05 | Phase 16 | Pending |
+| OUTPUT-06 | Phase 16 | Pending |
+| OUTPUT-07 | Phase 16 | Pending |
+| OUTPUT-08 | Phase 16 | Pending |
+| OUTPUT-09 | Phase 16 | Pending |
+| OUTPUT-10 | Phase 16 | Pending |
+| OUTPUT-11 | Phase 16 | Pending |
+| OUTPUT-12 | Phase 16 | Pending |
+| LONG-01 | Phase 17 | Pending |
+| LONG-02 | Phase 17 | Pending |
+| LONG-03 | Phase 17 | Pending |
+| LONG-04 | Phase 17 | Pending |
+| LONG-05 | Phase 17 | Pending |
+| LONG-06 | Phase 17 | Pending |
+| LONG-07 | Phase 17 | Pending |
+| LONG-08 | Phase 17 | Pending |
+| REGISTRY-01 | Phase 18 | Pending |
+| REGISTRY-02 | Phase 18 | Pending |
+| REGISTRY-03 | Phase 18 | Pending |
+| REGISTRY-04 | Phase 18 | Pending |
+| REGISTRY-05 | Phase 18 | Pending |
+| REGISTRY-06 | Phase 18 | Pending |
+| SETTINGS-01 | Phase 14 | Pending |
+| SETTINGS-02 | Phase 19 | Pending |
+| SETTINGS-03 | Phase 19 | Pending |
+| SETTINGS-04 | Phase 19 | Pending |
+| SETTINGS-05 | Phase 19 | Pending |
+| SETTINGS-06 | Phase 19 | Pending |
+| SETTINGS-07 | Phase 19 | Pending |
 
 **Coverage:**
 - v2.0 requirements: 69 total
-- Mapped to phases: 0 (pending roadmap creation)
-- Unmapped: 69 ⚠️
+- Mapped to phases: 69/69 ✓
+- Unmapped: 0 ✓
+
+**Phase distribution:**
+- Phase 14 (AI Service Layer & Evidence Foundation): 14 requirements
+- Phase 15 (Content Extraction & Classification): 15 requirements
+- Phase 16 (Enrichment Orchestration & Validation): 25 requirements
+- Phase 17 (Long Content Strategy): 8 requirements
+- Phase 18 (Registry State & Queue Management): 7 requirements
+- Phase 19 (Settings UI & Statistics): 7 requirements
 
 ---
 *Requirements defined: 2026-01-30*
-*Last updated: 2026-01-30 after initial definition*
+*Last updated: 2026-01-31 after v2.0 roadmap creation*
