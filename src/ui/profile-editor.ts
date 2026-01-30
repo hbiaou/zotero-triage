@@ -69,9 +69,6 @@ export class ProfileEditor {
 
     // Section 4: Top Keywords
     this.renderSignalSection('keyword', 'Keywords', profile.keywords);
-
-    // Section 5: Preferences
-    this.renderPreferences();
   }
 
   /**
@@ -227,38 +224,4 @@ export class ProfileEditor {
     });
   }
 
-  /**
-   * Render preferences section
-   */
-  private renderPreferences(): void {
-    const profile = this.profileService.getProfile();
-    if (!profile) return;
-
-    const section = this.container.createDiv({ cls: 'profile-section' });
-    section.createEl('h3', { text: 'Recommendation Preferences' });
-
-    // Relevance vs Diversity slider
-    new Setting(section)
-      .setName('Relevance vs Diversity')
-      .setDesc('0 = Pure relevance, 1 = Balanced diversity')
-      .addSlider(slider => slider
-        .setLimits(0, 1, 0.1)
-        .setValue(profile.relevanceVsDiversity)
-        .setDynamicTooltip()
-        .onChange(async (value) => {
-          this.profileService.updateProfile({ relevanceVsDiversity: value });
-          this.onProfileChange();
-        }));
-
-    // Recency boost toggle
-    new Setting(section)
-      .setName('Recency Boost')
-      .setDesc('Prioritize papers published in the last 3 years')
-      .addToggle(toggle => toggle
-        .setValue(profile.recencyBoost)
-        .onChange(async (value) => {
-          this.profileService.updateProfile({ recencyBoost: value });
-          this.onProfileChange();
-        }));
-  }
 }
