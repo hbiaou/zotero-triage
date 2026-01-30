@@ -80,6 +80,7 @@ export default class ZoteroTriagePlugin extends Plugin {
 
     // Initialize profile initializer
     this.profileInitializer = new ProfileInitializer(
+      this,
       this.connector,
       this.profileService,
       extractKeywordsFromMultiple

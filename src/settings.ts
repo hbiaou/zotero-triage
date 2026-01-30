@@ -196,6 +196,7 @@ export class ZoteroTriageSettingTab extends PluginSettingTab {
             new Notice(`Database connection failed: ${message}`);
             // Open wizard in disconnected state
             const profileInitializer = new ProfileInitializer(
+              this.plugin,
               (this.plugin as any).connector,
               profileService,
               extractKeywordsFromMultiple
@@ -228,6 +229,7 @@ export class ZoteroTriageSettingTab extends PluginSettingTab {
             () => {
               // Open wizard after preflight acknowledged
               const profileInitializer = new ProfileInitializer(
+                this.plugin,
                 (this.plugin as any).connector,
                 profileService,
                 extractKeywordsFromMultiple
@@ -281,6 +283,7 @@ export class ZoteroTriageSettingTab extends PluginSettingTab {
             new Notice(`Database connection failed: ${message}`);
             // Open wizard in disconnected state
             const profileInitializer = new ProfileInitializer(
+              this.plugin,
               (this.plugin as any).connector,
               profileService,
               extractKeywordsFromMultiple
@@ -320,6 +323,7 @@ export class ZoteroTriageSettingTab extends PluginSettingTab {
             () => {
               // Open wizard after preflight acknowledged
               const profileInitializer = new ProfileInitializer(
+                this.plugin,
                 (this.plugin as any).connector,
                 profileService,
                 extractKeywordsFromMultiple
