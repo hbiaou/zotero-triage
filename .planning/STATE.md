@@ -11,7 +11,7 @@ See: .planning/PROJECT.md (updated 2026-01-29)
 
 Milestone: v1.2 complete
 Status: Ready for next milestone planning
-Last activity: 2026-01-30 - Completed quick task 007: Debug and fix unknown authors issue for video recordings
+Last activity: 2026-01-30 - Completed quick task 011: Remove duplicate recommendation settings
 
 Progress: v1.2 shipped (13 phases, 35 plans total across all milestones)
 
@@ -125,6 +125,7 @@ Recent decisions affecting v1.2+ work:
 | 008 | Fix profile not being saved after onboarding completion | 2026-01-30 | f9dc038 | [008-fix-profile-not-being-saved-after-comple](./quick/008-fix-profile-not-being-saved-after-comple/) |
 | 009 | Fix preflight check SQL errors (trash libraryID and duplicate count) | 2026-01-30 | 7645a53 | [009-fix-preflight-check-errors-sql-libraryid](./quick/009-fix-preflight-check-errors-sql-libraryid/) |
 | 010 | Fix profile initialization error (TypeError accessing settings) | 2026-01-30 | 9164d3a | [010-fix-profile-initialization-error-cannot-](./quick/010-fix-profile-initialization-error-cannot-/) |
+| 011 | Remove duplicate recommendation settings from profile editor | 2026-01-30 | 4b293d4 | [011-remove-duplicate-recommendation-settings](./quick/011-remove-duplicate-recommendation-settings/) |
 
 ### Blockers/Concerns
 
@@ -133,7 +134,7 @@ None - v1.2 complete and production-ready
 ## Session Continuity
 
 Last session: 2026-01-30
-Stopped at: Quick task 007 completed (video author issue fixed)
+Stopped at: Quick task 011 completed (duplicate recommendation settings removed)
 Resume file: None
 
 **Next step:** Run `/gsd:new-milestone` to start next milestone with fresh REQUIREMENTS.md and ROADMAP.md
