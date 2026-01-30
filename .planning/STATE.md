@@ -128,6 +128,7 @@ Recent decisions affecting v1.2+ work:
 | 010 | Fix profile initialization error (TypeError accessing settings) | 2026-01-30 | 9164d3a | [010-fix-profile-initialization-error-cannot-](./quick/010-fix-profile-initialization-error-cannot-/) |
 | 011 | Remove duplicate recommendation settings from profile editor | 2026-01-30 | 4b293d4 | [011-remove-duplicate-recommendation-settings](./quick/011-remove-duplicate-recommendation-settings/) |
 | 012 | Suppress database connection warning for first-time users | 2026-01-30 | c34cd4b | [012-suppress-database-connection-warning-whe](./quick/012-suppress-database-connection-warning-whe/) |
+| 013 | Verify that the 'Block incomplete items' is really working and "Required fields by Type" | 2026-01-30 | 20a3cb5 | [013-verify-that-the-block-incomplete-items-i](./quick/013-verify-that-the-block-incomplete-items-i/) |
 
 ### Blockers/Concerns
 
@@ -136,7 +137,7 @@ None - v1.2 complete and production-ready
 ## Session Continuity
 
 Last session: 2026-01-30
-Stopped at: Quick task 012 completed (database connection warning suppressed for first-time users)
+Stopped at: Quick task 013 completed (validation settings verification and video recording URL validation)
 Resume file: None
 
 **Next step:** Run `/gsd:new-milestone` to start next milestone with fresh REQUIREMENTS.md and ROADMAP.md
