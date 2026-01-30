@@ -11,7 +11,7 @@ See: .planning/PROJECT.md (updated 2026-01-29)
 
 Milestone: v1.2 complete
 Status: Ready for next milestone planning
-Last activity: 2026-01-30 - Completed quick task 011: Remove duplicate recommendation settings
+Last activity: 2026-01-30 - Completed quick task 012: Suppress database connection warning for first-time users
 
 Progress: v1.2 shipped (13 phases, 35 plans total across all milestones)
 
@@ -55,6 +55,7 @@ Progress: v1.2 shipped (13 phases, 35 plans total across all milestones)
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting v1.2+ work:
 
+- **Quick 012**: Conditional database error notices using hasProfile() check (silent for first-time users, visible for configured profiles in troubleshooting mode)
 - **Quick 007**: Include generic 'creator' type in creator filter (Zotero's default type when no specific role assigned, critical for YouTube imports)
 - **Quick 010**: Pass plugin reference directly to ProfileInitializer constructor (direct reference vs fragile connector chain for reliable settings access)
 - **Quick 009**: INNER JOIN pattern for deletedItems libraryID access (JOIN to items/libraries tables, not direct column access)
@@ -126,6 +127,7 @@ Recent decisions affecting v1.2+ work:
 | 009 | Fix preflight check SQL errors (trash libraryID and duplicate count) | 2026-01-30 | 7645a53 | [009-fix-preflight-check-errors-sql-libraryid](./quick/009-fix-preflight-check-errors-sql-libraryid/) |
 | 010 | Fix profile initialization error (TypeError accessing settings) | 2026-01-30 | 9164d3a | [010-fix-profile-initialization-error-cannot-](./quick/010-fix-profile-initialization-error-cannot-/) |
 | 011 | Remove duplicate recommendation settings from profile editor | 2026-01-30 | 4b293d4 | [011-remove-duplicate-recommendation-settings](./quick/011-remove-duplicate-recommendation-settings/) |
+| 012 | Suppress database connection warning for first-time users | 2026-01-30 | c34cd4b | [012-suppress-database-connection-warning-whe](./quick/012-suppress-database-connection-warning-whe/) |
 
 ### Blockers/Concerns
 
@@ -134,7 +136,7 @@ None - v1.2 complete and production-ready
 ## Session Continuity
 
 Last session: 2026-01-30
-Stopped at: Quick task 011 completed (duplicate recommendation settings removed)
+Stopped at: Quick task 012 completed (database connection warning suppressed for first-time users)
 Resume file: None
 
 **Next step:** Run `/gsd:new-milestone` to start next milestone with fresh REQUIREMENTS.md and ROADMAP.md
