@@ -5,7 +5,7 @@
  * and initializes profile with frequency-based weighting.
  */
 
-import { Notice } from 'obsidian';
+import { Notice, Plugin } from 'obsidian';
 import type { ZoteroConnector } from '../db/zotero-connector';
 import type { ProfileService } from './profile-service';
 import type { UserProfile } from './types';
@@ -16,21 +16,25 @@ import { normalizeTag, isNoiseTag } from '../utils/stemming';
  * ProfileInitializer class for creating profiles from seed papers
  */
 export class ProfileInitializer {
+  private plugin: Plugin;
   private connector: ZoteroConnector;
   private profileService: ProfileService;
   private keywordExtractor: typeof extractKeywordsFromMultiple;
 
   /**
    * Create a new ProfileInitializer
+   * @param plugin - Obsidian plugin instance for accessing settings
    * @param connector - ZoteroConnector for fetching papers
    * @param profileService - ProfileService for persisting profiles
    * @param keywordExtractor - Function for extracting keywords
    */
   constructor(
+    plugin: Plugin,
     connector: ZoteroConnector,
     profileService: ProfileService,
     keywordExtractor: typeof extractKeywordsFromMultiple
   ) {
+    this.plugin = plugin;
     this.connector = connector;
     this.profileService = profileService;
     this.keywordExtractor = keywordExtractor;
@@ -76,7 +80,7 @@ export class ProfileInitializer {
     }
 
     // Read preferences from plugin settings (source of truth)
-    const pluginSettings = (this.connector as any).plugin.settings;
+    const pluginSettings = (this.plugin as any).settings;
     const preferences = {
       relevanceVsDiversity: pluginSettings.relevanceVsDiversity,
       recencyBoost: pluginSettings.recencyBoost
