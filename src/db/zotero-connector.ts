@@ -65,6 +65,8 @@ export interface ZoteroItem {
   isbn: string | null;
   /** Full path to attached PDF (if available) */
   pdfPath: string | null;
+  /** URL (for web pages, video recordings, etc.) */
+  url: string | null;
   /** Item type (journalArticle, book, etc.) */
   itemType: string;
   /** Tags assigned to item */
@@ -416,7 +418,8 @@ export class ZoteroConnector {
         pages: columns.indexOf('pages'),
         abstract: columns.indexOf('abstract'),
         publisher: columns.indexOf('publisher'),
-        isbn: columns.indexOf('isbn')
+        isbn: columns.indexOf('isbn'),
+        url: columns.indexOf('url')
       };
 
       const dataDir = getZoteroDataDir(this.dbPath);
@@ -533,6 +536,7 @@ export class ZoteroConnector {
             abstract: row[colIndex.abstract] as string | null,
             publisher: row[colIndex.publisher] as string | null,
             isbn: row[colIndex.isbn] as string | null,
+            url: row[colIndex.url] as string | null,
             pdfPath,
             itemType: row[colIndex.itemType] as string,
             tags,

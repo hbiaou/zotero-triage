@@ -75,7 +75,8 @@ export class ZoteroTriageSettingTab extends PluginSettingTab {
       .setDesc(
         'Prevent import if required fields are missing (can be overridden during triage). ' +
         'Required fields: Journal articles (title, authors, journal, year, DOI, abstract), ' +
-        'Books (title, authors, year, publisher, ISBN).'
+        'Books (title, authors, year, publisher, ISBN), ' +
+        'Video recordings (title, URL).'
       )
       .addToggle(toggle => toggle
         .setValue(this.plugin.settings.qualityGate.enabled)

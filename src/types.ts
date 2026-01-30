@@ -88,6 +88,8 @@ export interface ZoteroItem {
   publisher: string | null;
   /** ISBN identifier (for books) */
   isbn: string | null;
+  /** URL (for web pages, video recordings, etc.) */
+  url: string | null;
   /** Path to attached PDF file */
   pdfPath: string | null;
   /** Zotero item type (journalArticle, book, etc.) */

@@ -58,12 +58,29 @@ export const BookSchema = z.object({
 });
 
 /**
+ * Schema for video recording items
+ *
+ * Required fields per user requirement (quick-013):
+ * - title: Video title
+ * - url: Video URL (YouTube, Vimeo, etc.)
+ *
+ * Note: User also requires "at least one child note must exist" but this
+ * cannot be validated at the schema level (requires database query for child items).
+ * This validation should be handled at import time if needed in future.
+ */
+export const VideoRecordingSchema = z.object({
+  title: z.string().min(1, 'Title is required'),
+  url: z.string().min(1, 'URL is required').nullable()
+});
+
+/**
  * Map of item types to their validation schemas
  *
  * Keys are lowercase item type identifiers from Zotero
- * (e.g., 'journalArticle', 'book')
+ * (e.g., 'journalArticle', 'book', 'videoRecording')
  */
 export const ITEM_TYPE_SCHEMAS: Record<string, z.ZodSchema> = {
   journalArticle: JournalArticleSchema,
-  book: BookSchema
+  book: BookSchema,
+  videoRecording: VideoRecordingSchema
 };

@@ -54,7 +54,7 @@ SELECT version FROM version WHERE schema = 'userdata'
  * - Standalone notes (itemType = 'note' without parentItemID - legitimate research notes)
  *
  * Returns: itemID, itemKey, dateAdded, dateModified, itemType,
- *          title, doi, date, journal, volume, issue, pages, abstract, publisher, isbn
+ *          title, doi, date, journal, volume, issue, pages, abstract, publisher, isbn, url
  */
 export const ITEMS_QUERY = `
 WITH itemFields AS (
@@ -96,7 +96,8 @@ SELECT
   MAX(CASE WHEN fieldName = 'pages' THEN value END) AS pages,
   MAX(CASE WHEN fieldName = 'abstractNote' THEN value END) AS abstract,
   MAX(CASE WHEN fieldName = 'publisher' THEN value END) AS publisher,
-  MAX(CASE WHEN fieldName = 'ISBN' THEN value END) AS isbn
+  MAX(CASE WHEN fieldName = 'ISBN' THEN value END) AS isbn,
+  MAX(CASE WHEN fieldName = 'url' THEN value END) AS url
 FROM itemFields
 GROUP BY itemID
 ORDER BY dateAdded DESC
