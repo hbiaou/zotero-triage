@@ -3,6 +3,12 @@
  *
  * Defines validation rules for different item types using Zod schemas.
  * Per RESEARCH.md Pattern 1: Schema per item type with required fields.
+ *
+ * DESIGN NOTE: Required fields are intentionally hardcoded (not dynamically configurable).
+ * This design decision is based on Phase 3 research findings that identified minimal
+ * viable metadata for academic literature. Per-field configuration adds complexity
+ * without clear user value, as users can override validation at triage time via
+ * "Accept Anyway" button if needed for edge cases.
  */
 
 import { z } from 'zod';

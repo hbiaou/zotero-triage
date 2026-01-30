@@ -72,80 +72,17 @@ export class ZoteroTriageSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName('Block incomplete items')
-      .setDesc('Prevent import if required fields are missing (can be overridden during triage)')
+      .setDesc(
+        'Prevent import if required fields are missing (can be overridden during triage). ' +
+        'Required fields: Journal articles (title, authors, journal, year, DOI, abstract), ' +
+        'Books (title, authors, year, publisher, ISBN).'
+      )
       .addToggle(toggle => toggle
         .setValue(this.plugin.settings.qualityGate.enabled)
         .onChange(async (value) => {
           this.plugin.settings.qualityGate.enabled = value;
           await this.plugin.saveSettings();
         }));
-
-    containerEl.createEl('h3', { text: 'Required Fields by Type' });
-
-    // Journal Article fields
-    const journalSection = containerEl.createDiv({ cls: 'quality-gate-section' });
-    journalSection.createEl('h4', { text: 'Journal Article' });
-
-    const journalFields = [
-      { key: 'title', label: 'Title' },
-      { key: 'creators', label: 'Authors' },
-      { key: 'publicationTitle', label: 'Journal Name' },
-      { key: 'date', label: 'Publication Year' },
-      { key: 'DOI', label: 'DOI' },
-      { key: 'abstract', label: 'Abstract' }
-    ];
-
-    journalFields.forEach(field => {
-      const rule = this.plugin.settings.qualityGate.rules.journalArticle;
-      const isRequired = rule.requiredFields.includes(field.key);
-
-      new Setting(journalSection)
-        .setName(field.label)
-        .addToggle(toggle => toggle
-          .setValue(isRequired)
-          .onChange(async (value) => {
-            if (value) {
-              if (!rule.requiredFields.includes(field.key)) {
-                rule.requiredFields.push(field.key);
-              }
-            } else {
-              rule.requiredFields = rule.requiredFields.filter(f => f !== field.key);
-            }
-            await this.plugin.saveSettings();
-          }));
-    });
-
-    // Book fields
-    const bookSection = containerEl.createDiv({ cls: 'quality-gate-section' });
-    bookSection.createEl('h4', { text: 'Book' });
-
-    const bookFields = [
-      { key: 'title', label: 'Title' },
-      { key: 'creators', label: 'Authors/Editors' },
-      { key: 'date', label: 'Publication Year' },
-      { key: 'publisher', label: 'Publisher' },
-      { key: 'ISBN', label: 'ISBN' }
-    ];
-
-    bookFields.forEach(field => {
-      const rule = this.plugin.settings.qualityGate.rules.book;
-      const isRequired = rule.requiredFields.includes(field.key);
-
-      new Setting(bookSection)
-        .setName(field.label)
-        .addToggle(toggle => toggle
-          .setValue(isRequired)
-          .onChange(async (value) => {
-            if (value) {
-              if (!rule.requiredFields.includes(field.key)) {
-                rule.requiredFields.push(field.key);
-              }
-            } else {
-              rule.requiredFields = rule.requiredFields.filter(f => f !== field.key);
-            }
-            await this.plugin.saveSettings();
-          }));
-    });
 
     // Section 6: Output Settings (moved after Quality Gates)
     containerEl.createEl('h2', { text: 'Output Settings' });

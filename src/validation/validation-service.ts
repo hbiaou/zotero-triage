@@ -36,6 +36,11 @@ export class ValidationService {
    * 4. Format errors if validation fails
    * 5. Extract missing field names
    *
+   * NOTE: Validation rules are defined in hardcoded Zod schemas (schemas.ts), not
+   * dynamically from config.rules.requiredFields. The config only controls whether
+   * validation is enabled/disabled via config.enabled. This is intentional - the
+   * schemas represent research-backed minimum viable metadata requirements.
+   *
    * @param item - Zotero item to validate
    * @returns ValidationResult with valid flag, errors, and missing fields
    */
