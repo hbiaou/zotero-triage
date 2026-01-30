@@ -34,9 +34,13 @@ export interface QualityGateConfig {
 /**
  * Default quality gate configuration
  *
- * Per CONTEXT.md:
- * - Journal articles require: DOI, year, journal, authors, title
- * - Books require: ISBN, year, publisher, authors, title
+ * NOTE: The requiredFields arrays in this config are kept for backward compatibility
+ * with existing settings files, but are NOT used for actual validation. Validation
+ * rules are hardcoded in Zod schemas (schemas.ts) based on Phase 3 research findings.
+ *
+ * Actual required fields enforced by schemas:
+ * - Journal articles: title, authors, journal, year, DOI, abstract
+ * - Books: title, authors, year, publisher, ISBN
  */
 export const DEFAULT_QUALITY_GATE_CONFIG: QualityGateConfig = {
   enabled: true,

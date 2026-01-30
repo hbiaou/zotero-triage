@@ -3,6 +3,32 @@
  *
  * Validates Zotero items against configurable quality gate rules using Zod schemas.
  * Per RESEARCH.md Pattern 2: Service with structured error formatting.
+ *
+ * VALIDATION FLOW:
+ * 1. triage-view.ts (lines 157-175): When batch loads, validates all items if qualityGate.enabled
+ *    - Shows aggregated Notice: "Validation: 2x Missing doi, 1x Missing abstract"
+ * 2. triage-card.ts (line 95): Changes button text to "Accept Anyway" if validation failed
+ * 3. triage-view.ts (lines 460-478): On Accept click, re-validates and shows OverrideConfirmModal if invalid
+ *    - Modal lists specific missing fields for the item
+ *    - User can confirm override or cancel import
+ * 4. This service (lines 42-78): Returns early with valid:true if !config.enabled
+ * 5. schemas.ts: Hardcoded Zod schemas define required fields (not configurable per item)
+ *
+ * CURRENT BEHAVIOR:
+ * - If qualityGate.enabled = false → all items pass validation (no warnings, normal Accept button)
+ * - If qualityGate.enabled = true → items validated against hardcoded schemas
+ *   - Valid items: normal "Accept" button, no modal
+ *   - Invalid items: "Accept Anyway" button, OverrideConfirmModal on click showing missing fields
+ *
+ * TESTING VALIDATION:
+ * To verify quality gates are working:
+ * 1. Enable "Block incomplete items" toggle in settings
+ * 2. In Zotero, temporarily remove DOI from one journal article (creates invalid item)
+ * 3. Generate batch in Triage view until that item appears
+ * 4. Verify validation Notice appears at batch load: "Validation: 1x Missing doi"
+ * 5. Verify item card shows "Accept Anyway" button (not "Accept")
+ * 6. Click "Accept Anyway" → verify OverrideConfirmModal appears with "DOI" in missing fields list
+ * 7. After testing, restore DOI in Zotero
  */
 
 import { ZodError } from 'zod';
