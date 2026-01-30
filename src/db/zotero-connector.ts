@@ -436,18 +436,6 @@ export class ZoteroConnector {
           const creatorsResult = this.db!.exec(CREATORS_QUERY, [itemID]);
           const authors: string[] = [];
 
-          // DEBUG (Quick task 007): Log all creators for videoRecording items to identify actual creator types
-          if (itemType === 'videoRecording' && creatorsResult.length > 0) {
-            const creatorCols = creatorsResult[0].columns;
-            console.log(`[Quick-007 Debug] videoRecording: "${title}"`);
-            for (const creatorRow of creatorsResult[0].values) {
-              const creatorType = creatorRow[creatorCols.indexOf('creatorType')] as string;
-              const firstName = creatorRow[creatorCols.indexOf('firstName')] as string | null;
-              const lastName = creatorRow[creatorCols.indexOf('lastName')] as string;
-              console.log(`  - creatorType: "${creatorType}", name: "${lastName}${firstName ? ', ' + firstName : ''}"`);
-            }
-          }
-
           if (creatorsResult.length > 0) {
             const creatorCols = creatorsResult[0].columns;
             for (const creatorRow of creatorsResult[0].values) {
@@ -458,11 +446,19 @@ export class ZoteroConnector {
                 creatorType: creatorRow[creatorCols.indexOf('creatorType')] as string,
                 orderIndex: creatorRow[creatorCols.indexOf('orderIndex')] as number
               };
-              // Include primary creator types: author, editor (standard), director, presenter (videos)
-              if (creator.creatorType === 'author' ||
-                  creator.creatorType === 'editor' ||
-                  creator.creatorType === 'director' ||
-                  creator.creatorType === 'presenter') {
+
+              // Quick task 007: Include all primary creator types
+              // - Standard academic: author, editor
+              // - Video recordings: director, presenter, producer, castMember, contributor, scriptwriter, guest
+              // For video items, we're inclusive to capture YouTube channels, podcasters, etc.
+              const includedTypes = [
+                'author', 'editor',                                    // Academic papers, books
+                'director', 'presenter', 'producer', 'contributor',    // Video recordings
+                'castMember', 'scriptwriter', 'guest', 'podcaster',   // Media content
+                'interviewee', 'interviewer'                           // Interviews
+              ];
+
+              if (includedTypes.includes(creator.creatorType)) {
                 authors.push(formatCreator(creator));
               }
             }
