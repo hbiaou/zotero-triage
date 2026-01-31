@@ -214,4 +214,107 @@ export class EvidenceExtractor {
   private isValidEvidence(content: string): boolean {
     return content && content.trim().length >= MIN_EVIDENCE_LENGTH;
   }
+
+  /**
+   * Extract evidence for an item following hierarchy
+   *
+   * Evidence hierarchy (EXTRACT-04):
+   * 1. PDF fulltext (primary) - Best quality, high token cost
+   * 2. Zotero notes (secondary) - Good quality, low token cost
+   * 3. Abstract (tertiary) - Limited quality, very low cost
+   * 4. Metadata only (insufficient) - No content for enrichment
+   *
+   * @param item - Zotero item to extract evidence for
+   * @returns Evidence extraction result with level and content
+   */
+  async extract(item: ZoteroItem): Promise<EvidenceExtraction> {
+    // 1. Try PDF fulltext (primary)
+    const pdfContent = await this.extractPDFFulltext(item.itemKey);
+    if (this.isValidEvidence(pdfContent)) {
+      return {
+        level: 'FullText',
+        content: pdfContent,
+        sources: ['pdf_fulltext'],
+        tokenEstimate: this.estimateTokens(pdfContent)
+      };
+    }
+
+    // 2. Try Zotero notes (secondary)
+    const notesContent = await this.extractNotes(item.itemID);
+    if (this.isValidEvidence(notesContent)) {
+      return {
+        level: 'Notes',
+        content: notesContent,
+        sources: ['zotero_notes'],
+        tokenEstimate: this.estimateTokens(notesContent)
+      };
+    }
+
+    // 3. Try abstract (tertiary)
+    const abstractContent = await this.extractAbstract(item.itemID);
+    if (this.isValidEvidence(abstractContent)) {
+      return {
+        level: 'Abstract',
+        content: abstractContent,
+        sources: ['abstract'],
+        tokenEstimate: this.estimateTokens(abstractContent)
+      };
+    }
+
+    // 4. Metadata only (insufficient for enrichment)
+    return {
+      level: 'MetadataOnly',
+      content: '',
+      sources: ['metadata'],
+      tokenEstimate: 0
+    };
+  }
+
+  /**
+   * Estimate token count for content
+   *
+   * Uses rough approximation: words / 0.75 (average tokens per word)
+   * This is sufficient for cost estimation - exact tokenization happens at API level.
+   *
+   * @param content - Content to estimate tokens for
+   * @returns Estimated token count
+   */
+  private estimateTokens(content: string): number {
+    const words = content.trim().split(/\s+/).length;
+    return Math.ceil(words / 0.75);
+  }
+
+  /**
+   * Check if evidence is sufficient for enrichment
+   *
+   * Per CONTEXT.md decision: Proceed if FullText OR Notes available.
+   * Abstract-only items are queued as metadata-only per phase context.
+   *
+   * @param evidence - Evidence extraction result
+   * @returns True if evidence is sufficient for AI enrichment
+   */
+  canEnrich(evidence: EvidenceExtraction): boolean {
+    return evidence.level === 'FullText' || evidence.level === 'Notes';
+  }
+
+  /**
+   * Get human-readable description of evidence level
+   *
+   * Used for YAML frontmatter and user feedback.
+   *
+   * @param level - Evidence level
+   * @returns Human-readable description
+   */
+  getEvidenceDescription(level: EvidenceLevel): string {
+    switch (level) {
+      case 'FullText':
+        return 'PDF fulltext extracted';
+      case 'Notes':
+        return 'Zotero notes and annotations';
+      case 'Abstract':
+        return 'Abstract only (limited evidence)';
+      case 'MetadataOnly':
+        return 'No content available (queued)';
+    }
+  }
 }
