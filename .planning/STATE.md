@@ -11,23 +11,24 @@ See: .planning/PROJECT.md (updated 2026-01-30)
 ## Current Position
 
 Phase: 14 of 19 (AI Service Layer & Evidence Foundation)
-Plan: 14-05 of 6 (Evidence Extraction)
-Status: In progress (3/6 plans complete)
-Last activity: 2026-01-31 — Completed 14-05-PLAN.md (Evidence Extraction)
+Plan: 14-02 of 6 (Provider Abstraction Layer)
+Status: In progress (4/6 plans complete)
+Last activity: 2026-01-31 — Completed 14-02-PLAN.md (Provider Abstraction Layer)
 
-Progress: [████░░░░░░░░░░░░░░░░] 13/19 phases (68% milestone progress, 5.0% v2.0 progress)
+Progress: [████░░░░░░░░░░░░░░░░] 13/19 phases (68% milestone progress, 6.7% v2.0 progress)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 43 (from v1.0-v1.2 + quick tasks + v2.0)
-- Average duration: ~35 min per plan
-- Total execution time: ~24 hours 00 minutes
+- Total plans completed: 44 (from v1.0-v1.2 + quick tasks + v2.0)
+- Average duration: ~36 min per plan
+- Total execution time: ~25 hours 05 minutes
 
 **By Phase:**
 
 **Phase 14 (v2.0 - AI Service Layer):**
 - 14-01: 15 min (Types & Secret Storage)
+- 14-02: 65 min (Provider Abstraction Layer)
 - 14-04: 6 min (Resilience Patterns)
 - 14-05: 11 min (Evidence Extraction)
 
@@ -57,6 +58,10 @@ Recent decisions affecting v2.0 work:
 - 14-04: Max retry delay capped at 30s to prevent excessive wait times
 - 14-04: Retry-after headers take precedence over exponential backoff
 - 14-04: Per-provider circuits enable independent failure handling
+- 14-02: Default model: gemini-3-flash-preview (Google Gemini 3 Flash)
+- 14-02: Factory pattern with self-registration for providers
+- 14-02: Error retry strategy: 401/403 non-retryable, 429 retryable with backoff, 5xx retryable
+- 14-02: Dual factory interface: functional (createProvider) + OOP (ProviderFactoryClass)
 - 14-01: Use Obsidian's secretStorage API instead of custom encryption library
 - 14-01: Evidence hierarchy: FullText > Notes > Abstract > MetadataOnly
 - 14-01: Synchronous secret storage methods (Obsidian API is sync, not async)
@@ -98,11 +103,11 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-01-31
-Stopped at: Completed 14-05-PLAN.md (Evidence Extraction)
+Stopped at: Completed 14-02-PLAN.md (Provider Abstraction Layer)
 Resume file: None
 
-Next action: Continue phase 14 execution (3 plans remaining: Provider abstractions, Model router, Enrichment pipeline)
+Next action: Continue phase 14 execution (2 plans remaining: Provider implementations, AI service orchestration)
 
 ---
 
-*Last updated: 2026-01-31 after completing plan 14-05*
+*Last updated: 2026-01-31 after completing plan 14-02*
