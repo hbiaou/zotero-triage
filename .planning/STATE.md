@@ -48,6 +48,10 @@ Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting v2.0 work:
 
 **Phase 14 (AI Service Layer):**
+- 14-01: Use Obsidian's secretStorage API instead of custom encryption library
+- 14-01: Evidence hierarchy: FullText > Notes > Abstract > MetadataOnly
+- 14-01: Synchronous secret storage methods (Obsidian API is sync, not async)
+- 14-01: Graceful error handling in SecretStorageService (log, don't throw)
 - 14-04: Jitter fraction 0.5 (±50% randomization) prevents thundering herd
 - 14-04: Failure threshold 5, success threshold 2 for balanced circuit breaker recovery
 - 14-04: Max retry delay capped at 30s to prevent excessive wait times
@@ -82,17 +86,19 @@ None yet.
 
 **Architecture decisions pending:**
 - API provider selection priority (start with Claude 3.5 Sonnet vs. GPT-4)
-- Encryption library choice (Obsidian SecretStorage API vs. libsodium.js)
 - PDF extraction approach (PDF.js vs. Zotero cache API vs. hybrid)
+
+**Architecture decisions resolved:**
+- Encryption library: Obsidian SecretStorage API (14-01) - provides OS keychain integration
 
 ## Session Continuity
 
 Last session: 2026-01-31
-Stopped at: Completed 14-04-PLAN.md (Resilience Patterns)
+Stopped at: Completed 14-01-PLAN.md (Types & Secret Storage)
 Resume file: None
 
 Next action: Continue phase 14 execution (5 plans remaining)
 
 ---
 
-*Last updated: 2026-01-31 after completing plan 14-04*
+*Last updated: 2026-01-31 after completing plan 14-01*
