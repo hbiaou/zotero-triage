@@ -141,24 +141,24 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| AI-01 | Phase 14 | Pending |
-| AI-02 | Phase 14 | Pending |
-| AI-03 | Phase 14 | Pending |
-| AI-04 | Phase 14 | Pending |
-| AI-05 | Phase 14 | Pending |
-| AI-06 | Phase 14 | Pending |
-| AI-07 | Phase 14 | Pending |
+| AI-01 | Phase 14 | Complete |
+| AI-02 | Phase 14 | Complete |
+| AI-03 | Phase 14 | Complete |
+| AI-04 | Phase 14 | Complete |
+| AI-05 | Phase 14 | Complete |
+| AI-06 | Phase 14 | Complete |
+| AI-07 | Phase 14 | Complete |
 | AI-08 | Phase 19 | Pending |
 | AI-09 | Phase 19 | Pending |
-| AI-10 | Phase 14 | Pending |
-| EXTRACT-01 | Phase 14 | Pending |
-| EXTRACT-02 | Phase 14 | Pending |
-| EXTRACT-03 | Phase 14 | Pending |
-| EXTRACT-04 | Phase 14 | Pending |
+| AI-10 | Phase 14 | Complete |
+| EXTRACT-01 | Phase 14 | Complete |
+| EXTRACT-02 | Phase 14 | Complete |
+| EXTRACT-03 | Phase 14 | Complete |
+| EXTRACT-04 | Phase 14 | Complete |
 | EXTRACT-05 | Phase 18 | Pending |
 | EXTRACT-06 | Phase 15 | Pending |
 | EXTRACT-07 | Phase 15 | Pending |
-| EXTRACT-08 | Phase 14 | Pending |
+| EXTRACT-08 | Phase 14 | Complete |
 | EXTRACT-09 | Phase 15 | Pending |
 | EXTRACT-10 | Phase 15 | Pending |
 | EXTRACT-11 | Phase 15 | Pending |
@@ -211,7 +211,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | REGISTRY-04 | Phase 18 | Pending |
 | REGISTRY-05 | Phase 18 | Pending |
 | REGISTRY-06 | Phase 18 | Pending |
-| SETTINGS-01 | Phase 14 | Pending |
+| SETTINGS-01 | Phase 14 | Complete |
 | SETTINGS-02 | Phase 19 | Pending |
 | SETTINGS-03 | Phase 19 | Pending |
 | SETTINGS-04 | Phase 19 | Pending |
