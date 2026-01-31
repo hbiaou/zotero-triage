@@ -212,7 +212,7 @@ export class EvidenceExtractor {
    * @returns True if content meets minimum length requirement
    */
   private isValidEvidence(content: string): boolean {
-    return content && content.trim().length >= MIN_EVIDENCE_LENGTH;
+    return !!(content && content.trim().length >= MIN_EVIDENCE_LENGTH);
   }
 
   /**
