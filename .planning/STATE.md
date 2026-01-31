@@ -11,22 +11,26 @@ See: .planning/PROJECT.md (updated 2026-01-30)
 ## Current Position
 
 Phase: 14 of 19 (AI Service Layer & Evidence Foundation)
-Plan: Ready to plan
-Status: Phase planning pending
-Last activity: 2026-01-31 — v2.0 roadmap created with 6 phases covering 69 requirements
+Plan: 14-01 of 6 (Types & Secret Storage)
+Status: In progress (1/6 plans complete)
+Last activity: 2026-01-31 — Completed 14-01-PLAN.md (Types & Secret Storage)
 
-Progress: [████░░░░░░░░░░░░░░░░] 13/19 phases (68% milestone progress, 0% v2.0 progress)
+Progress: [████░░░░░░░░░░░░░░░░] 13/19 phases (68% milestone progress, 1.7% v2.0 progress)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 40 (from v1.0-v1.2 + quick tasks)
-- Average duration: ~38 min per plan
-- Total execution time: ~23 hours 27 minutes
+- Total plans completed: 42 (from v1.0-v1.2 + quick tasks + v2.0)
+- Average duration: ~36 min per plan
+- Total execution time: ~23 hours 48 minutes
 
 **By Phase:**
 
-v2.0 phases not yet started. Historical velocity from v1.0-v1.2 available in MILESTONES.md.
+**Phase 14 (v2.0 - AI Service Layer):**
+- 14-01: 15 min (Types & Secret Storage)
+- 14-04: 6 min (Resilience Patterns)
+
+Historical velocity from v1.0-v1.2 available in MILESTONES.md.
 
 **Recent Trend:**
 - v1.0 shipped: 23 plans across 5 phases (2026-01-25)
@@ -43,6 +47,14 @@ v2.0 phases not yet started. Historical velocity from v1.0-v1.2 available in MIL
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting v2.0 work:
 
+**Phase 14 (AI Service Layer):**
+- 14-04: Jitter fraction 0.5 (±50% randomization) prevents thundering herd
+- 14-04: Failure threshold 5, success threshold 2 for balanced circuit breaker recovery
+- 14-04: Max retry delay capped at 30s to prevent excessive wait times
+- 14-04: Retry-after headers take precedence over exponential backoff
+- 14-04: Per-provider circuits enable independent failure handling
+
+**v1.0-v1.2:**
 - v1.2: SQL-level library filtering for query-time performance
 - v1.2: Non-blocking preflight design (advisory-only, never prevents workflow)
 - v1.1: Tag weight 1.5 (between keywords 2.0 and authors 1.0)
@@ -76,11 +88,11 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-01-31
-Stopped at: v2.0 roadmap created with 6 phases (14-19), 69 requirements mapped, 100% coverage validated
-Resume file: None (ready to plan Phase 14)
+Stopped at: Completed 14-04-PLAN.md (Resilience Patterns)
+Resume file: None
 
-Next action: `/gsd:plan-phase 14`
+Next action: Continue phase 14 execution (5 plans remaining)
 
 ---
 
-*Last updated: 2026-01-31 after v2.0 roadmap creation*
+*Last updated: 2026-01-31 after completing plan 14-04*
