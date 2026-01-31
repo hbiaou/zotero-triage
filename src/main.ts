@@ -21,6 +21,10 @@ import { MemoryMonitor } from './performance/memory-monitor';
 import { ConnectionError } from './error/app-error';
 import { PreflightModal } from './ui/preflight-modal';
 import { DuplicateDetectionService } from './services/duplicate-detection-service';
+import './ai/providers'; // Side-effect: registers all AI providers
+import { SecretStorageService } from './services/secret-storage';
+import { AIService } from './services/ai-service';
+import { EvidenceExtractor } from './services/evidence-extractor';
 
 /**
  * Zotero Triage Plugin
@@ -43,6 +47,9 @@ export default class ZoteroTriagePlugin extends Plugin {
   adaptiveLearner!: AdaptiveLearner;
   profileInitializer!: ProfileInitializer;
   private memoryMonitor: MemoryMonitor;
+  secretStorage!: SecretStorageService;
+  aiService!: AIService;
+  evidenceExtractor!: EvidenceExtractor;
 
   async onload(): Promise<void> {
     // Start memory monitoring in dev mode
@@ -100,6 +107,24 @@ export default class ZoteroTriagePlugin extends Plugin {
 
     // Initialize validation service
     this.validationService = new ValidationService(this.settings.qualityGate);
+
+    // Initialize AI services
+    this.secretStorage = new SecretStorageService(this.app);
+    this.aiService = new AIService(this.app, this.secretStorage);
+
+    // Initialize evidence extractor (needs Zotero data path)
+    const zoteroDataPath = this.getZoteroDataPath();
+    if (zoteroDataPath) {
+      this.evidenceExtractor = new EvidenceExtractor(
+        this.connector,
+        zoteroDataPath
+      );
+    }
+
+    // Initialize AI config from settings
+    if (this.settings.aiConfig) {
+      await this.aiService.initialize(this.settings.aiConfig);
+    }
 
     // Register triage view
     this.registerView(
@@ -261,6 +286,18 @@ export default class ZoteroTriagePlugin extends Plugin {
 
     // Construct full path to plugin directory
     return path.join(basePath, '.obsidian', 'plugins', this.manifest.id);
+  }
+
+  /**
+   * Get Zotero data directory path from database path
+   *
+   * @returns Zotero data directory or null if not configured
+   */
+  private getZoteroDataPath(): string | null {
+    // Extract data directory from database path
+    // e.g., /Users/x/Zotero/zotero.sqlite -> /Users/x/Zotero
+    if (!this.settings.zoteroDbPath) return null;
+    return path.dirname(this.settings.zoteroDbPath);
   }
 
   /**

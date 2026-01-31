@@ -19,6 +19,7 @@ import { extractKeywordsFromMultiple } from './profile/keyword-extractor';
 import type ZoteroTriagePlugin from './main';
 import { PreflightModal } from './ui/preflight-modal';
 import { DuplicateDetectionService } from './services/duplicate-detection-service';
+import { AISettingsTab } from './ui/ai-settings-tab';
 
 /**
  * Settings tab for Zotero Triage plugin configuration
@@ -99,7 +100,19 @@ export class ZoteroTriageSettingTab extends PluginSettingTab {
           await this.plugin.saveSettings();
         }));
 
-    // Section 7: Research Profile (keep at end)
+    // Section 7: AI Enrichment (new section)
+    const aiSettingsContainer = containerEl.createDiv({ cls: 'ai-settings-section' });
+    if (this.plugin.secretStorage && this.plugin.aiService) {
+      const aiSettings = new AISettingsTab(
+        aiSettingsContainer,
+        this.plugin,
+        this.plugin.secretStorage,
+        this.plugin.aiService
+      );
+      aiSettings.render();
+    }
+
+    // Section 8: Research Profile (keep at end)
     containerEl.createEl('h2', { text: 'Research Profile' });
 
     const profileService = (this.plugin as any).profileService;
