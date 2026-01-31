@@ -80,16 +80,19 @@ Plans:
 **Requirements:** EXTRACT-06, EXTRACT-07, EXTRACT-09, EXTRACT-10, EXTRACT-11, CLASSIFY-01, CLASSIFY-02, CLASSIFY-03, CLASSIFY-04, CLASSIFY-05, CLASSIFY-06, CLASSIFY-07, CLASSIFY-08, CLASSIFY-09, CLASSIFY-10
 
 **Success Criteria** (what must be TRUE):
-1. System auto-fetches video transcripts from YouTube and Vimeo URLs and treats them as evidence sources
+1. System auto-fetches video transcripts from YouTube URLs and treats them as evidence sources
 2. System classifies items into domains (Academic, Software, Farming, General) based on title, tags, and abstract with item type priority (Articles/Books stay ACADEMIC)
 3. User can override suggested domain classification before enrichment in confirmation modal
 4. System provides 4 domain-specific templates with appropriate section structures (Summary/Key Findings/Methods for Academic, Overview/Features/Architecture for Software, etc.)
 5. System creates diagnostic note for metadata-only items explaining missing evidence and linking to Zotero
 
-**Plans:** TBD
+**Plans:** 4 plans in 2 waves
 
 Plans:
-- [ ] 15-01: [TBD during plan-phase]
+- [ ] 15-01-PLAN.md — Video transcript extraction (YouTube + manual fallback)
+- [ ] 15-02-PLAN.md — Domain classification with LLM and confidence scoring
+- [ ] 15-03-PLAN.md — Classification modal UI and re-classify command
+- [ ] 15-04-PLAN.md — Diagnostic notes for metadata-only items
 
 ---
 
@@ -189,7 +192,7 @@ Phases execute in numeric order: 14 → 15 → 16 → 17 → 18 → 19
 |-------|-----------|----------------|--------|-----------|
 | 1-13 | v1.0-v1.2 | - | Complete | 2026-01-29 |
 | 14. AI Service Layer & Evidence Foundation | v2.0 | 6/6 | Complete | 2026-01-31 |
-| 15. Content Extraction & Classification Pipeline | v2.0 | 0/TBD | Not started | - |
+| 15. Content Extraction & Classification Pipeline | v2.0 | 0/4 | Not started | - |
 | 16. Enrichment Orchestration & Validation | v2.0 | 0/TBD | Not started | - |
 | 17. Long Content Strategy & Map-Reduce | v2.0 | 0/TBD | Not started | - |
 | 18. Registry State & Queue Management | v2.0 | 0/TBD | Not started | - |
@@ -197,4 +200,4 @@ Phases execute in numeric order: 14 → 15 → 16 → 17 → 18 → 19
 
 ---
 
-*Last updated: 2026-01-31 after Phase 14 execution*
+*Last updated: 2026-01-31 after Phase 15 planning*
