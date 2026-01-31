@@ -11,7 +11,7 @@
  * not a standalone PluginSettingTab.
  */
 
-import { Setting, Notice } from 'obsidian';
+import { Setting, Notice, Modal, App } from 'obsidian';
 import type ZoteroTriagePlugin from '../main';
 import type { SecretStorageService } from '../services/secret-storage';
 import type { AIService } from '../services/ai-service';
@@ -100,99 +100,16 @@ export class AISettingsTab {
   private async showProviderConfig(providerId: ProviderID, displayName: string): Promise<void> {
     const currentKey = this.secretStorage.getAPIKey(providerId) || '';
 
-    // Create modal-like container
-    const modal = this.containerEl.createDiv('ai-provider-config-modal');
-    modal.createEl('h3', { text: `Configure ${displayName}` });
-
-    // API key input
-    let apiKeyValue = '';
-    new Setting(modal)
-      .setName('API Key')
-      .setDesc('Enter your API key (stored securely)')
-      .addText((text) => {
-        text
-          .setPlaceholder('sk-...')
-          .setValue(currentKey ? '********' : '')
-          .onChange((value) => {
-            apiKeyValue = value;
-          });
-        text.inputEl.type = 'password';
-      });
-
-    // Action buttons
-    const buttonContainer = modal.createDiv('ai-provider-config-buttons');
-
-    // Test button
-    const testButton = buttonContainer.createEl('button', { text: 'Test' });
-    testButton.addEventListener('click', async () => {
-      if (!apiKeyValue) {
-        new Notice('Please enter an API key');
-        return;
-      }
-
-      testButton.disabled = true;
-      testButton.textContent = 'Testing...';
-      this.providerTestStatus.set(providerId, 'Testing...');
-
-      const isValid = await this.testAPIKey(providerId, apiKeyValue);
-
-      if (isValid) {
-        this.providerTestStatus.set(providerId, '✓ Valid');
-        new Notice(`${displayName} API key is valid`);
-      } else {
-        this.providerTestStatus.set(providerId, '✗ Invalid');
-        new Notice(`${displayName} API key is invalid`);
-      }
-
-      testButton.disabled = false;
-      testButton.textContent = 'Test';
-      this.render(); // Re-render to update status
-    });
-
-    // Save button
-    const saveButton = buttonContainer.createEl('button', { text: 'Save', cls: 'mod-cta' });
-    saveButton.addEventListener('click', async () => {
-      if (!apiKeyValue) {
-        new Notice('Please enter an API key');
-        return;
-      }
-
-      await this.saveAPIKey(providerId, apiKeyValue, displayName);
-      modal.remove();
-      this.render(); // Re-render to update status
-    });
-
-    // Cancel button
-    const cancelButton = buttonContainer.createEl('button', { text: 'Cancel' });
-    cancelButton.addEventListener('click', () => {
-      modal.remove();
-    });
-  }
-
-  /**
-   * Test API key validity
-   */
-  private async testAPIKey(providerId: ProviderID, apiKey: string): Promise<boolean> {
-    try {
-      return await this.aiService.testProvider(providerId, apiKey);
-    } catch (error) {
-      console.error(`[AISettingsTab] Test failed for ${providerId}:`, error);
-      return false;
-    }
-  }
-
-  /**
-   * Save API key to secure storage
-   */
-  private async saveAPIKey(providerId: ProviderID, apiKey: string, displayName: string): Promise<void> {
-    try {
-      this.secretStorage.setAPIKey(providerId, apiKey);
-      new Notice(`${displayName} API key saved`);
-      this.providerTestStatus.set(providerId, '✓ Configured');
-    } catch (error) {
-      console.error(`[AISettingsTab] Failed to save API key for ${providerId}:`, error);
-      new Notice(`Failed to save ${displayName} API key`);
-    }
+    new APIKeyConfigModal(
+      this.plugin.app,
+      providerId,
+      displayName,
+      currentKey,
+      this.aiService,
+      this.secretStorage,
+      this.providerTestStatus,
+      () => this.render()
+    ).open();
   }
 
   /**
@@ -337,5 +254,143 @@ export class AISettingsTab {
           await this.plugin.saveSettings();
         });
       });
+  }
+}
+
+/**
+ * Modal for configuring provider API keys
+ */
+class APIKeyConfigModal extends Modal {
+  private readonly providerId: ProviderID;
+  private readonly displayName: string;
+  private readonly currentKey: string;
+  private readonly aiService: AIService;
+  private readonly secretStorage: SecretStorageService;
+  private readonly providerTestStatus: Map<ProviderID, string>;
+  private readonly onSave: () => void;
+
+  private apiKeyValue = '';
+
+  constructor(
+    app: App,
+    providerId: ProviderID,
+    displayName: string,
+    currentKey: string,
+    aiService: AIService,
+    secretStorage: SecretStorageService,
+    providerTestStatus: Map<ProviderID, string>,
+    onSave: () => void
+  ) {
+    super(app);
+    this.providerId = providerId;
+    this.displayName = displayName;
+    this.currentKey = currentKey;
+    this.aiService = aiService;
+    this.secretStorage = secretStorage;
+    this.providerTestStatus = providerTestStatus;
+    this.onSave = onSave;
+  }
+
+  onOpen(): void {
+    const { contentEl } = this;
+
+    contentEl.createEl('h2', { text: `Configure ${this.displayName}` });
+
+    // API key input
+    new Setting(contentEl)
+      .setName('API Key')
+      .setDesc('Enter your API key (stored securely)')
+      .addText((text) => {
+        text
+          .setPlaceholder('sk-...')
+          .setValue(this.currentKey ? '********' : '')
+          .onChange((value) => {
+            this.apiKeyValue = value;
+          });
+        text.inputEl.type = 'password';
+      });
+
+    // Action buttons
+    const buttonContainer = contentEl.createDiv('modal-button-container');
+    buttonContainer.style.display = 'flex';
+    buttonContainer.style.justifyContent = 'flex-end';
+    buttonContainer.style.gap = '8px';
+    buttonContainer.style.marginTop = '20px';
+
+    // Test button
+    const testButton = buttonContainer.createEl('button', { text: 'Test' });
+    testButton.addEventListener('click', async () => {
+      if (!this.apiKeyValue) {
+        new Notice('Please enter an API key');
+        return;
+      }
+
+      testButton.disabled = true;
+      testButton.textContent = 'Testing...';
+      this.providerTestStatus.set(this.providerId, 'Testing...');
+
+      const isValid = await this.testAPIKey();
+
+      if (isValid) {
+        this.providerTestStatus.set(this.providerId, '✓ Valid');
+        new Notice(`${this.displayName} API key is valid`);
+      } else {
+        this.providerTestStatus.set(this.providerId, '✗ Invalid');
+        new Notice(`${this.displayName} API key is invalid`);
+      }
+
+      testButton.disabled = false;
+      testButton.textContent = 'Test';
+    });
+
+    // Save button
+    const saveButton = buttonContainer.createEl('button', { text: 'Save', cls: 'mod-cta' });
+    saveButton.addEventListener('click', async () => {
+      if (!this.apiKeyValue) {
+        new Notice('Please enter an API key');
+        return;
+      }
+
+      await this.saveAPIKey();
+      this.close();
+      this.onSave(); // Re-render to update status
+    });
+
+    // Cancel button
+    const cancelButton = buttonContainer.createEl('button', { text: 'Cancel' });
+    cancelButton.addEventListener('click', () => {
+      this.close();
+    });
+  }
+
+  onClose(): void {
+    const { contentEl } = this;
+    contentEl.empty();
+  }
+
+  /**
+   * Test API key validity
+   */
+  private async testAPIKey(): Promise<boolean> {
+    try {
+      return await this.aiService.testProvider(this.providerId, this.apiKeyValue);
+    } catch (error) {
+      console.error(`[APIKeyConfigModal] Test failed for ${this.providerId}:`, error);
+      return false;
+    }
+  }
+
+  /**
+   * Save API key to secure storage
+   */
+  private async saveAPIKey(): Promise<void> {
+    try {
+      this.secretStorage.setAPIKey(this.providerId, this.apiKeyValue);
+      new Notice(`${this.displayName} API key saved`);
+      this.providerTestStatus.set(this.providerId, '✓ Configured');
+    } catch (error) {
+      console.error(`[APIKeyConfigModal] Failed to save API key for ${this.providerId}:`, error);
+      new Notice(`Failed to save ${this.displayName} API key`);
+    }
   }
 }
