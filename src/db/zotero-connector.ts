@@ -702,6 +702,44 @@ export class ZoteroConnector {
   }
 
   /**
+   * Execute a SQL query and return results
+   *
+   * Generic query method for custom database queries.
+   * Returns results as array of objects with column names as keys.
+   *
+   * @param sql - SQL query string
+   * @param params - Query parameters (optional)
+   * @returns Array of result rows as objects
+   */
+  query(sql: string, params?: unknown[]): Record<string, unknown>[] {
+    if (!this.db) {
+      throw new Error('Database not connected. Call connect() first.');
+    }
+
+    try {
+      const result = this.db.exec(sql, params);
+
+      if (result.length === 0) {
+        return [];
+      }
+
+      const { columns, values } = result[0];
+
+      // Convert rows to objects with column names as keys
+      return values.map(row => {
+        const obj: Record<string, unknown> = {};
+        columns.forEach((col, idx) => {
+          obj[col] = row[idx];
+        });
+        return obj;
+      });
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      throw new Error(`Query failed: ${errorMessage}`);
+    }
+  }
+
+  /**
    * Check if connector is currently connected to a database
    */
   get isConnected(): boolean {

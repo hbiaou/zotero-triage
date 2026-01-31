@@ -98,4 +98,120 @@ export class EvidenceExtractor {
 
     return null;
   }
+
+  /**
+   * Extract notes from Zotero database
+   *
+   * Queries child note items and combines their content.
+   * Notes are HTML formatted in Zotero - we strip tags for plaintext.
+   *
+   * @param itemID - Zotero database item ID
+   * @returns Combined notes plaintext or empty string
+   */
+  private async extractNotes(itemID: number): Promise<string> {
+    try {
+      // Query for child notes
+      const query = `
+        SELECT
+          COALESCE(itemNotes.note, '') as note
+        FROM items
+        LEFT JOIN itemNotes ON items.itemID = itemNotes.itemID
+        WHERE items.parentItemID = ?
+          AND items.itemTypeID = (
+            SELECT itemTypeID FROM itemTypes WHERE typeName = 'note'
+          )
+      `;
+
+      const result = await this.connector.query(query, [itemID]);
+
+      if (!result || result.length === 0) {
+        return '';
+      }
+
+      // Combine all notes and strip HTML
+      const notes = result
+        .map(row => this.stripHtml(row.note as string))
+        .filter(note => note.length > 0)
+        .join('\n\n');
+
+      return notes;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      console.error(`Failed to extract notes for item ${itemID}: ${errorMessage}`);
+      return '';
+    }
+  }
+
+  /**
+   * Extract abstract from Zotero database
+   *
+   * Queries the itemData table for the abstractNote field.
+   *
+   * @param itemID - Zotero database item ID
+   * @returns Abstract text or empty string
+   */
+  private async extractAbstract(itemID: number): Promise<string> {
+    try {
+      // Query for abstract field
+      const query = `
+        SELECT itemDataValues.value
+        FROM itemData
+        JOIN itemDataValues ON itemData.valueID = itemDataValues.valueID
+        JOIN fields ON itemData.fieldID = fields.fieldID
+        WHERE itemData.itemID = ?
+          AND fields.fieldName = 'abstractNote'
+      `;
+
+      const result = await this.connector.query(query, [itemID]);
+
+      if (!result || result.length === 0) {
+        return '';
+      }
+
+      return (result[0].value as string) || '';
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      console.error(`Failed to extract abstract for item ${itemID}: ${errorMessage}`);
+      return '';
+    }
+  }
+
+  /**
+   * Strip HTML tags and decode entities
+   *
+   * @param content - HTML content
+   * @returns Plaintext content
+   */
+  private stripHtml(content: string): string {
+    if (!content) {
+      return '';
+    }
+
+    // Remove HTML tags
+    let text = content.replace(/<[^>]*>/g, '');
+
+    // Decode common HTML entities
+    text = text
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'")
+      .replace(/&nbsp;/g, ' ');
+
+    // Normalize whitespace
+    text = text.replace(/\s+/g, ' ').trim();
+
+    return text;
+  }
+
+  /**
+   * Check if content is valid evidence
+   *
+   * @param content - Content to validate
+   * @returns True if content meets minimum length requirement
+   */
+  private isValidEvidence(content: string): boolean {
+    return content && content.trim().length >= MIN_EVIDENCE_LENGTH;
+  }
 }
