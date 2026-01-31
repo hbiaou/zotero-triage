@@ -11,24 +11,25 @@ See: .planning/PROJECT.md (updated 2026-01-30)
 ## Current Position
 
 Phase: 14 of 19 (AI Service Layer & Evidence Foundation)
-Plan: 14-01 of 6 (Types & Secret Storage)
-Status: In progress (1/6 plans complete)
-Last activity: 2026-01-31 — Completed 14-01-PLAN.md (Types & Secret Storage)
+Plan: 14-05 of 6 (Evidence Extraction)
+Status: In progress (3/6 plans complete)
+Last activity: 2026-01-31 — Completed 14-05-PLAN.md (Evidence Extraction)
 
-Progress: [████░░░░░░░░░░░░░░░░] 13/19 phases (68% milestone progress, 1.7% v2.0 progress)
+Progress: [████░░░░░░░░░░░░░░░░] 13/19 phases (68% milestone progress, 5.0% v2.0 progress)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 42 (from v1.0-v1.2 + quick tasks + v2.0)
-- Average duration: ~36 min per plan
-- Total execution time: ~23 hours 48 minutes
+- Total plans completed: 43 (from v1.0-v1.2 + quick tasks + v2.0)
+- Average duration: ~35 min per plan
+- Total execution time: ~24 hours 00 minutes
 
 **By Phase:**
 
 **Phase 14 (v2.0 - AI Service Layer):**
 - 14-01: 15 min (Types & Secret Storage)
 - 14-04: 6 min (Resilience Patterns)
+- 14-05: 11 min (Evidence Extraction)
 
 Historical velocity from v1.0-v1.2 available in MILESTONES.md.
 
@@ -48,15 +49,18 @@ Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting v2.0 work:
 
 **Phase 14 (AI Service Layer):**
-- 14-01: Use Obsidian's secretStorage API instead of custom encryption library
-- 14-01: Evidence hierarchy: FullText > Notes > Abstract > MetadataOnly
-- 14-01: Synchronous secret storage methods (Obsidian API is sync, not async)
-- 14-01: Graceful error handling in SecretStorageService (log, don't throw)
+- 14-05: Evidence threshold - Proceed with enrichment if FullText OR Notes available (Abstract-only items queued)
+- 14-05: Token estimation uses words / 0.75 for rough approximation before API call
+- 14-05: PDF extraction from Zotero .zotero-ft-cache files (hybrid approach with PDF.js deferred)
 - 14-04: Jitter fraction 0.5 (±50% randomization) prevents thundering herd
 - 14-04: Failure threshold 5, success threshold 2 for balanced circuit breaker recovery
 - 14-04: Max retry delay capped at 30s to prevent excessive wait times
 - 14-04: Retry-after headers take precedence over exponential backoff
 - 14-04: Per-provider circuits enable independent failure handling
+- 14-01: Use Obsidian's secretStorage API instead of custom encryption library
+- 14-01: Evidence hierarchy: FullText > Notes > Abstract > MetadataOnly
+- 14-01: Synchronous secret storage methods (Obsidian API is sync, not async)
+- 14-01: Graceful error handling in SecretStorageService (log, don't throw)
 
 **v1.0-v1.2:**
 - v1.2: SQL-level library filtering for query-time performance
@@ -94,11 +98,11 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-01-31
-Stopped at: Completed 14-01-PLAN.md (Types & Secret Storage)
+Stopped at: Completed 14-05-PLAN.md (Evidence Extraction)
 Resume file: None
 
-Next action: Continue phase 14 execution (5 plans remaining)
+Next action: Continue phase 14 execution (3 plans remaining: Provider abstractions, Model router, Enrichment pipeline)
 
 ---
 
-*Last updated: 2026-01-31 after completing plan 14-01*
+*Last updated: 2026-01-31 after completing plan 14-05*
