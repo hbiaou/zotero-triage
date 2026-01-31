@@ -48,6 +48,9 @@ export class AISettingsTab {
    * Render the AI settings section
    */
   render(): void {
+    // Clear previous content to prevent duplication
+    this.containerEl.empty();
+
     // Section header
     this.containerEl.createEl('h2', { text: 'AI Enrichment' });
 
