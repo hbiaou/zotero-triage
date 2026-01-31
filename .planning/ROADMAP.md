@@ -59,10 +59,15 @@ See MILESTONES.md for complete v1.2 details.
 4. System displays evidence level (FullText, Notes, Abstract) in note YAML frontmatter for every created note
 5. System implements exponential backoff for API failures (3 retries, then queue) and circuit breaker after 5 consecutive failures
 
-**Plans:** TBD
+**Plans:** 6 plans in 4 waves
 
 Plans:
-- [ ] 14-01: [TBD during plan-phase]
+- [ ] 14-01-PLAN.md — AI types and SecretStorage service
+- [ ] 14-02-PLAN.md — Provider abstraction layer and model catalog
+- [ ] 14-03-PLAN.md — Concrete provider implementations (OpenAI, Google, Anthropic, OpenRouter)
+- [ ] 14-04-PLAN.md — Resilience service (exponential backoff, circuit breaker)
+- [ ] 14-05-PLAN.md — Evidence extractor service
+- [ ] 14-06-PLAN.md — AI service orchestrator and settings UI
 
 ---
 
@@ -183,7 +188,7 @@ Phases execute in numeric order: 14 → 15 → 16 → 17 → 18 → 19
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 1-13 | v1.0-v1.2 | - | Complete | 2026-01-29 |
-| 14. AI Service Layer & Evidence Foundation | v2.0 | 0/TBD | Not started | - |
+| 14. AI Service Layer & Evidence Foundation | v2.0 | 0/6 | Ready | - |
 | 15. Content Extraction & Classification Pipeline | v2.0 | 0/TBD | Not started | - |
 | 16. Enrichment Orchestration & Validation | v2.0 | 0/TBD | Not started | - |
 | 17. Long Content Strategy & Map-Reduce | v2.0 | 0/TBD | Not started | - |
@@ -192,4 +197,4 @@ Phases execute in numeric order: 14 → 15 → 16 → 17 → 18 → 19
 
 ---
 
-*Last updated: 2026-01-31 after v2.0 roadmap creation*
+*Last updated: 2026-01-31 after Phase 14 planning*
