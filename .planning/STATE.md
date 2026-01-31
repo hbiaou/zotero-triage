@@ -11,18 +11,18 @@ See: .planning/PROJECT.md (updated 2026-01-30)
 ## Current Position
 
 Phase: 14 of 19 (AI Service Layer & Evidence Foundation)
-Plan: 14-03 of 6 (Provider Implementations)
-Status: In progress (5/6 plans complete)
-Last activity: 2026-01-31 — Completed 14-03-PLAN.md (Provider Implementations)
+Plan: 14-06 of 6 (AI Service Orchestrator & Settings UI)
+Status: Phase complete (6/6 plans complete)
+Last activity: 2026-01-31 — Completed 14-06-PLAN.md (AI Service Orchestrator & Settings UI)
 
-Progress: [████░░░░░░░░░░░░░░░░] 13/19 phases (68% milestone progress, 8.3% v2.0 progress)
+Progress: [█████░░░░░░░░░░░░░░░] 14/19 phases (73% milestone progress, 8.8% v2.0 progress)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 45 (from v1.0-v1.2 + quick tasks + v2.0)
+- Total plans completed: 46 (from v1.0-v1.2 + quick tasks + v2.0)
 - Average duration: ~34 min per plan
-- Total execution time: ~25 hours 11 minutes
+- Total execution time: ~26 hours
 
 **By Phase:**
 
@@ -32,6 +32,7 @@ Progress: [████░░░░░░░░░░░░░░░░] 13/19 p
 - 14-03: 6 min (Provider Implementations)
 - 14-04: 6 min (Resilience Patterns)
 - 14-05: 11 min (Evidence Extraction)
+- 14-06: 45 min (AI Service Orchestrator & Settings UI)
 
 Historical velocity from v1.0-v1.2 available in MILESTONES.md.
 
@@ -51,6 +52,10 @@ Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting v2.0 work:
 
 **Phase 14 (AI Service Layer):**
+- 14-06: Modal UI pattern for API key configuration (password input with test/save/clear)
+- 14-06: containerEl.empty() before re-render to prevent DOM duplication
+- 14-06: AISettingsTab as component not standalone PluginSettingTab
+- 14-06: Fallback provider order configurable but optional (advanced feature)
 - 14-05: Evidence threshold - Proceed with enrichment if FullText OR Notes available (Abstract-only items queued)
 - 14-05: Token estimation uses words / 0.75 for rough approximation before API call
 - 14-05: PDF extraction from Zotero .zotero-ft-cache files (hybrid approach with PDF.js deferred)
@@ -108,11 +113,11 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-01-31
-Stopped at: Completed 14-03-PLAN.md (Provider Implementations)
+Stopped at: Completed 14-06-PLAN.md (AI Service Orchestrator & Settings UI)
 Resume file: None
 
-Next action: Continue phase 14 execution (1 plan remaining: AI service orchestration)
+Next action: Phase 14 complete - proceed to Phase 15 (Classification & Enrichment Foundations)
 
 ---
 
-*Last updated: 2026-01-31 after completing plan 14-03*
+*Last updated: 2026-01-31 after completing plan 14-06*
