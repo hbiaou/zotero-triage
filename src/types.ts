@@ -6,6 +6,7 @@
 
 import type { QualityGateConfig } from './validation/types';
 import type { UserProfile } from './profile/types';
+import type { ProviderID } from './ai/types';
 
 /**
  * Plugin settings stored in data.json
@@ -41,6 +42,17 @@ export interface ZoteroTriageSettings {
    * 'all' = all libraries (user + groups)
    */
   libraryFilterMode: 'personal' | 'all';
+  /**
+   * AI service configuration (null if not configured)
+   */
+  aiConfig: {
+    /** Selected provider ID (null if not configured) */
+    selectedProvider: ProviderID | null;
+    /** Selected model ID within provider */
+    selectedModel: string | null;
+    /** Fallback provider order */
+    fallbackOrder: ProviderID[];
+  } | null;
 }
 
 import { DEFAULT_QUALITY_GATE_CONFIG } from './validation/types';
@@ -57,7 +69,8 @@ export const DEFAULT_SETTINGS: ZoteroTriageSettings = {
   tagWeight: 1.5,  // Default from CONTEXT.md decision
   relevanceVsDiversity: 0,  // Pure relevance by default
   recencyBoost: true,  // Boost recent publications
-  libraryFilterMode: 'personal'  // User library only
+  libraryFilterMode: 'personal',  // User library only
+  aiConfig: null  // Not configured by default
 };
 
 /**
