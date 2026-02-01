@@ -116,10 +116,14 @@ Gap Closure Plans:
 4. System validates enriched output for consistency (authors, year, title match metadata) and flags low-confidence sections (confidence < threshold)
 5. System handles enrichment failures gracefully by creating stub note and queuing retry, never blocking user workflow
 
-**Plans:** TBD
+**Plans:** 5 plans in 3 waves
 
 Plans:
-- [ ] 16-01: [TBD during plan-phase]
+- [ ] 16-01-PLAN.md — Enrichment Service (LLM-powered template population)
+- [ ] 16-02-PLAN.md — Output Validation Stack (frontmatter schemas, metadata consistency, hallucination detection)
+- [ ] 16-03-PLAN.md — Error Recovery & Retry Queue (stub note generator, persistent retry queue)
+- [ ] 16-04-PLAN.md — Enrichment Orchestrator (pipeline state machine, progress modal, timeout handling)
+- [ ] 16-05-PLAN.md — Workflow Integration & Commands (Accept flow, manual re-enrichment command)
 
 ---
 
@@ -198,11 +202,11 @@ Phases execute in numeric order: 14 → 15 → 16 → 17 → 18 → 19
 | 1-13 | v1.0-v1.2 | - | Complete | 2026-01-29 |
 | 14. AI Service Layer & Evidence Foundation | v2.0 | 6/6 | Complete | 2026-01-31 |
 | 15. Content Extraction & Classification Pipeline | v2.0 | 7/7 | Complete | 2026-02-01 |
-| 16. Enrichment Orchestration & Validation | v2.0 | 0/TBD | Not started | - |
+| 16. Enrichment Orchestration & Validation | v2.0 | 0/5 | Planning | - |
 | 17. Long Content Strategy & Map-Reduce | v2.0 | 0/TBD | Not started | - |
 | 18. Registry State & Queue Management | v2.0 | 0/TBD | Not started | - |
 | 19. Settings UI & Statistics Dashboard | v2.0 | 0/TBD | Not started | - |
 
 ---
 
-*Last updated: 2026-01-31 after Phase 15 planning*
+*Last updated: 2026-02-01 after Phase 16 planning*
