@@ -29,7 +29,7 @@ Progress: [█████░░░░░░░░░░░░░░░] 15/19 p
 **Phase 15 (v2.0 - Content Extraction & Classification):**
 - 15-01: 6 min (Video Transcript Extraction)
 - 15-02: 5 min (Domain Classification System)
-- 15-03: [not documented] (Classification Override Modal UI)
+- 15-03: 210 min (Classification Modal & Evidence Integration)
 - 15-04: 7 min (Diagnostic Notes & Deferred Queue)
 
 **Phase 14 (v2.0 - AI Service Layer):**
@@ -64,6 +64,10 @@ Recent decisions affecting v2.0 work:
 - 15-04: Five diagnostic reasons: no_pdf, no_notes, no_transcript, abstract_only, metadata_only
 - 15-04: Validation ensures diagnostic note quality before returning to caller
 - 15-04: Fallback note generation prevents blank notes on generation failure
+- 15-03: Classification modal triggered when confidence < 0.70 (from 15-02 research)
+- 15-03: Transcript extraction positioned between PDF fulltext and notes in evidence hierarchy
+- 15-03: Re-classification command extracts Zotero item ID from note frontmatter
+- 15-03: Domain guide collapsible to reduce modal clutter
 - 15-02: Confidence threshold 0.70 for override modal trigger (industry standard per research)
 - 15-02: Item type hard overrides bypass content analysis (journalArticle → Academic)
 - 15-02: Domain normalization handles LLM synonyms ("research" → "Academic")
@@ -136,11 +140,11 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-01
-Stopped at: Completed 15-04-PLAN.md (Diagnostic Notes & Deferred Queue)
+Stopped at: Completed 15-03-PLAN.md (Classification Modal & Evidence Integration)
 Resume file: None
 
-Next action: Phase 15 complete - proceed to Phase 16 (Accept Workflow Integration)
+Next action: Phase 15 complete (all 4 plans done) - proceed to Phase 16 (Accept Workflow Integration)
 
 ---
 
-*Last updated: 2026-02-01 after completing plan 15-04*
+*Last updated: 2026-02-01 after completing plan 15-03*
