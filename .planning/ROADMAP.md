@@ -86,13 +86,18 @@ Plans:
 4. System provides 4 domain-specific templates with appropriate section structures (Summary/Key Findings/Methods for Academic, Overview/Features/Architecture for Software, etc.)
 5. System creates diagnostic note for metadata-only items explaining missing evidence and linking to Zotero
 
-**Plans:** 4 plans in 2 waves
+**Plans:** 7 plans (4 original + 3 gap closure) in 3 waves
 
-Plans:
-- [ ] 15-01-PLAN.md — Video transcript extraction (YouTube + manual fallback)
-- [ ] 15-02-PLAN.md — Domain classification with LLM and confidence scoring
-- [ ] 15-03-PLAN.md — Classification modal UI and re-classify command
-- [ ] 15-04-PLAN.md — Diagnostic notes for metadata-only items
+Plans (Original):
+- [x] 15-01-PLAN.md — Video transcript extraction (YouTube + manual fallback)
+- [x] 15-02-PLAN.md — Domain classification with LLM and confidence scoring
+- [x] 15-03-PLAN.md — Classification modal UI and re-classify command
+- [x] 15-04-PLAN.md — Diagnostic notes for metadata-only items
+
+Gap Closure Plans:
+- [ ] 15-05-PLAN.md — Domain-specific template integration (Academic, Software, Farming, General)
+- [ ] 15-06-PLAN.md — Classification and modal workflow integration
+- [ ] 15-07-PLAN.md — Diagnostic notes service integration
 
 ---
 
@@ -192,7 +197,7 @@ Phases execute in numeric order: 14 → 15 → 16 → 17 → 18 → 19
 |-------|-----------|----------------|--------|-----------|
 | 1-13 | v1.0-v1.2 | - | Complete | 2026-01-29 |
 | 14. AI Service Layer & Evidence Foundation | v2.0 | 6/6 | Complete | 2026-01-31 |
-| 15. Content Extraction & Classification Pipeline | v2.0 | 0/4 | Not started | - |
+| 15. Content Extraction & Classification Pipeline | v2.0 | 4/7 (gap closure in progress) | In Progress | - |
 | 16. Enrichment Orchestration & Validation | v2.0 | 0/TBD | Not started | - |
 | 17. Long Content Strategy & Map-Reduce | v2.0 | 0/TBD | Not started | - |
 | 18. Registry State & Queue Management | v2.0 | 0/TBD | Not started | - |
