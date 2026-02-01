@@ -5,7 +5,7 @@
  */
 
 // Re-export core registry types from main types module
-export type { RegistryState, RegistryEntry, Registry } from '../types';
+export type { ProcessingState, RegistryState, RegistryEntry, Registry } from '../types';
 
 /**
  * Statistics for registry state distribution
@@ -25,4 +25,10 @@ export interface RegistryStats {
   deferred: number;
   /** Items successfully imported to vault */
   imported: number;
+  /** Items successfully enriched with AI-generated content */
+  enriched: number;
+  /** Items queued for enrichment when evidence becomes available */
+  enrichment_pending: number;
+  /** Items failed enrichment after retries */
+  enrichment_failed: number;
 }

@@ -7,7 +7,8 @@
 
 import { Plugin } from 'obsidian';
 import debounce from 'lodash.debounce';
-import type { Registry, RegistryEntry, RegistryState, RegistryStats } from './types';
+import type { Registry, RegistryEntry, RegistryStats } from './types';
+import type { ProcessingState } from '../types';
 import { normalizeItemKey } from '../utils/normalization';
 
 /** Debounce delay for save operations in milliseconds */
@@ -80,7 +81,7 @@ export class RegistryService {
    * @param itemId - Zotero item ID (number or string)
    * @returns Current state, defaults to 'unseen' if not tracked
    */
-  getState(itemId: string | number): RegistryState {
+  getState(itemId: string | number): ProcessingState {
     const normalizedKey = normalizeItemKey(itemId);
     return this.registry.entries[normalizedKey]?.state ?? 'unseen';
   }
@@ -90,7 +91,7 @@ export class RegistryService {
    * @param itemId - Zotero item ID (number or string)
    * @param state - New state to set
    */
-  markState(itemId: string | number, state: RegistryState): void {
+  markState(itemId: string | number, state: ProcessingState): void {
     const normalizedKey = normalizeItemKey(itemId);
 
     this.registry.entries[normalizedKey] = {
@@ -122,7 +123,10 @@ export class RegistryService {
       accepted: 0,
       rejected: 0,
       deferred: 0,
-      imported: 0
+      imported: 0,
+      enriched: 0,
+      enrichment_pending: 0,
+      enrichment_failed: 0
     };
 
     for (const entry of Object.values(this.registry.entries)) {
@@ -138,7 +142,7 @@ export class RegistryService {
    * @param state - State to filter by
    * @returns Array of item ID strings
    */
-  getEntriesByState(state: RegistryState): string[] {
+  getEntriesByState(state: ProcessingState): string[] {
     const result: string[] = [];
 
     for (const [id, entry] of Object.entries(this.registry.entries)) {

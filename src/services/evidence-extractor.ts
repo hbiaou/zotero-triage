@@ -3,9 +3,10 @@
  *
  * Implements evidence hierarchy for AI enrichment:
  * 1. PDF fulltext (primary) - Extracted from Zotero's .zotero-ft-cache
- * 2. Zotero notes (secondary) - User annotations and highlights
- * 3. Abstract (tertiary) - Paper abstract from metadata
- * 4. Metadata only (insufficient) - No content available
+ * 2. Video transcripts (primary) - Extracted from YouTube URLs when available
+ * 3. Zotero notes (secondary) - User annotations and highlights
+ * 4. Abstract (tertiary) - Paper abstract from metadata
+ * 5. Metadata only (insufficient) - No content available
  *
  * Determines what evidence is available for each item and returns
  * appropriate content for AI analysis.
@@ -16,6 +17,8 @@ import * as path from 'path';
 import type { ZoteroConnector } from '../db/zotero-connector';
 import type { EvidenceLevel, EvidenceExtraction } from '../ai/types';
 import type { ZoteroItem } from '../types';
+import { TranscriptExtractor } from '../extraction/transcript-extractor';
+import { TranscriptExtractionError } from '../extraction/types';
 
 /**
  * Minimum characters required for valid evidence
@@ -38,15 +41,22 @@ const STALE_CACHE_DAYS = 30;
 export class EvidenceExtractor {
   private connector: ZoteroConnector;
   private zoteroDataPath: string;
+  private transcriptExtractor: TranscriptExtractor;
 
   /**
    * Create evidence extractor
    * @param connector - ZoteroConnector instance for database queries
    * @param zoteroDataPath - Path to Zotero data directory
+   * @param transcriptExtractor - TranscriptExtractor instance for video transcript extraction
    */
-  constructor(connector: ZoteroConnector, zoteroDataPath: string) {
+  constructor(
+    connector: ZoteroConnector,
+    zoteroDataPath: string,
+    transcriptExtractor: TranscriptExtractor
+  ) {
     this.connector = connector;
     this.zoteroDataPath = zoteroDataPath;
+    this.transcriptExtractor = transcriptExtractor;
   }
 
   /**
@@ -218,11 +228,12 @@ export class EvidenceExtractor {
   /**
    * Extract evidence for an item following hierarchy
    *
-   * Evidence hierarchy (EXTRACT-04):
+   * Evidence hierarchy (EXTRACT-04 updated for Phase 15):
    * 1. PDF fulltext (primary) - Best quality, high token cost
-   * 2. Zotero notes (secondary) - Good quality, low token cost
-   * 3. Abstract (tertiary) - Limited quality, very low cost
-   * 4. Metadata only (insufficient) - No content for enrichment
+   * 2. Video transcript (primary) - Equivalent to fulltext, medium token cost
+   * 3. Zotero notes (secondary) - Good quality, low token cost
+   * 4. Abstract (tertiary) - Limited quality, very low cost
+   * 5. Metadata only (insufficient) - No content for enrichment
    *
    * @param item - Zotero item to extract evidence for
    * @returns Evidence extraction result with level and content
@@ -239,7 +250,27 @@ export class EvidenceExtractor {
       };
     }
 
-    // 2. Try Zotero notes (secondary)
+    // 2. Try video transcript (primary - equivalent quality to fulltext per Phase 15 research)
+    if (item.url) {
+      try {
+        const transcript = await this.transcriptExtractor.extractTranscript(item.url);
+        if (this.isValidEvidence(transcript.transcript)) {
+          return {
+            level: 'FullText', // Transcript quality equivalent to FullText per research
+            content: transcript.transcript,
+            sources: [`video_transcript_${transcript.platform}`],
+            tokenEstimate: this.estimateTokens(transcript.transcript)
+          };
+        }
+      } catch (error) {
+        // Transcript extraction failed; log and fall through to next level
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        console.log(`[EvidenceExtractor] Transcript extraction failed for ${item.itemKey}: ${errorMessage}`);
+        // Don't throw - graceful degradation to notes/abstract
+      }
+    }
+
+    // 3. Try Zotero notes (secondary)
     const notesContent = await this.extractNotes(item.itemID);
     if (this.isValidEvidence(notesContent)) {
       return {
@@ -250,7 +281,7 @@ export class EvidenceExtractor {
       };
     }
 
-    // 3. Try abstract (tertiary)
+    // 4. Try abstract (tertiary)
     const abstractContent = await this.extractAbstract(item.itemID);
     if (this.isValidEvidence(abstractContent)) {
       return {
@@ -261,7 +292,7 @@ export class EvidenceExtractor {
       };
     }
 
-    // 4. Metadata only (insufficient for enrichment)
+    // 5. Metadata only (insufficient for enrichment)
     return {
       level: 'MetadataOnly',
       content: '',
@@ -301,13 +332,19 @@ export class EvidenceExtractor {
    * Get human-readable description of evidence level
    *
    * Used for YAML frontmatter and user feedback.
+   * Updated to account for transcript sources in Phase 15.
    *
    * @param level - Evidence level
+   * @param sources - Evidence sources (to distinguish PDF vs transcript for FullText)
    * @returns Human-readable description
    */
-  getEvidenceDescription(level: EvidenceLevel): string {
+  getEvidenceDescription(level: EvidenceLevel, sources?: string[]): string {
     switch (level) {
       case 'FullText':
+        // Check if source is transcript vs PDF
+        if (sources && sources.some(s => s.startsWith('video_transcript_'))) {
+          return 'Video transcript extracted';
+        }
         return 'PDF fulltext extracted';
       case 'Notes':
         return 'Zotero notes and annotations';

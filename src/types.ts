@@ -6,7 +6,7 @@
 
 import type { QualityGateConfig } from './validation/types';
 import type { UserProfile } from './profile/types';
-import type { ProviderID } from './ai/types';
+import type { ProviderID, EvidenceLevel } from './ai/types';
 
 /**
  * Plugin settings stored in data.json
@@ -113,17 +113,58 @@ export interface ZoteroItem {
 
 /**
  * Processing state for a single Zotero item
+ *
+ * State flow:
+ * - unseen: Item not yet shown to user
+ * - proposed: Item shown to user, awaiting accept/reject decision
+ * - accepted: User accepted item, queued for import
+ * - rejected: User rejected item
+ * - deferred: User deferred item for later review
+ * - imported: Item imported to Obsidian
+ * - enriched: Item successfully enriched with AI-generated content
+ * - enrichment_pending: Item queued for enrichment when evidence becomes available (deferred queue)
+ * - enrichment_failed: Item failed enrichment after retries, requires manual intervention
  */
-export type RegistryState = 'unseen' | 'proposed' | 'accepted' | 'rejected' | 'deferred' | 'imported';
+export type ProcessingState =
+  | 'unseen'
+  | 'proposed'
+  | 'accepted'
+  | 'rejected'
+  | 'deferred'
+  | 'imported'
+  | 'enriched'
+  | 'enrichment_pending'
+  | 'enrichment_failed';
+
+/**
+ * @deprecated Use ProcessingState instead
+ */
+export type RegistryState = ProcessingState;
 
 /**
  * Registry entry tracking the state of a Zotero item
  */
 export interface RegistryEntry {
   /** Current processing state */
-  state: RegistryState;
+  state: ProcessingState;
   /** Unix timestamp of last state change */
   timestamp: number;
+  /**
+   * Enrichment metadata (optional, only for enriched/pending/failed states)
+   *
+   * Tracks AI enrichment attempts and retry state for deferred queue.
+   * Only populated when state is enriched, enrichment_pending, or enrichment_failed.
+   */
+  enrichmentMetadata?: {
+    /** Evidence level available when enrichment was last attempted */
+    evidenceLevel?: EvidenceLevel;
+    /** Reason for pending state (what evidence is missing) */
+    pendingReason?: string;
+    /** Number of enrichment retry attempts (0 = first attempt) */
+    retryCount?: number;
+    /** Last retry timestamp (ISO 8601 format) */
+    lastRetryTimestamp?: string;
+  };
 }
 
 /**

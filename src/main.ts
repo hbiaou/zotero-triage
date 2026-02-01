@@ -25,6 +25,8 @@ import './ai/providers'; // Side-effect: registers all AI providers
 import { SecretStorageService } from './services/secret-storage';
 import { AIService } from './services/ai-service';
 import { EvidenceExtractor } from './services/evidence-extractor';
+import { TranscriptExtractor } from './extraction/transcript-extractor';
+import { YouTubeService } from './extraction/youtube-service';
 
 /**
  * Zotero Triage Plugin
@@ -112,12 +114,17 @@ export default class ZoteroTriagePlugin extends Plugin {
     this.secretStorage = new SecretStorageService(this.app);
     this.aiService = new AIService(this.app, this.secretStorage);
 
+    // Initialize transcript extraction services
+    const youtubeService = new YouTubeService();
+    const transcriptExtractor = new TranscriptExtractor(youtubeService);
+
     // Initialize evidence extractor (needs Zotero data path)
     const zoteroDataPath = this.getZoteroDataPath();
     if (zoteroDataPath) {
       this.evidenceExtractor = new EvidenceExtractor(
         this.connector,
-        zoteroDataPath
+        zoteroDataPath,
+        transcriptExtractor
       );
     }
 
