@@ -15,7 +15,7 @@
 
 import { App, Notice } from 'obsidian';
 import type ZoteroTriagePlugin from '../main';
-import type { ZoteroItem } from '../types';
+import type { ZoteroItem } from '../db/zotero-connector';
 import type { DomainClassifier } from '../classification/domain-classifier';
 import type { Domain } from '../classification/types';
 import { ClassificationModal } from '../ui/classification-modal';
