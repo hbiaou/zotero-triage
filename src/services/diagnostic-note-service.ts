@@ -23,6 +23,148 @@ export type DiagnosticReason =
   | 'metadata_only';   // No content at all (title/authors only)
 
 /**
+ * Example diagnostic note for no_pdf scenario
+ *
+ * Demonstrates expected format and structure for validation.
+ * Item has notes but no PDF fulltext.
+ */
+const EXAMPLE_NO_PDF_NOTE = `---
+note_type: diagnostic
+diagnostic_reason: no_pdf
+zotero_key: ABC12345
+evidence_level: Notes
+date_checked: 2026-01-31
+---
+
+# Enrichment Not Possible
+
+## What's Missing
+This item has notes but no PDF fulltext available. AI enrichment requires the complete paper text.
+
+## What You Can Do
+1. Open this item in Zotero
+2. Right-click the item → **Add Attachment** → **Attach Stored Copy of File**
+3. Select the PDF file
+4. Zotero will automatically index the PDF
+5. Accept this item again in Zotero Triage
+
+[Open in Zotero](zotero://select/library/items/ABC12345)
+
+---
+*This item will be automatically retried when evidence is added to Zotero.*
+`;
+
+/**
+ * Example diagnostic note for no_transcript scenario
+ *
+ * Demonstrates format for video items lacking transcripts.
+ */
+const EXAMPLE_NO_TRANSCRIPT_NOTE = `---
+note_type: diagnostic
+diagnostic_reason: no_transcript
+zotero_key: XYZ98765
+evidence_level: MetadataOnly
+date_checked: 2026-01-31
+---
+
+# Enrichment Not Possible
+
+## What's Missing
+This video recording has no transcript available. AI enrichment requires text content to analyze.
+
+## What You Can Do
+**Option 1: Manual transcript** (recommended)
+1. Visit the video platform (YouTube, Vimeo, etc.)
+2. Copy the transcript (if available)
+3. Open this item in Zotero → Right-click → **Add Note**
+4. Paste the transcript into the note
+5. Accept this item again in Zotero Triage
+
+**Option 2: Skip enrichment**
+- Reject this item if enrichment isn't needed
+- Video metadata will still be available in your library
+
+[Open in Zotero](zotero://select/library/items/XYZ98765)
+
+---
+*This item will be automatically retried when evidence is added to Zotero.*
+`;
+
+/**
+ * Example diagnostic note for abstract_only scenario
+ *
+ * Demonstrates format when only abstract is available.
+ */
+const EXAMPLE_ABSTRACT_ONLY_NOTE = `---
+note_type: diagnostic
+diagnostic_reason: abstract_only
+zotero_key: DEF45678
+evidence_level: Abstract
+date_checked: 2026-01-31
+---
+
+# Enrichment Not Possible
+
+## What's Missing
+Only the abstract is available. AI enrichment requires fulltext or detailed notes for comprehensive analysis.
+
+## What You Can Do
+**For best enrichment quality:**
+1. Add the PDF to Zotero (see instructions for no_pdf above)
+
+**Or, if PDF unavailable:**
+1. Open this item in Zotero → Right-click → **Add Note**
+2. Add your own notes, highlights, or key points from the paper
+3. Accept this item again in Zotero Triage
+
+*Abstract-only enrichment is limited and may miss important context.*
+
+[Open in Zotero](zotero://select/library/items/DEF45678)
+
+---
+*This item will be automatically retried when evidence is added to Zotero.*
+`;
+
+/**
+ * Example diagnostic note for metadata_only scenario
+ *
+ * Demonstrates format when no content is available at all.
+ */
+const EXAMPLE_METADATA_ONLY_NOTE = `---
+note_type: diagnostic
+diagnostic_reason: metadata_only
+zotero_key: GHI11223
+evidence_level: MetadataOnly
+date_checked: 2026-01-31
+---
+
+# Enrichment Not Possible
+
+## What's Missing
+No content is available for this item (no PDF, notes, or abstract). AI enrichment requires text content.
+
+## What You Can Do
+1. Check if this item should have content:
+   - Is it a paper, book chapter, or report? → Add PDF
+   - Is it a blog post or web page? → Add URL or notes
+   - Is it metadata-only by nature? → May not need enrichment
+
+2. If content exists:
+   - Open item in Zotero
+   - Add PDF via **Add Attachment** → **Attach Stored Copy of File**
+   - Or add abstract via item metadata panel
+   - Accept this item again in Zotero Triage
+
+3. If this is a citation-only item (no content available):
+   - You may want to reject it or defer for later
+
+[Open in Zotero](zotero://select/library/items/GHI11223)
+
+---
+*This item will be automatically retried when evidence is added to Zotero.*
+`;
+
+/**
  * Diagnostic note service
  *
  * Stateless service for generating diagnostic notes when items
