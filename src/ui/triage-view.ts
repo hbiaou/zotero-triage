@@ -489,7 +489,65 @@ export class TriageView extends ItemView {
     this.saveScrollPosition();
 
     try {
-      // Create the note
+      // Check evidence level if evidence extractor is available
+      if (this.plugin.evidenceExtractor) {
+        const evidence = await this.plugin.evidenceExtractor.extract(item);
+
+        // If evidence is insufficient, create diagnostic note instead
+        if (!this.plugin.evidenceExtractor.canEnrich(evidence)) {
+          // Generate diagnostic note
+          const diagnosticNote = this.plugin.diagnosticNoteService.createDiagnosticNote(item, evidence);
+
+          // Ensure output folder exists
+          const outputFolder = this.plugin.settings.outputFolder;
+          if (outputFolder) {
+            const folder = this.app.vault.getAbstractFileByPath(outputFolder);
+            if (!folder) {
+              await this.app.vault.createFolder(outputFolder);
+            }
+          }
+
+          // Create diagnostic note file
+          const filePath = this.plugin.noteGenerator.getFilePath(item);
+          await this.plugin.app.vault.create(filePath, diagnosticNote);
+
+          // Mark as enrichment_pending instead of imported
+          this.plugin.registry.markState(item.itemID, 'enrichment_pending');
+          this.plugin.registry.setEnrichmentMetadata(item.itemID, {
+            evidenceLevel: evidence.level,
+            pendingReason: this.getEvidencePendingReason(evidence),
+            retryCount: 0,
+            lastRetryTimestamp: new Date().toISOString()
+          });
+
+          // Update status badge on card
+          const card = this.containerEl.querySelector(`[data-item-id="${item.itemID}"]`) as HTMLElement;
+          if (card) {
+            updateCardStatus(card, 'enrichment_pending');
+          }
+
+          // Increment processed count
+          this.processedCount++;
+
+          // Record session action
+          this.plugin.sessionTracker.recordAction('accepted');
+
+          // Show notice about diagnostic note
+          showUndoNotice({
+            message: 'Diagnostic note created - item queued for enrichment.',
+            onUndo: () => this.undoAction({ itemId: item.itemID, previousState }, 'accepted'),
+            timeout: 3000
+          });
+
+          // Refresh view and restore scroll
+          this.refresh();
+          this.restoreScrollPosition();
+
+          return;
+        }
+      }
+
+      // Sufficient evidence or no evidence extractor - create regular note
       await this.plugin.noteGenerator.createNote(item);
 
       // Mark as imported
@@ -501,8 +559,8 @@ export class TriageView extends ItemView {
         updateCardStatus(card, 'accepted');
       }
 
-      // Record accept for adaptive learning
-      this.plugin.batchService.recordAccept(item);
+      // Record accept for adaptive learning and classification
+      await this.plugin.batchService.recordAccept(item);
 
       // Increment processed count
       this.processedCount++;
@@ -525,6 +583,22 @@ export class TriageView extends ItemView {
       const message = err instanceof Error ? err.message : String(err);
       new Notice(`Failed to create note: ${message}`);
       console.error('Accept action error:', err);
+    }
+  }
+
+  /**
+   * Get human-readable reason for enrichment pending state
+   * @param evidence - Evidence extraction result
+   * @returns Reason string
+   */
+  private getEvidencePendingReason(evidence: any): string {
+    switch (evidence.level) {
+      case 'MetadataOnly':
+        return 'No content available (add PDF, notes, or transcript)';
+      case 'Abstract':
+        return 'Abstract only (add PDF or notes for better enrichment)';
+      default:
+        return 'Insufficient evidence for enrichment';
     }
   }
 

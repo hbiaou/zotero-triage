@@ -10,27 +10,35 @@
  * - Learning from user feedback via AdaptiveLearner
  */
 
-import { Notice } from 'obsidian';
+import { Notice, App } from 'obsidian';
 import type { ZoteroConnector } from '../db/zotero-connector';
 import type { RegistryService } from '../registry/registry-service';
 import type { ProfileService } from '../profile/profile-service';
 import type { RecommendationEngine } from '../recommendations/recommendation-engine';
 import type { AdaptiveLearner } from '../recommendations/adaptive-learner';
+import type { DomainClassifier } from '../classification/domain-classifier';
+import type { EvidenceExtractor } from '../services/evidence-extractor';
 import type { BatchOptions, Batch } from './types';
 import type { ZoteroItem } from '../types';
+import type { Domain } from '../classification/types';
 import { getErrorContext } from '../error/error-handler';
 import { ProgressTracker } from '../performance/progress-tracker';
+import { ClassificationModal } from '../ui/classification-modal';
 
 /**
  * BatchService manages batch generation for the triage workflow
  */
 export class BatchService {
   private static readonly BATCH_SIZE = 100; // Progress update frequency
+  private static readonly CONFIDENCE_THRESHOLD = 0.70; // Classification confidence threshold for override modal
   private connector: ZoteroConnector;
   private registry: RegistryService;
   private profileService: ProfileService;
   private recommendationEngine: RecommendationEngine;
   private adaptiveLearner: AdaptiveLearner;
+  private domainClassifier: DomainClassifier;
+  private evidenceExtractor: EvidenceExtractor;
+  private app: App;
 
   /**
    * Create a new BatchService
@@ -39,19 +47,28 @@ export class BatchService {
    * @param profileService - ProfileService instance for profile access
    * @param recommendationEngine - RecommendationEngine for profile-based scoring
    * @param adaptiveLearner - AdaptiveLearner for learning from user feedback
+   * @param domainClassifier - DomainClassifier for item classification
+   * @param evidenceExtractor - EvidenceExtractor for content extraction
+   * @param app - Obsidian app instance for modal display
    */
   constructor(
     connector: ZoteroConnector,
     registry: RegistryService,
     profileService: ProfileService,
     recommendationEngine: RecommendationEngine,
-    adaptiveLearner: AdaptiveLearner
+    adaptiveLearner: AdaptiveLearner,
+    domainClassifier: DomainClassifier,
+    evidenceExtractor: EvidenceExtractor,
+    app: App
   ) {
     this.connector = connector;
     this.registry = registry;
     this.profileService = profileService;
     this.recommendationEngine = recommendationEngine;
     this.adaptiveLearner = adaptiveLearner;
+    this.domainClassifier = domainClassifier;
+    this.evidenceExtractor = evidenceExtractor;
+    this.app = app;
   }
 
   /**
@@ -207,12 +224,66 @@ export class BatchService {
 
   /**
    * Record user accepting an item
-   * Triggers adaptive learning if profile exists
+   * Triggers adaptive learning if profile exists, classifies item into domain,
+   * and stores classification metadata for enrichment workflow
    * @param item - Accepted Zotero item
    */
-  recordAccept(item: ZoteroItem): void {
+  async recordAccept(item: ZoteroItem): Promise<void> {
+    // Existing learning logic
     if (this.profileService.hasProfile()) {
       this.adaptiveLearner.learnFromAccept(item);
+    }
+
+    // NEW: Classify item into domain
+    try {
+      // Extract evidence for classification
+      const evidence = await this.evidenceExtractor.extract(item);
+
+      // Classify item based on metadata and evidence
+      const classificationResult = await this.domainClassifier.classify(item, evidence);
+
+      let domainToUse: Domain = classificationResult.domain;
+
+      // Show modal if confidence is below threshold and not a hard override
+      if (
+        classificationResult.confidence < BatchService.CONFIDENCE_THRESHOLD &&
+        !classificationResult.isHardOverride
+      ) {
+        // Show classification modal and wait for user selection
+        domainToUse = await new Promise<Domain>((resolve, reject) => {
+          const modal = new ClassificationModal(
+            this.app,
+            item,
+            classificationResult,
+            (selectedDomain: Domain) => {
+              resolve(selectedDomain);
+            },
+            () => {
+              // User cancelled - use suggested domain anyway
+              resolve(classificationResult.domain);
+            }
+          );
+          modal.open();
+        });
+      }
+
+      // Store classification in enrichment metadata
+      this.registry.setEnrichmentMetadata(item.itemID, {
+        knowledge_domain: domainToUse,
+        classification_confidence: classificationResult.confidence,
+        template_used: domainToUse.toUpperCase(),
+        evidenceLevel: evidence.level
+      });
+    } catch (err) {
+      // Classification failed - log error but don't block workflow
+      console.error('Zotero Triage: Classification failed for item', item.itemID, err);
+
+      // Store fallback classification (General domain)
+      this.registry.setEnrichmentMetadata(item.itemID, {
+        knowledge_domain: 'General',
+        classification_confidence: 0.0,
+        template_used: 'GENERAL'
+      });
     }
   }
 

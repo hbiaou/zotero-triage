@@ -29,6 +29,7 @@ import { TranscriptExtractor } from './extraction/transcript-extractor';
 import { YouTubeService } from './extraction/youtube-service';
 import { DomainClassifier } from './classification/domain-classifier';
 import { ReclassifyCommand } from './commands/reclassify-command';
+import { DiagnosticNoteService } from './services/diagnostic-note-service';
 
 /**
  * Zotero Triage Plugin
@@ -56,6 +57,7 @@ export default class ZoteroTriagePlugin extends Plugin {
   evidenceExtractor!: EvidenceExtractor;
   domainClassifier!: DomainClassifier;
   reclassifyCommand!: ReclassifyCommand;
+  diagnosticNoteService!: DiagnosticNoteService;
 
   async onload(): Promise<void> {
     // Start memory monitoring in dev mode
@@ -99,24 +101,20 @@ export default class ZoteroTriagePlugin extends Plugin {
       extractKeywordsFromMultiple
     );
 
-    // Initialize batch service with recommendation support
-    this.batchService = new BatchService(
-      this.connector,
-      this.registry,
-      this.profileService,
-      this.recommendationEngine,
-      this.adaptiveLearner
-    );
-
     // Initialize session tracker
     this.sessionTracker = new SessionTracker();
 
     // Initialize validation service
     this.validationService = new ValidationService(this.settings.qualityGate);
 
-    // Initialize AI services
+    // Initialize AI services (needed for classification)
     this.secretStorage = new SecretStorageService(this.app);
     this.aiService = new AIService(this.app, this.secretStorage);
+
+    // Initialize AI config from settings
+    if (this.settings.aiConfig) {
+      await this.aiService.initialize(this.settings.aiConfig);
+    }
 
     // Initialize transcript extraction services
     const youtubeService = new YouTubeService();
@@ -132,13 +130,23 @@ export default class ZoteroTriagePlugin extends Plugin {
       );
     }
 
-    // Initialize AI config from settings
-    if (this.settings.aiConfig) {
-      await this.aiService.initialize(this.settings.aiConfig);
-    }
-
     // Initialize domain classifier for Phase 15
     this.domainClassifier = new DomainClassifier(this.aiService);
+
+    // Initialize diagnostic note service for Phase 15
+    this.diagnosticNoteService = new DiagnosticNoteService();
+
+    // Initialize batch service with recommendation support and classification
+    this.batchService = new BatchService(
+      this.connector,
+      this.registry,
+      this.profileService,
+      this.recommendationEngine,
+      this.adaptiveLearner,
+      this.domainClassifier,
+      this.evidenceExtractor,
+      this.app
+    );
 
     // Initialize re-classify command
     if (this.evidenceExtractor) {

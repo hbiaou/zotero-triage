@@ -103,6 +103,36 @@ export class RegistryService {
   }
 
   /**
+   * Update enrichment metadata for an item
+   * @param itemId - Zotero item ID (number or string)
+   * @param metadata - Partial enrichment metadata to merge with existing metadata
+   */
+  setEnrichmentMetadata(
+    itemId: string | number,
+    metadata: Partial<NonNullable<RegistryEntry['enrichmentMetadata']>>
+  ): void {
+    const normalizedKey = normalizeItemKey(itemId);
+    const entry = this.registry.entries[normalizedKey];
+
+    if (!entry) {
+      // Create entry if it doesn't exist
+      this.registry.entries[normalizedKey] = {
+        state: 'unseen',
+        timestamp: Date.now(),
+        enrichmentMetadata: metadata
+      };
+    } else {
+      // Merge with existing metadata
+      entry.enrichmentMetadata = {
+        ...entry.enrichmentMetadata,
+        ...metadata
+      };
+    }
+
+    this.debouncedSave();
+  }
+
+  /**
    * Check if an item has been imported
    * @param itemId - Zotero item ID (number or string)
    * @returns true if item state is 'imported'

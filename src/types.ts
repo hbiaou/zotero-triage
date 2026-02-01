@@ -164,6 +164,12 @@ export interface RegistryEntry {
     retryCount?: number;
     /** Last retry timestamp (ISO 8601 format) */
     lastRetryTimestamp?: string;
+    /** Knowledge domain classification ('Academic' | 'Software' | 'Farming' | 'General') */
+    knowledge_domain?: string;
+    /** Classification confidence score (0.0-1.0) */
+    classification_confidence?: number;
+    /** Template used for enrichment */
+    template_used?: string;
   };
 }
 
