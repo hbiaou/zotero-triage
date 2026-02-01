@@ -11,23 +11,24 @@ See: .planning/PROJECT.md (updated 2026-01-30)
 ## Current Position
 
 Phase: 15 of 19 (Content Extraction & Classification Pipeline)
-Plan: 15-01 of 1 (Video Transcript Extraction)
-Status: In progress (1/1 plans complete)
-Last activity: 2026-02-01 — Completed 15-01-PLAN.md (Video Transcript Extraction)
+Plan: 15-02 of 2 (Domain Classification System)
+Status: In progress (2/2 plans complete)
+Last activity: 2026-02-01 — Completed 15-02-PLAN.md (Domain Classification System)
 
-Progress: [█████░░░░░░░░░░░░░░░] 15/19 phases (79% milestone progress, 9.4% v2.0 progress)
+Progress: [█████░░░░░░░░░░░░░░░] 15/19 phases (79% milestone progress, 9.8% v2.0 progress)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 47 (from v1.0-v1.2 + quick tasks + v2.0)
-- Average duration: ~33 min per plan
+- Total plans completed: 48 (from v1.0-v1.2 + quick tasks + v2.0)
+- Average duration: ~32 min per plan
 - Total execution time: ~26 hours
 
 **By Phase:**
 
 **Phase 15 (v2.0 - Content Extraction & Classification):**
 - 15-01: 6 min (Video Transcript Extraction)
+- 15-02: 5 min (Domain Classification System)
 
 **Phase 14 (v2.0 - AI Service Layer):**
 - 14-01: 15 min (Types & Secret Storage)
@@ -55,6 +56,11 @@ Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting v2.0 work:
 
 **Phase 15 (Content Extraction & Classification):**
+- 15-02: Confidence threshold 0.70 for override modal trigger (industry standard per research)
+- 15-02: Item type hard overrides bypass content analysis (journalArticle → Academic)
+- 15-02: Domain normalization handles LLM synonyms ("research" → "Academic")
+- 15-02: Fallback to General domain with confidence 0.3 on LLM failure
+- 15-02: Temperature 0.3 for consistent classification across calls
 - 15-01: YouTube-only automatic extraction (Vimeo and others require manual input)
 - 15-01: Error requiresManualInput flag drives manual input modal flow
 - 15-01: Platform detection via URL regex before service delegation
@@ -122,11 +128,11 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-01
-Stopped at: Completed 15-01-PLAN.md (Video Transcript Extraction)
+Stopped at: Completed 15-02-PLAN.md (Domain Classification System)
 Resume file: None
 
-Next action: Phase 15 in progress - plan additional phases for classification and enrichment pipeline
+Next action: Phase 15 complete - proceed to Phase 16 (Accept Workflow Integration)
 
 ---
 
-*Last updated: 2026-02-01 after completing plan 15-01*
+*Last updated: 2026-02-01 after completing plan 15-02*
