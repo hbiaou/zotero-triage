@@ -27,6 +27,8 @@ import { AIService } from './services/ai-service';
 import { EvidenceExtractor } from './services/evidence-extractor';
 import { TranscriptExtractor } from './extraction/transcript-extractor';
 import { YouTubeService } from './extraction/youtube-service';
+import { DomainClassifier } from './classification/domain-classifier';
+import { ReclassifyCommand } from './commands/reclassify-command';
 
 /**
  * Zotero Triage Plugin
@@ -52,6 +54,8 @@ export default class ZoteroTriagePlugin extends Plugin {
   secretStorage!: SecretStorageService;
   aiService!: AIService;
   evidenceExtractor!: EvidenceExtractor;
+  domainClassifier!: DomainClassifier;
+  reclassifyCommand!: ReclassifyCommand;
 
   async onload(): Promise<void> {
     // Start memory monitoring in dev mode
@@ -133,6 +137,19 @@ export default class ZoteroTriagePlugin extends Plugin {
       await this.aiService.initialize(this.settings.aiConfig);
     }
 
+    // Initialize domain classifier for Phase 15
+    this.domainClassifier = new DomainClassifier(this.aiService);
+
+    // Initialize re-classify command
+    if (this.evidenceExtractor) {
+      this.reclassifyCommand = new ReclassifyCommand(
+        this.app,
+        this,
+        this.domainClassifier,
+        this.evidenceExtractor
+      );
+    }
+
     // Register triage view
     this.registerView(
       TRIAGE_VIEW_TYPE,
@@ -154,6 +171,67 @@ export default class ZoteroTriagePlugin extends Plugin {
       id: 'zotero-triage-open-triage',
       name: 'Open triage dashboard',
       callback: () => this.activateTriageView()
+    });
+
+    // Command to re-classify item domain
+    this.addCommand({
+      id: 'reclassify-item',
+      name: 'Re-classify item domain',
+      callback: async () => {
+        // Get current active note
+        const activeFile = this.app.workspace.getActiveFile();
+        if (!activeFile) {
+          new Notice('No active note');
+          return;
+        }
+
+        // Determine ZoteroItem from note frontmatter or registry lookup
+        // For now, show a notice that this requires an active literature note
+        try {
+          // Read file content to extract item info from frontmatter
+          const content = await this.app.vault.read(activeFile);
+          const frontmatterRegex = /^---\n([\s\S]*?)\n---/;
+          const match = content.match(frontmatterRegex);
+
+          if (!match) {
+            new Notice('Active note does not have frontmatter (not a literature note)');
+            return;
+          }
+
+          const frontmatter = match[1];
+          const itemIDMatch = frontmatter.match(/zotero_item_id:\s*(\d+)/);
+
+          if (!itemIDMatch) {
+            new Notice('Active note is not a Zotero literature note');
+            return;
+          }
+
+          const itemID = parseInt(itemIDMatch[1], 10);
+
+          // Ensure database connection
+          await this.ensureConnected();
+
+          // Load the item from database
+          const items = await this.connector.loadItems();
+          const item = items.find(i => i.itemID === itemID);
+
+          if (!item) {
+            new Notice('Zotero item not found in database');
+            return;
+          }
+
+          // Execute re-classify command
+          if (this.reclassifyCommand) {
+            await this.reclassifyCommand.execute(item);
+          } else {
+            new Notice('Re-classify command not initialized (evidence extractor required)');
+          }
+        } catch (error) {
+          const message = error instanceof Error ? error.message : String(error);
+          new Notice(`Failed to re-classify: ${message}`);
+          console.error('[Main] Re-classify command failed:', error);
+        }
+      }
     });
 
     // Ribbon icon for quick access
