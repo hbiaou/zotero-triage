@@ -11,9 +11,9 @@ See: .planning/PROJECT.md (updated 2026-01-30)
 ## Current Position
 
 Phase: 15 of 19 (Content Extraction & Classification Pipeline)
-Plan: 15-06 of 6 (Classification & Modal Integration - Gap Closure)
-Status: Complete (6/6 plans complete)
-Last activity: 2026-02-01 — Completed 15-06-PLAN.md (Classification & Modal Integration - Gap Closure)
+Plan: 15-07 of 7 (Diagnostic Notes Integration - Gap Closure)
+Status: Complete (7/7 plans complete)
+Last activity: 2026-02-01 — Completed 15-07-PLAN.md (Diagnostic Notes Integration - Gap Closure)
 
 Progress: [█████░░░░░░░░░░░░░░░] 15/19 phases (79% milestone progress, 10.0% v2.0 progress)
 
@@ -33,6 +33,7 @@ Progress: [█████░░░░░░░░░░░░░░░] 15/19 p
 - 15-04: 7 min (Diagnostic Notes & Deferred Queue)
 - 15-05: 4 min (Domain-Specific Templates)
 - 15-06: 10 min (Classification & Modal Integration - Gap Closure)
+- 15-07: 14 min (Diagnostic Notes Integration - Gap Closure, verification only)
 
 **Phase 14 (v2.0 - AI Service Layer):**
 - 14-01: 15 min (Types & Secret Storage)
@@ -60,6 +61,9 @@ Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting v2.0 work:
 
 **Phase 15 (Content Extraction & Classification):**
+- 15-07: Diagnostic notes created at Accept time (not deferred to enrichment)
+- 15-07: Items with insufficient evidence marked as enrichment_pending
+- 15-07: Evidence check guards normal note creation in performAccept()
 - 15-06: Async recordAccept() for classification workflow integration
 - 15-06: Modal shown when confidence < 0.70 AND not hard override
 - 15-06: Fallback to General domain (0.0 confidence) on classification failure
@@ -152,11 +156,11 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-01
-Stopped at: Completed 15-06-PLAN.md (Classification & Modal Integration - Gap Closure)
+Stopped at: Completed 15-07-PLAN.md (Diagnostic Notes Integration - Gap Closure)
 Resume file: None
 
-Next action: Phase 15 complete (all 6 plans done including gap closure) - proceed to Phase 16 (Accept Workflow Integration)
+Next action: Phase 15 complete (all 7 plans done including gap closure) - proceed to Phase 16 (Accept Workflow Integration)
 
 ---
 
-*Last updated: 2026-02-01 after completing plan 15-06*
+*Last updated: 2026-02-01 after completing plan 15-07*
