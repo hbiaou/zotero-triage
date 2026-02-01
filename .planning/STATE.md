@@ -11,18 +11,18 @@ See: .planning/PROJECT.md (updated 2026-01-30)
 ## Current Position
 
 Phase: 15 of 19 (Content Extraction & Classification Pipeline)
-Plan: 15-04 of 4 (Diagnostic Notes & Deferred Queue)
-Status: Complete (4/4 plans complete)
-Last activity: 2026-02-01 — Completed 15-04-PLAN.md (Diagnostic Notes & Deferred Queue)
+Plan: 15-05 of 5 (Domain-Specific Templates)
+Status: Complete (5/5 plans complete)
+Last activity: 2026-02-01 — Completed 15-05-PLAN.md (Domain-Specific Templates - Gap Closure)
 
-Progress: [█████░░░░░░░░░░░░░░░] 15/19 phases (79% milestone progress, 9.8% v2.0 progress)
+Progress: [█████░░░░░░░░░░░░░░░] 15/19 phases (79% milestone progress, 10.0% v2.0 progress)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 49 (from v1.0-v1.2 + quick tasks + v2.0)
-- Average duration: ~31 min per plan
-- Total execution time: ~26.1 hours
+- Total plans completed: 50 (from v1.0-v1.2 + quick tasks + v2.0)
+- Average duration: ~30 min per plan
+- Total execution time: ~26.2 hours
 
 **By Phase:**
 
@@ -31,6 +31,7 @@ Progress: [█████░░░░░░░░░░░░░░░] 15/19 p
 - 15-02: 5 min (Domain Classification System)
 - 15-03: 210 min (Classification Modal & Evidence Integration)
 - 15-04: 7 min (Diagnostic Notes & Deferred Queue)
+- 15-05: 4 min (Domain-Specific Templates)
 
 **Phase 14 (v2.0 - AI Service Layer):**
 - 14-01: 15 min (Types & Secret Storage)
@@ -58,6 +59,11 @@ Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting v2.0 work:
 
 **Phase 15 (Content Extraction & Classification):**
+- 15-05: Template content preserved exactly from user-provided files without modification
+- 15-05: Frontmatter includes domain-specific fields (knowledge_domain, template_used, evidence_level)
+- 15-05: Title placeholder replacement with item.title from ZoteroItem
+- 15-05: Default fallback to General template for unrecognized domains
+- 15-05: Domain type union ('Academic' | 'Software' | 'Farming' | 'General') for type safety
 - 15-04: ProcessingState extended with enriched, enrichment_pending, enrichment_failed states
 - 15-04: EnrichmentMetadata tracks evidenceLevel, pendingReason, retryCount, lastRetryTimestamp
 - 15-04: Diagnostic notes include Zotero deep links for immediate user action
@@ -140,11 +146,11 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-01
-Stopped at: Completed 15-03-PLAN.md (Classification Modal & Evidence Integration)
+Stopped at: Completed 15-05-PLAN.md (Domain-Specific Templates - Gap Closure)
 Resume file: None
 
-Next action: Phase 15 complete (all 4 plans done) - proceed to Phase 16 (Accept Workflow Integration)
+Next action: Phase 15 complete (all 5 plans done including gap closure) - proceed to Phase 16 (Accept Workflow Integration)
 
 ---
 
-*Last updated: 2026-02-01 after completing plan 15-03*
+*Last updated: 2026-02-01 after completing plan 15-05*
