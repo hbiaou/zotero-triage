@@ -6,25 +6,28 @@ See: .planning/PROJECT.md (updated 2026-01-30)
 
 **Core value:** Users can progressively process their Zotero backlog without overwhelm, ensuring every imported literature note meets quality standards.
 
-**Current focus:** Phase 14 - AI Service Layer & Evidence Foundation
+**Current focus:** Phase 15 - Content Extraction & Classification Pipeline
 
 ## Current Position
 
-Phase: 14 of 19 (AI Service Layer & Evidence Foundation)
-Plan: 14-06 of 6 (AI Service Orchestrator & Settings UI)
-Status: Phase complete (6/6 plans complete)
-Last activity: 2026-01-31 — Completed 14-06-PLAN.md (AI Service Orchestrator & Settings UI)
+Phase: 15 of 19 (Content Extraction & Classification Pipeline)
+Plan: 15-01 of 1 (Video Transcript Extraction)
+Status: In progress (1/1 plans complete)
+Last activity: 2026-02-01 — Completed 15-01-PLAN.md (Video Transcript Extraction)
 
-Progress: [█████░░░░░░░░░░░░░░░] 14/19 phases (73% milestone progress, 8.8% v2.0 progress)
+Progress: [█████░░░░░░░░░░░░░░░] 15/19 phases (79% milestone progress, 9.4% v2.0 progress)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 46 (from v1.0-v1.2 + quick tasks + v2.0)
-- Average duration: ~34 min per plan
+- Total plans completed: 47 (from v1.0-v1.2 + quick tasks + v2.0)
+- Average duration: ~33 min per plan
 - Total execution time: ~26 hours
 
 **By Phase:**
+
+**Phase 15 (v2.0 - Content Extraction & Classification):**
+- 15-01: 6 min (Video Transcript Extraction)
 
 **Phase 14 (v2.0 - AI Service Layer):**
 - 14-01: 15 min (Types & Secret Storage)
@@ -50,6 +53,12 @@ Historical velocity from v1.0-v1.2 available in MILESTONES.md.
 
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting v2.0 work:
+
+**Phase 15 (Content Extraction & Classification):**
+- 15-01: YouTube-only automatic extraction (Vimeo and others require manual input)
+- 15-01: Error requiresManualInput flag drives manual input modal flow
+- 15-01: Platform detection via URL regex before service delegation
+- 15-01: Word count calculated from transcript for token estimation
 
 **Phase 14 (AI Service Layer):**
 - 14-06: Modal UI pattern for API key configuration (password input with test/save/clear)
@@ -112,12 +121,12 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-01-31
-Stopped at: Completed 14-06-PLAN.md (AI Service Orchestrator & Settings UI)
+Last session: 2026-02-01
+Stopped at: Completed 15-01-PLAN.md (Video Transcript Extraction)
 Resume file: None
 
-Next action: Phase 14 complete - proceed to Phase 15 (Classification & Enrichment Foundations)
+Next action: Phase 15 in progress - plan additional phases for classification and enrichment pipeline
 
 ---
 
-*Last updated: 2026-01-31 after completing plan 14-06*
+*Last updated: 2026-02-01 after completing plan 15-01*
