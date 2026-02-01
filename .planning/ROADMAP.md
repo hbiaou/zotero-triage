@@ -95,9 +95,9 @@ Plans (Original):
 - [x] 15-04-PLAN.md — Diagnostic notes for metadata-only items
 
 Gap Closure Plans:
-- [ ] 15-05-PLAN.md — Domain-specific template integration (Academic, Software, Farming, General)
-- [ ] 15-06-PLAN.md — Classification and modal workflow integration
-- [ ] 15-07-PLAN.md — Diagnostic notes service integration
+- [x] 15-05-PLAN.md — Domain-specific template integration (Academic, Software, Farming, General)
+- [x] 15-06-PLAN.md — Classification and modal workflow integration
+- [x] 15-07-PLAN.md — Diagnostic notes service integration
 
 ---
 
@@ -197,7 +197,7 @@ Phases execute in numeric order: 14 → 15 → 16 → 17 → 18 → 19
 |-------|-----------|----------------|--------|-----------|
 | 1-13 | v1.0-v1.2 | - | Complete | 2026-01-29 |
 | 14. AI Service Layer & Evidence Foundation | v2.0 | 6/6 | Complete | 2026-01-31 |
-| 15. Content Extraction & Classification Pipeline | v2.0 | 4/7 (gap closure in progress) | In Progress | - |
+| 15. Content Extraction & Classification Pipeline | v2.0 | 7/7 | Complete | 2026-02-01 |
 | 16. Enrichment Orchestration & Validation | v2.0 | 0/TBD | Not started | - |
 | 17. Long Content Strategy & Map-Reduce | v2.0 | 0/TBD | Not started | - |
 | 18. Registry State & Queue Management | v2.0 | 0/TBD | Not started | - |
