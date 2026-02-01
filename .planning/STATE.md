@@ -11,24 +11,26 @@ See: .planning/PROJECT.md (updated 2026-01-30)
 ## Current Position
 
 Phase: 15 of 19 (Content Extraction & Classification Pipeline)
-Plan: 15-02 of 2 (Domain Classification System)
-Status: In progress (2/2 plans complete)
-Last activity: 2026-02-01 — Completed 15-02-PLAN.md (Domain Classification System)
+Plan: 15-04 of 4 (Diagnostic Notes & Deferred Queue)
+Status: Complete (4/4 plans complete)
+Last activity: 2026-02-01 — Completed 15-04-PLAN.md (Diagnostic Notes & Deferred Queue)
 
 Progress: [█████░░░░░░░░░░░░░░░] 15/19 phases (79% milestone progress, 9.8% v2.0 progress)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 48 (from v1.0-v1.2 + quick tasks + v2.0)
-- Average duration: ~32 min per plan
-- Total execution time: ~26 hours
+- Total plans completed: 49 (from v1.0-v1.2 + quick tasks + v2.0)
+- Average duration: ~31 min per plan
+- Total execution time: ~26.1 hours
 
 **By Phase:**
 
 **Phase 15 (v2.0 - Content Extraction & Classification):**
 - 15-01: 6 min (Video Transcript Extraction)
 - 15-02: 5 min (Domain Classification System)
+- 15-03: [not documented] (Classification Override Modal UI)
+- 15-04: 7 min (Diagnostic Notes & Deferred Queue)
 
 **Phase 14 (v2.0 - AI Service Layer):**
 - 14-01: 15 min (Types & Secret Storage)
@@ -56,6 +58,12 @@ Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting v2.0 work:
 
 **Phase 15 (Content Extraction & Classification):**
+- 15-04: ProcessingState extended with enriched, enrichment_pending, enrichment_failed states
+- 15-04: EnrichmentMetadata tracks evidenceLevel, pendingReason, retryCount, lastRetryTimestamp
+- 15-04: Diagnostic notes include Zotero deep links for immediate user action
+- 15-04: Five diagnostic reasons: no_pdf, no_notes, no_transcript, abstract_only, metadata_only
+- 15-04: Validation ensures diagnostic note quality before returning to caller
+- 15-04: Fallback note generation prevents blank notes on generation failure
 - 15-02: Confidence threshold 0.70 for override modal trigger (industry standard per research)
 - 15-02: Item type hard overrides bypass content analysis (journalArticle → Academic)
 - 15-02: Domain normalization handles LLM synonyms ("research" → "Academic")
@@ -128,11 +136,11 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-01
-Stopped at: Completed 15-02-PLAN.md (Domain Classification System)
+Stopped at: Completed 15-04-PLAN.md (Diagnostic Notes & Deferred Queue)
 Resume file: None
 
 Next action: Phase 15 complete - proceed to Phase 16 (Accept Workflow Integration)
 
 ---
 
-*Last updated: 2026-02-01 after completing plan 15-02*
+*Last updated: 2026-02-01 after completing plan 15-04*
