@@ -11,9 +11,9 @@ See: .planning/PROJECT.md (updated 2026-01-30)
 ## Current Position
 
 Phase: 15 of 19 (Content Extraction & Classification Pipeline)
-Plan: 15-05 of 5 (Domain-Specific Templates)
-Status: Complete (5/5 plans complete)
-Last activity: 2026-02-01 — Completed 15-05-PLAN.md (Domain-Specific Templates - Gap Closure)
+Plan: 15-06 of 6 (Classification & Modal Integration - Gap Closure)
+Status: Complete (6/6 plans complete)
+Last activity: 2026-02-01 — Completed 15-06-PLAN.md (Classification & Modal Integration - Gap Closure)
 
 Progress: [█████░░░░░░░░░░░░░░░] 15/19 phases (79% milestone progress, 10.0% v2.0 progress)
 
@@ -32,6 +32,7 @@ Progress: [█████░░░░░░░░░░░░░░░] 15/19 p
 - 15-03: 210 min (Classification Modal & Evidence Integration)
 - 15-04: 7 min (Diagnostic Notes & Deferred Queue)
 - 15-05: 4 min (Domain-Specific Templates)
+- 15-06: 10 min (Classification & Modal Integration - Gap Closure)
 
 **Phase 14 (v2.0 - AI Service Layer):**
 - 14-01: 15 min (Types & Secret Storage)
@@ -59,6 +60,11 @@ Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting v2.0 work:
 
 **Phase 15 (Content Extraction & Classification):**
+- 15-06: Async recordAccept() for classification workflow integration
+- 15-06: Modal shown when confidence < 0.70 AND not hard override
+- 15-06: Fallback to General domain (0.0 confidence) on classification failure
+- 15-06: setEnrichmentMetadata() for partial metadata updates in registry
+- 15-06: Initialization order ensures AI services available before BatchService
 - 15-05: Template content preserved exactly from user-provided files without modification
 - 15-05: Frontmatter includes domain-specific fields (knowledge_domain, template_used, evidence_level)
 - 15-05: Title placeholder replacement with item.title from ZoteroItem
@@ -146,11 +152,11 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-01
-Stopped at: Completed 15-05-PLAN.md (Domain-Specific Templates - Gap Closure)
+Stopped at: Completed 15-06-PLAN.md (Classification & Modal Integration - Gap Closure)
 Resume file: None
 
-Next action: Phase 15 complete (all 5 plans done including gap closure) - proceed to Phase 16 (Accept Workflow Integration)
+Next action: Phase 15 complete (all 6 plans done including gap closure) - proceed to Phase 16 (Accept Workflow Integration)
 
 ---
 
-*Last updated: 2026-02-01 after completing plan 15-05*
+*Last updated: 2026-02-01 after completing plan 15-06*
