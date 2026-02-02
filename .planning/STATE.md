@@ -6,25 +6,28 @@ See: .planning/PROJECT.md (updated 2026-01-30)
 
 **Core value:** Users can progressively process their Zotero backlog without overwhelm, ensuring every imported literature note meets quality standards.
 
-**Current focus:** Phase 15 - Content Extraction & Classification Pipeline
+**Current focus:** Phase 16 - Enrichment Orchestration & Validation
 
 ## Current Position
 
-Phase: 15 of 19 (Content Extraction & Classification Pipeline)
-Plan: 15-07 of 7 (Diagnostic Notes Integration - Gap Closure)
-Status: Complete - VERIFIED (7/7 plans complete, all gaps closed)
-Last activity: 2026-02-01 — Completed Phase 15 execution and verification (5/5 success criteria passed)
+Phase: 16 of 19 (Enrichment Orchestration & Validation)
+Plan: 16-01 of 3 (Enrichment Service Foundation)
+Status: In progress (1/3 plans complete)
+Last activity: 2026-02-02 — Completed 16-01-PLAN.md (EnrichmentService with LLM-powered template population)
 
-Progress: [████████░░░░░░░░░░░░] 15/19 phases (79% milestone progress, 10.6% v2.0 progress)
+Progress: [████████░░░░░░░░░░░░] 16/19 phases (84% milestone progress, 11.3% v2.0 progress)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 52 (from v1.0-v1.2 + quick tasks + v2.0)
-- Average duration: ~29 min per plan
-- Total execution time: ~26.6 hours
+- Total plans completed: 53 (from v1.0-v1.2 + quick tasks + v2.0)
+- Average duration: ~28 min per plan
+- Total execution time: ~26.7 hours
 
 **By Phase:**
+
+**Phase 16 (v2.0 - Enrichment Orchestration & Validation):**
+- 16-01: 6 min (Enrichment Service Foundation)
 
 **Phase 15 (v2.0 - Content Extraction & Classification):**
 - 15-01: 6 min (Video Transcript Extraction)
@@ -59,6 +62,16 @@ Historical velocity from v1.0-v1.2 available in MILESTONES.md.
 
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting v2.0 work:
+
+**Phase 16 (Enrichment Orchestration & Validation):**
+- 16-01: AIService.complete() method (not generateCompletion) for LLM calls
+- 16-01: 2-minute timeout threshold for enrichment operations
+- 16-01: 30k character truncation for evidence to prevent token overflow
+- 16-01: Simple YAML parser implementation (no yaml library dependency)
+- 16-01: Mixed content style: verbatim quotes for claims, paraphrasing for context
+- 16-01: PDF priority over notes for conflicting evidence
+- 16-01: Evidence hierarchy enforcement via EvidenceExtractor.canEnrich() check before enrichment
+- 16-01: Promise.race() for timeout handling without external libraries
 
 **Phase 15 (Content Extraction & Classification):**
 - 15-07: Diagnostic notes created at Accept time (not deferred to enrichment)
@@ -155,12 +168,12 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-01
-Stopped at: Completed Phase 15 execution and verification
+Last session: 2026-02-02
+Stopped at: Completed 16-01-PLAN.md (EnrichmentService Foundation)
 Resume file: None
 
-Next action: Phase 15 COMPLETE (all 7 plans done + verified) - proceed to Phase 16 (Enrichment Orchestration & Validation)
+Next action: Continue Phase 16 - proceed to 16-02 (Accept Workflow Orchestration)
 
 ---
 
-*Last updated: 2026-02-01 after completing Phase 15*
+*Last updated: 2026-02-02 after completing Phase 16 Plan 01*
