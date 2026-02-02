@@ -217,6 +217,23 @@ export default class ZoteroTriagePlugin extends Plugin {
       callback: () => this.activateTriageView()
     });
 
+    // Command: Re-enrich Note (manual retry for failed enrichments)
+    this.addCommand({
+      id: 'reenrich-note',
+      name: 'Re-enrich Note',
+      checkCallback: (checking: boolean) => {
+        const activeFile = this.app.workspace.getActiveFile();
+        if (!activeFile || !activeFile.path.startsWith(this.settings.outputFolder)) {
+          return false; // Only available for notes in output folder
+        }
+
+        if (!checking) {
+          this.reenrichNote(activeFile.path);
+        }
+        return true;
+      }
+    });
+
     // Command to re-classify item domain
     this.addCommand({
       id: 'reclassify-item',
@@ -540,6 +557,129 @@ export default class ZoteroTriagePlugin extends Plugin {
       } else {
         new Notice(`Failed to create note: ${message}`);
       }
+    }
+  }
+
+  /**
+   * Re-enrich an existing note (manual retry)
+   * Used for stub notes or notes needing updated content
+   */
+  async reenrichNote(notePath: string): Promise<void> {
+    try {
+      // Read existing note to extract Zotero item ID
+      const content = await this.app.vault.adapter.read(notePath);
+
+      // Parse frontmatter to get zotero_key
+      const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---/);
+      if (!frontmatterMatch) {
+        new Notice('❌ Could not find frontmatter in note');
+        return;
+      }
+
+      const frontmatter = frontmatterMatch[1];
+      const keyMatch = frontmatter.match(/zotero_key:\s*"?([^"\n]+)"?/);
+      if (!keyMatch) {
+        new Notice('❌ No zotero_key found in note frontmatter');
+        return;
+      }
+
+      const zoteroKey = keyMatch[1];
+
+      // Find item in connector by key
+      await this.ensureConnected();
+      const item = this.connector.items.find(i => i.key === zoteroKey);
+      if (!item) {
+        new Notice('❌ Could not find Zotero item with key: ' + zoteroKey);
+        return;
+      }
+
+      // Show confirmation modal
+      const confirmed = await new Promise<boolean>((resolve) => {
+        const modal = new Modal(this.app);
+        modal.titleEl.setText('Re-enrich Note');
+        modal.contentEl.createEl('p', {
+          text: `Re-enrich "${item.title}"? This will replace the existing note content.`
+        });
+
+        const buttonContainer = modal.contentEl.createDiv({ cls: 'modal-button-container' });
+        buttonContainer.createEl('button', { text: 'Cancel' })
+          .addEventListener('click', () => {
+            modal.close();
+            resolve(false);
+          });
+        buttonContainer.createEl('button', { text: 'Re-enrich', cls: 'mod-cta' })
+          .addEventListener('click', () => {
+            modal.close();
+            resolve(true);
+          });
+
+        modal.open();
+      });
+
+      if (!confirmed) {
+        return;
+      }
+
+      // Delete existing note
+      await this.app.vault.adapter.remove(notePath);
+
+      // Run enrichment orchestration
+      const result = await this.enrichmentOrchestrator.orchestrate(item);
+
+      if (result.success) {
+        new Notice(`✅ Note re-enriched: ${result.notePath}`);
+
+        // Update registry
+        this.registry.markState(item.itemID, 'imported');
+
+        // Remove from retry queue if present
+        const queuedItems = this.retryQueue.findByItemId(item.itemID);
+        for (const queued of queuedItems) {
+          await this.retryQueue.dequeue(queued.id);
+        }
+
+        // Open new note
+        const file = this.app.vault.getAbstractFileByPath(result.notePath!);
+        if (file) {
+          await this.app.workspace.getLeaf().openFile(file as any);
+        }
+
+      } else {
+        // Re-enrichment failed - create new stub
+        const failureContext = {
+          stage: result.stage as any,
+          error: result.error!,
+          item
+        };
+
+        const stubNote = this.stubNoteGenerator.createStubNote(failureContext);
+        const stubPath = await this.stubNoteGenerator.saveStubNote(
+          stubNote,
+          this.settings.outputFolder
+        );
+
+        // Update retry queue attempt count
+        const queuedItems = this.retryQueue.findByItemId(item.itemID);
+        if (queuedItems.length > 0) {
+          await this.retryQueue.updateRetryAttempt(queuedItems[0].id);
+        } else {
+          // Add to queue if not already present
+          await this.retryQueue.enqueue({
+            itemId: item.itemID,
+            itemKey: item.key || '',
+            itemTitle: item.title || 'Untitled',
+            notePath: stubPath,
+            failureStage: result.stage,
+            failureReason: result.error!.message
+          });
+        }
+
+        new Notice(`⚠️ Re-enrichment failed - stub note updated`, 5000);
+      }
+
+    } catch (error) {
+      console.error('Re-enrich error:', error);
+      new Notice(`❌ Re-enrichment error: ${(error as Error).message}`);
     }
   }
 
