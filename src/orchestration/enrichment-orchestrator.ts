@@ -6,8 +6,8 @@
  * progress feedback.
  *
  * Pipeline stages:
- * 1. Classification (0-20%) - Domain classification for template selection
- * 2. Extraction (20-40%) - Evidence extraction from PDF/notes/abstract
+ * 1. Extraction (0-20%) - Evidence extraction from PDF/notes/abstract
+ * 2. Classification (20-40%) - Domain classification for template selection
  * 3. Enrichment (40-70%) - LLM-powered content generation
  * 4. Validation (70-90%) - Output quality validation
  * 5. Saving (90-100%) - Save enriched note to vault
@@ -87,8 +87,8 @@ export class EnrichmentOrchestrator {
    * Orchestrate full enrichment pipeline with progress feedback
    *
    * Runs five-stage pipeline with blocking progress modal:
-   * 1. Classification - Determine domain for template selection
-   * 2. Extraction - Extract evidence from PDF/notes/abstract
+   * 1. Extraction - Extract evidence from PDF/notes/abstract
+   * 2. Classification - Determine domain for template selection
    * 3. Enrichment - Generate enriched content via LLM
    * 4. Validation - Validate output quality and consistency
    * 5. Saving - Save enriched note to vault
@@ -115,28 +115,28 @@ export class EnrichmentOrchestrator {
     }, this.TIMEOUT_MS);
 
     try {
-      // Stage 1: Classification (0-20%)
-      await this.runStage('classifying', async () => {
-        progressModal.updateProgress(5, 'Classifying item...');
-        const classification = await this.domainClassifier.classify(
-          item,
-          this.currentState!.evidence!
-        );
-        this.currentState!.classification = classification;
-        progressModal.updateProgress(
-          20,
-          `Domain: ${classification.domain} (${Math.round(classification.confidence * 100)}%)`
-        );
-      });
-
-      // Stage 2: Evidence Extraction (20-40%)
+      // Stage 1: Evidence Extraction (0-20%)
       await this.runStage('extracting', async () => {
-        progressModal.updateProgress(25, 'Extracting evidence...');
+        progressModal.updateProgress(5, 'Extracting evidence...');
         const evidence = await this.evidenceExtractor.extract(item);
         this.currentState!.evidence = evidence;
         progressModal.updateProgress(
-          40,
+          20,
           `Evidence: ${evidence.level} (${evidence.tokenEstimate} tokens)`
+        );
+      });
+
+      // Stage 2: Classification (20-40%)
+      await this.runStage('classifying', async () => {
+        progressModal.updateProgress(25, 'Classifying item...');
+        const classification = await this.domainClassifier.classify(
+          item,
+          this.currentState!.evidence! as EvidenceExtraction
+        );
+        this.currentState!.classification = classification;
+        progressModal.updateProgress(
+          40,
+          `Domain: ${classification.domain} (${Math.round(classification.confidence * 100)}%)`
         );
       });
 
