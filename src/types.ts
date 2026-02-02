@@ -247,3 +247,52 @@ export class EnrichmentParseError extends Error {
     this.name = 'EnrichmentParseError';
   }
 }
+
+/**
+ * Context captured when enrichment fails at any stage
+ *
+ * Used to generate diagnostic stub notes with complete failure information.
+ */
+export interface FailureContext {
+  /** Stage where enrichment failed */
+  stage: 'classification' | 'extraction' | 'enrichment' | 'validation';
+  /** Error that caused the failure */
+  error: Error;
+  /** Zotero item being processed */
+  item: ZoteroItem;
+  /** Classification result (if classification stage completed) */
+  classification?: {
+    domain: string;
+    confidence: number;
+  };
+  /** Evidence extraction result (if extraction stage completed) */
+  evidence?: {
+    level: EvidenceLevel;
+    sources: string[];
+  };
+  /** Partial enrichment output before validation failed */
+  partialEnrichment?: string;
+}
+
+/**
+ * Stub note structure for failed enrichments
+ *
+ * Contains minimal valid note with diagnostic information and retry guidance.
+ */
+export interface StubNote {
+  /** Note title (from Zotero item) */
+  title: string;
+  /** Frontmatter metadata object */
+  metadata: Record<string, any>;
+  /** Diagnostic information for user */
+  diagnostic: {
+    /** Stage where failure occurred */
+    stage_failed: string;
+    /** Evidence level available at failure time */
+    evidence_level: string;
+    /** Full error stack trace */
+    full_error?: string;
+  };
+  /** Note body content with diagnostic sections */
+  content: string;
+}
