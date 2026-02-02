@@ -327,3 +327,70 @@ export interface QueuedEnrichment {
   /** ISO timestamp of next scheduled retry (exponential backoff) */
   nextRetryTime: string;
 }
+
+/**
+ * Pipeline stage for enrichment orchestration
+ *
+ * State machine stages during enrichment pipeline:
+ * - idle: Initial state before processing
+ * - classifying: Domain classification in progress
+ * - extracting: Evidence extraction in progress
+ * - enriching: LLM enrichment in progress
+ * - validating: Output validation in progress
+ * - saving: Saving enriched note to vault
+ * - completed: Pipeline successfully completed
+ * - failed: Pipeline failed at some stage
+ */
+export type PipelineStage =
+  | 'idle'
+  | 'classifying'
+  | 'extracting'
+  | 'enriching'
+  | 'validating'
+  | 'saving'
+  | 'completed'
+  | 'failed';
+
+/**
+ * Pipeline state tracking
+ *
+ * Captures current state of enrichment pipeline for an item.
+ * Used for progress monitoring and error recovery.
+ */
+export interface PipelineState {
+  /** Current pipeline stage */
+  stage: PipelineStage;
+  /** Progress percentage (0-100) */
+  progress: number;
+  /** Zotero item being processed */
+  item: ZoteroItem;
+  /** Classification result (available after classifying stage) */
+  classification?: any; // ClassificationResult from classification/types
+  /** Evidence extraction result (available after extracting stage) */
+  evidence?: any; // EvidenceExtraction from ai/types
+  /** Enrichment result (available after enriching stage) */
+  enrichment?: EnrichmentResult;
+  /** Validation result (available after validating stage) */
+  validationResult?: any; // ValidationResult from validation/output-validator
+  /** Error if pipeline failed */
+  error?: Error;
+}
+
+/**
+ * Orchestration result
+ *
+ * Returned by EnrichmentOrchestrator after pipeline execution.
+ * Contains success status, note path, and any errors/warnings.
+ */
+export interface OrchestrationResult {
+  /** Whether pipeline completed successfully */
+  success: boolean;
+  /** Path to saved note (if success = true) */
+  notePath?: string;
+  /** Stage where pipeline ended (completed or failed stage) */
+  stage: PipelineStage;
+  /** Error if pipeline failed */
+  error?: Error;
+  /** Validation warnings (non-blocking, informational only) */
+  validationWarnings?: any[]; // ValidationError[] from validation/output-validator
+}
