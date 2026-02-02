@@ -296,3 +296,34 @@ export interface StubNote {
   /** Note body content with diagnostic sections */
   content: string;
 }
+
+/**
+ * Queued enrichment for retry tracking
+ *
+ * Tracks failed enrichments with exponential backoff for automatic retry.
+ * Queue persists across plugin reloads via .zotero-triage-queue.json.
+ */
+export interface QueuedEnrichment {
+  /** Unique ID (itemID + timestamp) */
+  id: string;
+  /** Zotero item ID */
+  itemId: number;
+  /** Zotero item key */
+  itemKey: string;
+  /** Item title for display in UI */
+  itemTitle: string;
+  /** Path to stub note */
+  notePath: string;
+  /** ISO timestamp of failure */
+  failedAt: string;
+  /** Stage where enrichment failed */
+  failureStage: string;
+  /** Error message */
+  failureReason: string;
+  /** Number of retry attempts (0 = first attempt) */
+  attempts: number;
+  /** ISO timestamp of last attempt */
+  lastAttemptTime: string;
+  /** ISO timestamp of next scheduled retry (exponential backoff) */
+  nextRetryTime: string;
+}
