@@ -11,23 +11,24 @@ See: .planning/PROJECT.md (updated 2026-01-30)
 ## Current Position
 
 Phase: 16 of 19 (Enrichment Orchestration & Validation)
-Plan: 16-01 of 3 (Enrichment Service Foundation)
-Status: In progress (1/3 plans complete)
-Last activity: 2026-02-02 — Completed 16-01-PLAN.md (EnrichmentService with LLM-powered template population)
+Plan: 16-02 of 3 (Output Validation Stack)
+Status: In progress (2/3 plans complete)
+Last activity: 2026-02-02 — Completed 16-02-PLAN.md (Zod schema validation, metadata consistency checks, hallucination detection)
 
-Progress: [████████░░░░░░░░░░░░] 16/19 phases (84% milestone progress, 11.3% v2.0 progress)
+Progress: [████████░░░░░░░░░░░░] 16/19 phases (84% milestone progress, 11.9% v2.0 progress)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 53 (from v1.0-v1.2 + quick tasks + v2.0)
-- Average duration: ~28 min per plan
-- Total execution time: ~26.7 hours
+- Total plans completed: 54 (from v1.0-v1.2 + quick tasks + v2.0)
+- Average duration: ~27 min per plan
+- Total execution time: ~26.8 hours
 
 **By Phase:**
 
 **Phase 16 (v2.0 - Enrichment Orchestration & Validation):**
 - 16-01: 6 min (Enrichment Service Foundation)
+- 16-02: 7 min (Output Validation Stack)
 
 **Phase 15 (v2.0 - Content Extraction & Classification):**
 - 15-01: 6 min (Video Transcript Extraction)
@@ -64,6 +65,12 @@ Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting v2.0 work:
 
 **Phase 16 (Enrichment Orchestration & Validation):**
+- 16-02: Hallucination detection only runs if schema/metadata valid (expensive LLM call)
+- 16-02: YAML parsing uses yaml library not gray-matter (gray-matter not installed)
+- 16-02: Authors extracted from ZoteroItem.authors string array (Last, First format)
+- 16-02: Evidence content field used for all evidence types (single content field, not separate fullText/notes/abstract)
+- 16-02: MetadataOnly evidence skips hallucination detection (no content to validate against)
+- 16-02: Validation errors block note save, warnings are informational only
 - 16-01: AIService.complete() method (not generateCompletion) for LLM calls
 - 16-01: 2-minute timeout threshold for enrichment operations
 - 16-01: 30k character truncation for evidence to prevent token overflow
@@ -169,11 +176,11 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-02
-Stopped at: Completed 16-01-PLAN.md (EnrichmentService Foundation)
+Stopped at: Completed 16-02-PLAN.md (Output Validation Stack)
 Resume file: None
 
-Next action: Continue Phase 16 - proceed to 16-02 (Accept Workflow Orchestration)
+Next action: Continue Phase 16 - proceed to 16-03 (Accept Workflow Orchestration)
 
 ---
 
-*Last updated: 2026-02-02 after completing Phase 16 Plan 01*
+*Last updated: 2026-02-02 after completing Phase 16 Plan 02*
