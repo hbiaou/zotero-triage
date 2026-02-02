@@ -11,18 +11,18 @@ See: .planning/PROJECT.md (updated 2026-01-30)
 ## Current Position
 
 Phase: 16 of 19 (Enrichment Orchestration & Validation)
-Plan: 16-03 of 3 (Error Recovery Infrastructure)
-Status: Complete (3/3 plans complete)
-Last activity: 2026-02-02 — Completed 16-03-PLAN.md (StubNoteGenerator for failure fallback, RetryQueue with exponential backoff)
+Plan: 16-04 of 4 (Enrichment Orchestrator & Progress UI)
+Status: Phase Complete (4/4 plans complete)
+Last activity: 2026-02-02 — Completed 16-04-PLAN.md (EnrichmentOrchestrator with five-stage pipeline, EnrichmentProgressModal)
 
 Progress: [████████░░░░░░░░░░░░] 16/19 phases (84% milestone progress, 12.2% v2.0 progress)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 55 (from v1.0-v1.2 + quick tasks + v2.0)
+- Total plans completed: 56 (from v1.0-v1.2 + quick tasks + v2.0)
 - Average duration: ~26 min per plan
-- Total execution time: ~26.9 hours
+- Total execution time: ~27.0 hours
 
 **By Phase:**
 
@@ -30,6 +30,7 @@ Progress: [████████░░░░░░░░░░░░] 16/19 p
 - 16-01: 6 min (Enrichment Service Foundation)
 - 16-02: 7 min (Output Validation Stack)
 - 16-03: 5 min (Error Recovery Infrastructure)
+- 16-04: 4 min (Enrichment Orchestrator & Progress UI)
 
 **Phase 15 (v2.0 - Content Extraction & Classification):**
 - 15-01: 6 min (Video Transcript Extraction)
@@ -66,6 +67,11 @@ Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting v2.0 work:
 
 **Phase 16 (Enrichment Orchestration & Validation):**
+- 16-04: Evidence extraction before classification (classification needs evidence)
+- 16-04: Progress bar color transitions: blue → green (< 50% → < 90% → 100%)
+- 16-04: Modal auto-closes after 1s on success, 3s on error
+- 16-04: Timeout enforced at orchestration level (2 minutes)
+- 16-04: PipelineStageError wrapper for stage-specific failures with itemId context
 - 16-03: Exponential backoff schedule: 5min, 15min, 45min, 2hr15min, 6hr45min (base 5min * 3^attempts)
 - 16-03: Queue persists to .zotero-triage-queue.json at vault root for plugin reload survival
 - 16-03: Stub notes use General domain template as default fallback
@@ -182,11 +188,11 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-02
-Stopped at: Completed Phase 16 execution (3/3 plans complete)
+Stopped at: Completed Phase 16 execution (4/4 plans complete)
 Resume file: None
 
 Next action: Phase 16 COMPLETE - proceed to Phase 17 (Acceptance Modal & Batch UI Enhancement)
 
 ---
 
-*Last updated: 2026-02-02 after completing Phase 16 Plan 03*
+*Last updated: 2026-02-02 after completing Phase 16 Plan 04*
