@@ -131,14 +131,13 @@ export default class ZoteroTriagePlugin extends Plugin {
     const transcriptExtractor = new TranscriptExtractor(youtubeService);
 
     // Initialize evidence extractor (needs Zotero data path)
+    // Always initialize it - it will handle missing path gracefully
     const zoteroDataPath = this.getZoteroDataPath();
-    if (zoteroDataPath) {
-      this.evidenceExtractor = new EvidenceExtractor(
-        this.connector,
-        zoteroDataPath,
-        transcriptExtractor
-      );
-    }
+    this.evidenceExtractor = new EvidenceExtractor(
+      this.connector,
+      zoteroDataPath || '', // Provide empty string if no path configured yet
+      transcriptExtractor
+    );
 
     // Initialize domain classifier for Phase 15
     this.domainClassifier = new DomainClassifier(this.aiService);

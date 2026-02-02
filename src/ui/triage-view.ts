@@ -489,14 +489,32 @@ export class TriageView extends ItemView {
     this.saveScrollPosition();
 
     try {
+      console.log('🔍 ACCEPT DEBUG: Starting accept for item:', item.itemID, item.title?.substring(0, 50));
+      console.log('🔍 ACCEPT DEBUG: AI Service exists:', !!this.plugin.aiService);
+      console.log('🔍 ACCEPT DEBUG: AI Service ready:', this.plugin.aiService?.isReady());
+      console.log('🔍 ACCEPT DEBUG: AI current provider:', this.plugin.aiService?.['currentProvider']?.providerId || 'none');
+      console.log('🔍 ACCEPT DEBUG: AI config:', {
+        selectedProvider: this.plugin.settings.aiConfig?.selectedProvider,
+        selectedModel: this.plugin.settings.aiConfig?.selectedModel
+      });
+      console.log('🔍 ACCEPT DEBUG: Enrichment Orchestrator exists:', !!this.plugin.enrichmentOrchestrator);
+      console.log('🔍 ACCEPT DEBUG: Evidence Extractor exists:', !!this.plugin.evidenceExtractor);
+      console.log('🔍 ACCEPT DEBUG: Zotero DB Path:', this.plugin.settings.zoteroDbPath ? '[configured]' : '[not configured]');
+
       // Check if AI services and enrichment orchestrator are configured
       if (!this.plugin.aiService || !this.plugin.aiService.isReady() || !this.plugin.enrichmentOrchestrator) {
+        console.log('⚠️ ACCEPT DEBUG: AI not configured, entering fallback path');
         // Fallback to diagnostic note flow (existing code for insufficient evidence)
         if (this.plugin.evidenceExtractor) {
+          console.log('⚠️ ACCEPT DEBUG: Evidence extractor exists, extracting evidence');
           const evidence = await this.plugin.evidenceExtractor.extract(item);
+          console.log('⚠️ ACCEPT DEBUG: Evidence extracted:', evidence);
 
           // If evidence is insufficient, create diagnostic note
-          if (!this.plugin.evidenceExtractor.canEnrich(evidence)) {
+          const canEnrich = this.plugin.evidenceExtractor.canEnrich(evidence);
+          console.log('⚠️ ACCEPT DEBUG: Can enrich?', canEnrich);
+          if (!canEnrich) {
+            console.log('⚠️ ACCEPT DEBUG: Creating diagnostic note');
             // Generate diagnostic note
             const diagnosticNote = this.plugin.diagnosticNoteService.createDiagnosticNote(item, evidence);
 
@@ -511,7 +529,18 @@ export class TriageView extends ItemView {
 
             // Create diagnostic note file
             const filePath = this.plugin.noteGenerator.getFilePath(item);
-            await this.plugin.app.vault.create(filePath, diagnosticNote);
+            console.log('⚠️ ACCEPT DEBUG: Creating diagnostic note at:', filePath);
+
+            // Check if file already exists
+            const existingFile = this.app.vault.getAbstractFileByPath(filePath);
+            if (existingFile) {
+              console.log('⚠️ ACCEPT DEBUG: File already exists, modifying');
+              await this.app.vault.modify(existingFile as any, diagnosticNote);
+            } else {
+              console.log('⚠️ ACCEPT DEBUG: Creating new file');
+              await this.plugin.app.vault.create(filePath, diagnosticNote);
+            }
+            console.log('⚠️ ACCEPT DEBUG: Diagnostic note saved successfully');
 
             // Mark as enrichment_pending instead of imported
             this.plugin.registry.markState(item.itemID, 'enrichment_pending');
@@ -550,7 +579,21 @@ export class TriageView extends ItemView {
         }
 
         // No evidence extractor or sufficient evidence but AI not configured - create regular note
-        await this.plugin.noteGenerator.createNote(item);
+        console.log('⚠️ ACCEPT DEBUG: Creating regular note (no AI or sufficient evidence but no AI)');
+        try {
+          await this.plugin.noteGenerator.createNote(item);
+          console.log('⚠️ ACCEPT DEBUG: Regular note created successfully');
+        } catch (noteErr) {
+          // Check if error is "file already exists" - if so, treat as success
+          const errMsg = noteErr instanceof Error ? noteErr.message : String(noteErr);
+          if (errMsg.includes('already exists')) {
+            console.log('⚠️ ACCEPT DEBUG: Note already exists, treating as success');
+            new Notice('Note already exists - item marked as imported');
+          } else {
+            console.error('⚠️ ACCEPT DEBUG: Failed to create regular note:', noteErr);
+            throw noteErr;
+          }
+        }
         this.plugin.registry.markState(item.itemID, 'imported');
 
         // Update UI
@@ -575,10 +618,13 @@ export class TriageView extends ItemView {
       }
 
       // Run enrichment orchestration
+      console.log('✅ ACCEPT DEBUG: AI configured, calling orchestrator');
       const result = await this.plugin.enrichmentOrchestrator.orchestrate(item);
+      console.log('✅ ACCEPT DEBUG: Orchestrator result:', result);
 
       if (result.success) {
         // Enrichment succeeded
+        console.log('✅ ACCEPT DEBUG: Enrichment succeeded! Note path:', result.notePath);
         new Notice(`✅ Enriched note created: ${result.notePath}`);
 
         // Mark as imported (enriched state)
@@ -625,6 +671,7 @@ export class TriageView extends ItemView {
 
       } else {
         // Enrichment failed - create stub note and queue retry
+        console.log('❌ ACCEPT DEBUG: Enrichment failed, creating stub note');
         const failureContext = {
           stage: result.stage as any,
           error: result.error!,
@@ -633,11 +680,14 @@ export class TriageView extends ItemView {
           evidence: undefined
         };
 
+        console.log('❌ ACCEPT DEBUG: Failure context:', failureContext);
         const stubNote = this.plugin.stubNoteGenerator.createStubNote(failureContext);
+        console.log('❌ ACCEPT DEBUG: Stub note created, saving to:', this.plugin.settings.outputFolder);
         const stubPath = await this.plugin.stubNoteGenerator.saveStubNote(
           stubNote,
           this.plugin.settings.outputFolder
         );
+        console.log('❌ ACCEPT DEBUG: Stub note saved to:', stubPath);
 
         // Queue for retry
         await this.plugin.retryQueue.enqueue({

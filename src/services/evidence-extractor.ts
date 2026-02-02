@@ -69,6 +69,11 @@ export class EvidenceExtractor {
    * @returns PDF fulltext or empty string if unavailable
    */
   private async extractPDFFulltext(itemKey: string): Promise<string> {
+    // Skip if Zotero data path not configured
+    if (!this.zoteroDataPath) {
+      return '';
+    }
+
     try {
       // Locate storage directory for this item
       const storageDir = this.locateStorageDir(itemKey);
