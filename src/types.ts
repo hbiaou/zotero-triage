@@ -185,3 +185,65 @@ export interface Registry {
   /** Unix timestamp of last modification */
   lastModified: number;
 }
+
+/**
+ * Result of AI-powered enrichment for a Zotero item
+ *
+ * Contains the enriched literature note content with YAML frontmatter,
+ * metadata about the enrichment process, and evidence sources used.
+ */
+export interface EnrichmentResult {
+  /** Full markdown content with YAML frontmatter + body sections */
+  content: string;
+  /** Parsed YAML frontmatter as object */
+  metadata: Record<string, any>;
+  /** Evidence sources used during enrichment */
+  evidenceUsed: {
+    /** Evidence level achieved */
+    level: EvidenceLevel;
+    /** Source identifiers (e.g., ['pdf_fulltext'], ['zotero_notes']) */
+    sources: string[];
+  };
+  /** ISO timestamp when enrichment completed */
+  enrichedAt: string;
+  /** AI model identifier used for enrichment */
+  modelUsed: string;
+  /** Estimated token count consumed (optional) */
+  tokenCount?: number;
+}
+
+/**
+ * Enrichment timeout error
+ *
+ * Thrown when LLM enrichment exceeds timeout threshold (2 minutes)
+ */
+export class EnrichmentTimeoutError extends Error {
+  constructor(public itemId: number, message: string) {
+    super(message);
+    this.name = 'EnrichmentTimeoutError';
+  }
+}
+
+/**
+ * Enrichment API error
+ *
+ * Thrown when LLM API call fails (network, authentication, rate limit)
+ */
+export class EnrichmentAPIError extends Error {
+  constructor(public itemId: number, message: string, public cause?: Error) {
+    super(message);
+    this.name = 'EnrichmentAPIError';
+  }
+}
+
+/**
+ * Enrichment parse error
+ *
+ * Thrown when LLM response cannot be parsed or validated
+ */
+export class EnrichmentParseError extends Error {
+  constructor(public itemId: number, message: string) {
+    super(message);
+    this.name = 'EnrichmentParseError';
+  }
+}
