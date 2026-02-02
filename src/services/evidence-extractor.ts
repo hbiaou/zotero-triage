@@ -131,7 +131,7 @@ export class EvidenceExtractor {
           COALESCE(itemNotes.note, '') as note
         FROM items
         LEFT JOIN itemNotes ON items.itemID = itemNotes.itemID
-        WHERE items.parentItemID = ?
+        WHERE items.parentID = ?
           AND items.itemTypeID = (
             SELECT itemTypeID FROM itemTypes WHERE typeName = 'note'
           )

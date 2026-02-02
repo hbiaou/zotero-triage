@@ -45,13 +45,13 @@ SELECT version FROM version WHERE schema = 'userdata'
  * Excludes:
  * - Items in deletedItems table
  * - Attachments (itemType = 'attachment')
- * - Child notes (itemType = 'note' with parentItemID)
+ * - Child notes (itemType = 'note' with parentID)
  * - Annotations (itemType = 'annotation')
  * - Group libraries and feeds (only type='user' personal library)
  * - Retracted items (Zotero 7.0+, gracefully degrades on 6.x)
  *
  * Includes:
- * - Standalone notes (itemType = 'note' without parentItemID - legitimate research notes)
+ * - Standalone notes (itemType = 'note' without parentID - legitimate research notes)
  *
  * Returns: itemID, itemKey, dateAdded, dateModified, itemType,
  *          title, doi, date, journal, volume, issue, pages, abstract, publisher, isbn, url
@@ -76,7 +76,7 @@ WITH itemFields AS (
   LEFT JOIN itemNotes n ON i.itemID = n.itemID
   WHERE i.itemID NOT IN (SELECT itemID FROM deletedItems)
     AND it.typeName != 'attachment'
-    AND (it.typeName != 'note' OR n.parentItemID IS NULL)
+    AND (it.typeName != 'note' OR n.parentID IS NULL)
     AND it.typeName != 'annotation'
     AND l.type = 'user'
     AND ri.itemID IS NULL
@@ -130,7 +130,7 @@ ORDER BY ic.orderIndex
 
 /**
  * Query to get PDF attachments for a specific item.
- * Parameterized with parentItemID (?).
+ * Parameterized with parentID (?).
  *
  * linkMode:
  * - 0: importedFile (stored in storage/{itemKey}/)
@@ -148,7 +148,7 @@ SELECT
   ia.path,
   ia.contentType
 FROM itemAttachments ia
-WHERE ia.parentItemID = ?
+WHERE ia.parentID = ?
   AND ia.contentType = 'application/pdf'
 `;
 
@@ -197,13 +197,13 @@ ORDER BY c.collectionName
  * Excludes:
  * - Items in deletedItems table
  * - Attachments (itemType = 'attachment')
- * - Child notes (itemType = 'note' with parentItemID)
+ * - Child notes (itemType = 'note' with parentID)
  * - Annotations (itemType = 'annotation')
  * - Group libraries and feeds (only type='user' personal library)
  * - Retracted items (Zotero 7.0+, gracefully degrades on 6.x)
  *
  * Includes:
- * - Standalone notes (itemType = 'note' without parentItemID - legitimate research notes)
+ * - Standalone notes (itemType = 'note' without parentID - legitimate research notes)
  */
 export const ITEM_COUNT_QUERY = `
 SELECT COUNT(*) as count
@@ -214,7 +214,7 @@ LEFT JOIN retractedItems ri ON i.itemID = ri.itemID
 LEFT JOIN itemNotes n ON i.itemID = n.itemID
 WHERE i.itemID NOT IN (SELECT itemID FROM deletedItems)
   AND it.typeName != 'attachment'
-  AND (it.typeName != 'note' OR n.parentItemID IS NULL)
+  AND (it.typeName != 'note' OR n.parentID IS NULL)
   AND it.typeName != 'annotation'
   AND l.type = 'user'
   AND ri.itemID IS NULL
@@ -261,7 +261,7 @@ WITH normalized_items AS (
   LEFT JOIN itemNotes n ON i.itemID = n.itemID
   WHERE i.itemID NOT IN (SELECT itemID FROM deletedItems)
     AND it.typeName NOT IN ('attachment', 'annotation')
-    AND (it.typeName != 'note' OR n.parentItemID IS NULL)
+    AND (it.typeName != 'note' OR n.parentID IS NULL)
     AND l.type = 'user'
     AND ri.itemID IS NULL
   GROUP BY i.itemID
@@ -363,7 +363,7 @@ INNER JOIN itemTypes it ON i.itemTypeID = it.itemTypeID
 LEFT JOIN deletedItems di ON i.itemID = di.itemID
 LEFT JOIN itemNotes n ON i.itemID = n.itemID
 WHERE it.typeName NOT IN ('attachment', 'annotation')
-  AND (it.typeName != 'note' OR n.parentItemID IS NULL)
+  AND (it.typeName != 'note' OR n.parentID IS NULL)
 `;
 
 /**
