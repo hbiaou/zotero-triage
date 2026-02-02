@@ -1,7 +1,11 @@
 /**
- * Zod Validation Schemas for Zotero Item Types
+ * Zod Validation Schemas for Zotero Item Types and Enriched Notes
  *
- * Defines validation rules for different item types using Zod schemas.
+ * Defines validation rules for:
+ * 1. Different Zotero item types using Zod schemas (Phase 3)
+ * 2. YAML frontmatter validation for enriched literature notes (Phase 16)
+ * 3. Full enriched note structure validation (Phase 16)
+ *
  * Per RESEARCH.md Pattern 1: Schema per item type with required fields.
  *
  * DESIGN NOTE: Required fields are intentionally hardcoded (not dynamically configurable).
@@ -12,6 +16,8 @@
  */
 
 import { z } from 'zod';
+import type { Domain } from '../classification/types';
+import type { EvidenceLevel } from '../ai/types';
 
 /**
  * Schema for journal article items
@@ -84,3 +90,111 @@ export const ITEM_TYPE_SCHEMAS: Record<string, z.ZodSchema> = {
   book: BookSchema,
   videoRecording: VideoRecordingSchema
 };
+
+// ============================================================================
+// Phase 16: Enriched Note Validation Schemas
+// ============================================================================
+
+/**
+ * YAML Frontmatter Schema for enriched literature notes
+ *
+ * Validates the YAML frontmatter structure inserted by AI enrichment.
+ * Ensures all required metadata fields are present with correct types.
+ *
+ * Required fields:
+ * - note_type: Always 'literature-note' for enriched notes
+ * - zotero_item_type: Zotero item type (journalArticle, book, etc.)
+ * - knowledge_domain: Classification domain (Academic, Software, Farming, General)
+ * - evidence_level: Evidence hierarchy level (FullText, Transcript, Notes, Abstract, MetadataOnly)
+ * - template_used: Template applied during enrichment (ACADEMIC, SOFTWARE, FARMING, GENERAL)
+ * - date_processed: Processing date in YYYY-MM-DD format
+ *
+ * Optional fields:
+ * - zotero_key: Zotero item key for linking
+ * - doi: Digital Object Identifier
+ * - url: Item URL
+ * - confidence_score: Classification confidence (0.0-1.0)
+ * - model_used: AI model identifier
+ * - token_count: Token usage estimate
+ *
+ * Uses .passthrough() to allow additional custom fields for extensibility.
+ */
+export const YAMLFrontmatterSchema = z.object({
+  note_type: z.literal('literature-note'),
+  zotero_item_type: z.enum([
+    'journalArticle',
+    'book',
+    'thesis',
+    'webpage',
+    'document',
+    'videoRecording',
+    'conferencePaper',
+    'report',
+    'bookSection',
+    'manuscript'
+  ]),
+  knowledge_domain: z.enum(['Academic', 'Software', 'Farming', 'General']),
+  evidence_level: z.enum(['FullText', 'Transcript', 'Notes', 'Abstract', 'MetadataOnly']),
+  template_used: z.enum(['ACADEMIC', 'SOFTWARE', 'FARMING', 'GENERAL']),
+  date_processed: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Must be YYYY-MM-DD format'),
+
+  // Optional fields
+  zotero_key: z.string().optional(),
+  doi: z.string().optional(),
+  url: z.string().url().optional(),
+  confidence_score: z.number().min(0).max(1).optional(),
+  model_used: z.string().optional(),
+  token_count: z.number().int().positive().optional(),
+
+  // Allow additional fields for extensibility
+}).passthrough();
+
+export type YAMLFrontmatter = z.infer<typeof YAMLFrontmatterSchema>;
+
+/**
+ * Enriched Note Schema
+ *
+ * Validates the full structure of an enriched note including:
+ * - Frontmatter: Validated YAML metadata
+ * - Body: Markdown content (minimum 100 characters)
+ * - Structure: Presence of headings and tags
+ */
+export const EnrichedNoteSchema = z.object({
+  frontmatter: YAMLFrontmatterSchema,
+  body: z.string().min(100, 'Body must be at least 100 characters'),
+  hasHeadings: z.boolean().default(true), // Verify markdown structure
+  hasTags: z.boolean().default(true)      // Verify tags present
+});
+
+export type ValidatedNote = z.infer<typeof EnrichedNoteSchema>;
+
+/**
+ * Schema validation error
+ *
+ * Normalized error format for Zod validation failures.
+ * Makes errors human-readable for logging and user display.
+ */
+export interface SchemaValidationError {
+  field: string;
+  message: string;
+  received?: any;
+  expected?: string;
+}
+
+/**
+ * Format Zod errors into normalized error objects
+ *
+ * Converts Zod's internal error format into a simpler structure
+ * suitable for logging and user-facing error messages.
+ *
+ * @param errors - Zod validation error object
+ * @returns Array of normalized validation errors
+ */
+export function formatZodErrors(errors: z.ZodError): SchemaValidationError[] {
+  return errors.errors.map(err => ({
+    field: err.path.join('.'),
+    message: err.message,
+    received: err.code === 'invalid_type' ? (err as any).received : undefined,
+    expected: err.code === 'invalid_type' ? (err as any).expected : undefined
+  }));
+}
