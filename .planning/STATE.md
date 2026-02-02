@@ -11,24 +11,25 @@ See: .planning/PROJECT.md (updated 2026-01-30)
 ## Current Position
 
 Phase: 16 of 19 (Enrichment Orchestration & Validation)
-Plan: 16-02 of 3 (Output Validation Stack)
-Status: In progress (2/3 plans complete)
-Last activity: 2026-02-02 — Completed 16-02-PLAN.md (Zod schema validation, metadata consistency checks, hallucination detection)
+Plan: 16-03 of 3 (Error Recovery Infrastructure)
+Status: Complete (3/3 plans complete)
+Last activity: 2026-02-02 — Completed 16-03-PLAN.md (StubNoteGenerator for failure fallback, RetryQueue with exponential backoff)
 
-Progress: [████████░░░░░░░░░░░░] 16/19 phases (84% milestone progress, 11.9% v2.0 progress)
+Progress: [████████░░░░░░░░░░░░] 16/19 phases (84% milestone progress, 12.2% v2.0 progress)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 54 (from v1.0-v1.2 + quick tasks + v2.0)
-- Average duration: ~27 min per plan
-- Total execution time: ~26.8 hours
+- Total plans completed: 55 (from v1.0-v1.2 + quick tasks + v2.0)
+- Average duration: ~26 min per plan
+- Total execution time: ~26.9 hours
 
 **By Phase:**
 
 **Phase 16 (v2.0 - Enrichment Orchestration & Validation):**
 - 16-01: 6 min (Enrichment Service Foundation)
 - 16-02: 7 min (Output Validation Stack)
+- 16-03: 5 min (Error Recovery Infrastructure)
 
 **Phase 15 (v2.0 - Content Extraction & Classification):**
 - 15-01: 6 min (Video Transcript Extraction)
@@ -65,6 +66,11 @@ Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting v2.0 work:
 
 **Phase 16 (Enrichment Orchestration & Validation):**
+- 16-03: Exponential backoff schedule: 5min, 15min, 45min, 2hr15min, 6hr45min (base 5min * 3^attempts)
+- 16-03: Queue persists to .zotero-triage-queue.json at vault root for plugin reload survival
+- 16-03: Stub notes use General domain template as default fallback
+- 16-03: Stage-specific diagnostic messages guide user to appropriate action
+- 16-03: Unique queue ID: itemID + timestamp for multi-attempt tracking
 - 16-02: Hallucination detection only runs if schema/metadata valid (expensive LLM call)
 - 16-02: YAML parsing uses yaml library not gray-matter (gray-matter not installed)
 - 16-02: Authors extracted from ZoteroItem.authors string array (Last, First format)
@@ -176,11 +182,11 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-02
-Stopped at: Completed 16-02-PLAN.md (Output Validation Stack)
+Stopped at: Completed Phase 16 execution (3/3 plans complete)
 Resume file: None
 
-Next action: Continue Phase 16 - proceed to 16-03 (Accept Workflow Orchestration)
+Next action: Phase 16 COMPLETE - proceed to Phase 17 (Acceptance Modal & Batch UI Enhancement)
 
 ---
 
-*Last updated: 2026-02-02 after completing Phase 16 Plan 02*
+*Last updated: 2026-02-02 after completing Phase 16 Plan 03*
