@@ -147,30 +147,30 @@ export default class ZoteroTriagePlugin extends Plugin {
     this.diagnosticNoteService = new DiagnosticNoteService();
 
     // Initialize enrichment services for Phase 16 (after AI services available)
-    if (this.evidenceExtractor) {
-      this.enrichmentService = new EnrichmentService(
-        this.aiService,
-        this.evidenceExtractor,
-        this.domainClassifier,
-        this.app
-      );
+    // Note: These are initialized even if evidenceExtractor is not available yet
+    // Services will handle missing dependencies gracefully
+    this.enrichmentService = new EnrichmentService(
+      this.aiService,
+      this.evidenceExtractor,
+      this.domainClassifier,
+      this.app
+    );
 
-      this.outputValidator = new OutputValidator(this.aiService);
+    this.outputValidator = new OutputValidator(this.aiService);
 
-      this.enrichmentOrchestrator = new EnrichmentOrchestrator(
-        this.app,
-        this.domainClassifier,
-        this.evidenceExtractor,
-        this.enrichmentService,
-        this.outputValidator,
-        this.settings.outputFolder
-      );
+    this.enrichmentOrchestrator = new EnrichmentOrchestrator(
+      this.app,
+      this.domainClassifier,
+      this.evidenceExtractor,
+      this.enrichmentService,
+      this.outputValidator,
+      this.settings.outputFolder
+    );
 
-      this.stubNoteGenerator = new StubNoteGenerator(this.app);
+    this.stubNoteGenerator = new StubNoteGenerator(this.app);
 
-      this.retryQueue = new RetryQueue(this.app);
-      await this.retryQueue.load(); // Load queue from disk
-    }
+    this.retryQueue = new RetryQueue(this.app);
+    await this.retryQueue.load(); // Load queue from disk
 
     // Initialize batch service with recommendation support and classification
     this.batchService = new BatchService(
@@ -185,14 +185,14 @@ export default class ZoteroTriagePlugin extends Plugin {
     );
 
     // Initialize re-classify command
-    if (this.evidenceExtractor) {
-      this.reclassifyCommand = new ReclassifyCommand(
-        this.app,
-        this,
-        this.domainClassifier,
-        this.evidenceExtractor
-      );
-    }
+    // Note: Initialized even if evidenceExtractor not available yet
+    // Command will check for availability when executed
+    this.reclassifyCommand = new ReclassifyCommand(
+      this.app,
+      this,
+      this.domainClassifier,
+      this.evidenceExtractor
+    );
 
     // Register triage view
     this.registerView(
