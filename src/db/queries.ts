@@ -76,7 +76,7 @@ WITH itemFields AS (
   LEFT JOIN itemNotes n ON i.itemID = n.itemID
   WHERE i.itemID NOT IN (SELECT itemID FROM deletedItems)
     AND it.typeName != 'attachment'
-    AND (it.typeName != 'note' OR n.parentID IS NULL)
+    AND (it.typeName != 'note' OR n.parentItemID IS NULL)
     AND it.typeName != 'annotation'
     AND l.type = 'user'
     AND ri.itemID IS NULL
@@ -148,7 +148,7 @@ SELECT
   ia.path,
   ia.contentType
 FROM itemAttachments ia
-WHERE ia.parentID = ?
+WHERE ia.parentItemID = ?
   AND ia.contentType = 'application/pdf'
 `;
 
@@ -214,7 +214,7 @@ LEFT JOIN retractedItems ri ON i.itemID = ri.itemID
 LEFT JOIN itemNotes n ON i.itemID = n.itemID
 WHERE i.itemID NOT IN (SELECT itemID FROM deletedItems)
   AND it.typeName != 'attachment'
-  AND (it.typeName != 'note' OR n.parentID IS NULL)
+  AND (it.typeName != 'note' OR n.parentItemID IS NULL)
   AND it.typeName != 'annotation'
   AND l.type = 'user'
   AND ri.itemID IS NULL
@@ -261,7 +261,7 @@ WITH normalized_items AS (
   LEFT JOIN itemNotes n ON i.itemID = n.itemID
   WHERE i.itemID NOT IN (SELECT itemID FROM deletedItems)
     AND it.typeName NOT IN ('attachment', 'annotation')
-    AND (it.typeName != 'note' OR n.parentID IS NULL)
+    AND (it.typeName != 'note' OR n.parentItemID IS NULL)
     AND l.type = 'user'
     AND ri.itemID IS NULL
   GROUP BY i.itemID
@@ -363,7 +363,7 @@ INNER JOIN itemTypes it ON i.itemTypeID = it.itemTypeID
 LEFT JOIN deletedItems di ON i.itemID = di.itemID
 LEFT JOIN itemNotes n ON i.itemID = n.itemID
 WHERE it.typeName NOT IN ('attachment', 'annotation')
-  AND (it.typeName != 'note' OR n.parentID IS NULL)
+  AND (it.typeName != 'note' OR n.parentItemID IS NULL)
 `;
 
 /**
