@@ -489,100 +489,201 @@ export class TriageView extends ItemView {
     this.saveScrollPosition();
 
     try {
-      // Check evidence level if evidence extractor is available
-      if (this.plugin.evidenceExtractor) {
-        const evidence = await this.plugin.evidenceExtractor.extract(item);
+      // Check if AI services and enrichment orchestrator are configured
+      if (!this.plugin.aiService || !this.plugin.aiService.isConfigured() || !this.plugin.enrichmentOrchestrator) {
+        // Fallback to diagnostic note flow (existing code for insufficient evidence)
+        if (this.plugin.evidenceExtractor) {
+          const evidence = await this.plugin.evidenceExtractor.extract(item);
 
-        // If evidence is insufficient, create diagnostic note instead
-        if (!this.plugin.evidenceExtractor.canEnrich(evidence)) {
-          // Generate diagnostic note
-          const diagnosticNote = this.plugin.diagnosticNoteService.createDiagnosticNote(item, evidence);
+          // If evidence is insufficient, create diagnostic note
+          if (!this.plugin.evidenceExtractor.canEnrich(evidence)) {
+            // Generate diagnostic note
+            const diagnosticNote = this.plugin.diagnosticNoteService.createDiagnosticNote(item, evidence);
 
-          // Ensure output folder exists
-          const outputFolder = this.plugin.settings.outputFolder;
-          if (outputFolder) {
-            const folder = this.app.vault.getAbstractFileByPath(outputFolder);
-            if (!folder) {
-              await this.app.vault.createFolder(outputFolder);
+            // Ensure output folder exists
+            const outputFolder = this.plugin.settings.outputFolder;
+            if (outputFolder) {
+              const folder = this.app.vault.getAbstractFileByPath(outputFolder);
+              if (!folder) {
+                await this.app.vault.createFolder(outputFolder);
+              }
             }
+
+            // Create diagnostic note file
+            const filePath = this.plugin.noteGenerator.getFilePath(item);
+            await this.plugin.app.vault.create(filePath, diagnosticNote);
+
+            // Mark as enrichment_pending instead of imported
+            this.plugin.registry.markState(item.itemID, 'enrichment_pending');
+            this.plugin.registry.setEnrichmentMetadata(item.itemID, {
+              evidenceLevel: evidence.level,
+              pendingReason: this.getEvidencePendingReason(evidence),
+              retryCount: 0,
+              lastRetryTimestamp: new Date().toISOString()
+            });
+
+            // Update status badge on card
+            const card = this.containerEl.querySelector(`[data-item-id="${item.itemID}"]`) as HTMLElement;
+            if (card) {
+              updateCardStatus(card, 'enrichment_pending');
+            }
+
+            // Increment processed count
+            this.processedCount++;
+
+            // Record session action
+            this.plugin.sessionTracker.recordAction('accepted');
+
+            // Show notice about diagnostic note
+            showUndoNotice({
+              message: 'Diagnostic note created - item queued for enrichment.',
+              onUndo: () => this.undoAction({ itemId: item.itemID, previousState }, 'accepted'),
+              timeout: 3000
+            });
+
+            // Refresh view and restore scroll
+            this.refresh();
+            this.restoreScrollPosition();
+
+            return;
           }
-
-          // Create diagnostic note file
-          const filePath = this.plugin.noteGenerator.getFilePath(item);
-          await this.plugin.app.vault.create(filePath, diagnosticNote);
-
-          // Mark as enrichment_pending instead of imported
-          this.plugin.registry.markState(item.itemID, 'enrichment_pending');
-          this.plugin.registry.setEnrichmentMetadata(item.itemID, {
-            evidenceLevel: evidence.level,
-            pendingReason: this.getEvidencePendingReason(evidence),
-            retryCount: 0,
-            lastRetryTimestamp: new Date().toISOString()
-          });
-
-          // Update status badge on card
-          const card = this.containerEl.querySelector(`[data-item-id="${item.itemID}"]`) as HTMLElement;
-          if (card) {
-            updateCardStatus(card, 'enrichment_pending');
-          }
-
-          // Increment processed count
-          this.processedCount++;
-
-          // Record session action
-          this.plugin.sessionTracker.recordAction('accepted');
-
-          // Show notice about diagnostic note
-          showUndoNotice({
-            message: 'Diagnostic note created - item queued for enrichment.',
-            onUndo: () => this.undoAction({ itemId: item.itemID, previousState }, 'accepted'),
-            timeout: 3000
-          });
-
-          // Refresh view and restore scroll
-          this.refresh();
-          this.restoreScrollPosition();
-
-          return;
         }
+
+        // No evidence extractor or sufficient evidence but AI not configured - create regular note
+        await this.plugin.noteGenerator.createNote(item);
+        this.plugin.registry.markState(item.itemID, 'imported');
+
+        // Update UI
+        const card = this.containerEl.querySelector(`[data-item-id="${item.itemID}"]`) as HTMLElement;
+        if (card) {
+          updateCardStatus(card, 'accepted');
+        }
+
+        await this.plugin.batchService.recordAccept(item);
+        this.processedCount++;
+        this.plugin.sessionTracker.recordAction('accepted');
+
+        showUndoNotice({
+          message: 'Item accepted and note created.',
+          onUndo: () => this.undoAction({ itemId: item.itemID, previousState }, 'accepted'),
+          timeout: 3000
+        });
+
+        this.refresh();
+        this.restoreScrollPosition();
+        return;
       }
 
-      // Sufficient evidence or no evidence extractor - create regular note
-      await this.plugin.noteGenerator.createNote(item);
+      // Run enrichment orchestration
+      const result = await this.plugin.enrichmentOrchestrator.orchestrate(item);
 
-      // Mark as imported
-      this.plugin.registry.markState(item.itemID, 'imported');
+      if (result.success) {
+        // Enrichment succeeded
+        new Notice(`✅ Enriched note created: ${result.notePath}`);
 
-      // Update status badge on card
-      const card = this.containerEl.querySelector(`[data-item-id="${item.itemID}"]`) as HTMLElement;
-      if (card) {
-        updateCardStatus(card, 'accepted');
+        // Mark as imported (enriched state)
+        this.plugin.registry.markState(item.itemID, 'imported');
+        this.plugin.registry.setEnrichmentMetadata(item.itemID, {
+          evidenceLevel: 'FullText', // or from result
+          enrichedAt: new Date().toISOString(),
+          modelUsed: this.plugin.aiService.getCurrentModel()?.id
+        });
+
+        // Show warnings if any
+        if (result.validationWarnings && result.validationWarnings.length > 0) {
+          const warningMsg = result.validationWarnings
+            .map(w => w.message)
+            .join(', ');
+          new Notice(`⚠️ Warnings: ${warningMsg}`, 5000);
+        }
+
+        // Update status badge on card
+        const card = this.containerEl.querySelector(`[data-item-id="${item.itemID}"]`) as HTMLElement;
+        if (card) {
+          updateCardStatus(card, 'accepted');
+        }
+
+        // Record accept for adaptive learning
+        await this.plugin.batchService.recordAccept(item);
+
+        // Increment processed count
+        this.processedCount++;
+
+        // Record session action
+        this.plugin.sessionTracker.recordAction('accepted');
+
+        // Show undo notice
+        showUndoNotice({
+          message: 'Item accepted and enriched note created.',
+          onUndo: () => this.undoAction({ itemId: item.itemID, previousState }, 'accepted'),
+          timeout: 3000
+        });
+
+        // Refresh view and restore scroll
+        this.refresh();
+        this.restoreScrollPosition();
+
+      } else {
+        // Enrichment failed - create stub note and queue retry
+        const failureContext = {
+          stage: result.stage as any,
+          error: result.error!,
+          item,
+          classification: undefined, // Could extract from orchestrator state if needed
+          evidence: undefined
+        };
+
+        const stubNote = this.plugin.stubNoteGenerator.createStubNote(failureContext);
+        const stubPath = await this.plugin.stubNoteGenerator.saveStubNote(
+          stubNote,
+          this.plugin.settings.outputFolder
+        );
+
+        // Queue for retry
+        await this.plugin.retryQueue.enqueue({
+          itemId: item.itemID,
+          itemKey: item.key || '',
+          itemTitle: item.title || 'Untitled',
+          notePath: stubPath,
+          failureStage: result.stage,
+          failureReason: result.error!.message
+        });
+
+        new Notice(`⚠️ Enrichment failed - stub note created. Queued for retry.`, 5000);
+
+        // Mark as enrichment_pending
+        this.plugin.registry.markState(item.itemID, 'enrichment_pending');
+
+        // Update status badge on card
+        const card = this.containerEl.querySelector(`[data-item-id="${item.itemID}"]`) as HTMLElement;
+        if (card) {
+          updateCardStatus(card, 'enrichment_pending');
+        }
+
+        // Increment processed count
+        this.processedCount++;
+
+        // Record session action
+        this.plugin.sessionTracker.recordAction('accepted');
+
+        showUndoNotice({
+          message: 'Enrichment failed - stub note created (queued for retry).',
+          onUndo: () => this.undoAction({ itemId: item.itemID, previousState }, 'accepted'),
+          timeout: 3000
+        });
+
+        // Refresh view and restore scroll
+        this.refresh();
+        this.restoreScrollPosition();
       }
-
-      // Record accept for adaptive learning and classification
-      await this.plugin.batchService.recordAccept(item);
-
-      // Increment processed count
-      this.processedCount++;
-
-      // Record session action
-      this.plugin.sessionTracker.recordAction('accepted');
-
-      // Show undo notice
-      showUndoNotice({
-        message: 'Item accepted and note created.',
-        onUndo: () => this.undoAction({ itemId: item.itemID, previousState }, 'accepted'),
-        timeout: 3000
-      });
-
-      // Refresh view and restore scroll
-      this.refresh();
-      this.restoreScrollPosition();
 
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       new Notice(`Failed to create note: ${message}`);
       console.error('Accept action error:', err);
+
+      // Restore previous state on catastrophic failure
+      this.plugin.registry.markState(item.itemID, previousState);
     }
   }
 

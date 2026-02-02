@@ -1,4 +1,4 @@
-import { Plugin, Notice } from 'obsidian';
+import { Plugin, Notice, Modal } from 'obsidian';
 import * as path from 'path';
 import { ZoteroTriageSettings, DEFAULT_SETTINGS } from './types';
 import { ZoteroTriageSettingTab } from './settings';
@@ -30,6 +30,11 @@ import { YouTubeService } from './extraction/youtube-service';
 import { DomainClassifier } from './classification/domain-classifier';
 import { ReclassifyCommand } from './commands/reclassify-command';
 import { DiagnosticNoteService } from './services/diagnostic-note-service';
+import { EnrichmentService } from './services/enrichment-service';
+import { OutputValidator } from './validation/output-validator';
+import { EnrichmentOrchestrator } from './orchestration/enrichment-orchestrator';
+import { StubNoteGenerator } from './error-recovery/stub-note-generator';
+import { RetryQueue } from './error-recovery/retry-queue';
 
 /**
  * Zotero Triage Plugin
@@ -58,6 +63,11 @@ export default class ZoteroTriagePlugin extends Plugin {
   domainClassifier!: DomainClassifier;
   reclassifyCommand!: ReclassifyCommand;
   diagnosticNoteService!: DiagnosticNoteService;
+  enrichmentService!: EnrichmentService;
+  outputValidator!: OutputValidator;
+  enrichmentOrchestrator!: EnrichmentOrchestrator;
+  stubNoteGenerator!: StubNoteGenerator;
+  retryQueue!: RetryQueue;
 
   async onload(): Promise<void> {
     // Start memory monitoring in dev mode
@@ -135,6 +145,32 @@ export default class ZoteroTriagePlugin extends Plugin {
 
     // Initialize diagnostic note service for Phase 15
     this.diagnosticNoteService = new DiagnosticNoteService();
+
+    // Initialize enrichment services for Phase 16 (after AI services available)
+    if (this.evidenceExtractor) {
+      this.enrichmentService = new EnrichmentService(
+        this.aiService,
+        this.evidenceExtractor,
+        this.domainClassifier,
+        this.app
+      );
+
+      this.outputValidator = new OutputValidator(this.aiService);
+
+      this.enrichmentOrchestrator = new EnrichmentOrchestrator(
+        this.app,
+        this.domainClassifier,
+        this.evidenceExtractor,
+        this.enrichmentService,
+        this.outputValidator,
+        this.settings.outputFolder
+      );
+
+      this.stubNoteGenerator = new StubNoteGenerator(this.app);
+
+      this.retryQueue = new RetryQueue(this.app);
+      await this.retryQueue.load(); // Load queue from disk
+    }
 
     // Initialize batch service with recommendation support and classification
     this.batchService = new BatchService(
