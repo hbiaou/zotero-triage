@@ -490,7 +490,7 @@ export class TriageView extends ItemView {
 
     try {
       // Check if AI services and enrichment orchestrator are configured
-      if (!this.plugin.aiService || !this.plugin.aiService.isConfigured() || !this.plugin.enrichmentOrchestrator) {
+      if (!this.plugin.aiService || !this.plugin.aiService.isReady() || !this.plugin.enrichmentOrchestrator) {
         // Fallback to diagnostic note flow (existing code for insufficient evidence)
         if (this.plugin.evidenceExtractor) {
           const evidence = await this.plugin.evidenceExtractor.extract(item);
