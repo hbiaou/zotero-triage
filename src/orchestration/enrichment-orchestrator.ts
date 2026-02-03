@@ -61,7 +61,7 @@ import { EnrichmentProgressModal } from '../ui/enrichment-progress-modal';
  * Prevents UI freeze for long-running enrichments.
  * From Phase 16 decision: 2-minute timeout for enrichment operations.
  */
-const TIMEOUT_MS = 2 * 60 * 1000;
+const TIMEOUT_MS = 10 * 60 * 1000;
 
 /**
  * Enrichment Orchestrator
@@ -81,7 +81,7 @@ export class EnrichmentOrchestrator {
     private enrichmentService: EnrichmentService,
     private outputValidator: OutputValidator,
     private outputFolder: string
-  ) {}
+  ) { }
 
   /**
    * Orchestrate full enrichment pipeline with progress feedback

@@ -19,6 +19,8 @@ import type { EvidenceLevel, EvidenceExtraction } from '../ai/types';
 import type { ZoteroItem } from '../types';
 import { TranscriptExtractor } from '../extraction/transcript-extractor';
 import { TranscriptExtractionError } from '../extraction/types';
+import { App } from 'obsidian';
+import { TranscriptInputModal } from '../ui/transcript-input-modal';
 
 /**
  * Minimum characters required for valid evidence
@@ -43,21 +45,25 @@ export class EvidenceExtractor {
   private zoteroDataPath: string;
   private customStoragePath: string | null = null;
   private transcriptExtractor: TranscriptExtractor;
+  private app: App;
 
   /**
    * Create evidence extractor
    * @param connector - ZoteroConnector instance for database queries
    * @param zoteroDataPath - Path to Zotero data directory (derived from database path)
    * @param transcriptExtractor - TranscriptExtractor instance for video transcript extraction
+   * @param app - Obsidian App instance (for UI modals)
    */
   constructor(
     connector: ZoteroConnector,
     zoteroDataPath: string,
-    transcriptExtractor: TranscriptExtractor
+    transcriptExtractor: TranscriptExtractor,
+    app: App
   ) {
     this.connector = connector;
     this.zoteroDataPath = zoteroDataPath;
     this.transcriptExtractor = transcriptExtractor;
+    this.app = app;
 
     // Initialize custom storage path asynchronously
     this.initializeStoragePath();
@@ -104,6 +110,23 @@ export class EvidenceExtractor {
   }
 
   /**
+   * Update Zotero data path dynamically
+   * Called when settings are changed
+   *
+   * @param path - New Zotero data path
+   */
+  updateZoteroDataPath(path: string): void {
+    const oldPath = this.zoteroDataPath;
+    this.zoteroDataPath = path;
+    console.log(`[EvidenceExtractor] Updated Zotero data path from '${oldPath}' to '${path}'`);
+
+    // Also refresh storage path since base path changed
+    this.refreshStoragePath().catch(err => {
+      console.error('[EvidenceExtractor] Failed to refresh storage path after update:', err);
+    });
+  }
+
+  /**
    * Extract PDF fulltext from Zotero cache
    *
    * Zotero indexes PDFs and stores plaintext in .zotero-ft-cache files.
@@ -133,7 +156,7 @@ export class EvidenceExtractor {
         JOIN items i ON ia.itemID = i.itemID
         WHERE ia.parentItemID = ?
           AND ia.contentType = 'application/pdf'
-          AND ia.linkMode IN (0, 1)
+          AND ia.linkMode IN (0, 1, 2)
       `;
 
       const result = await this.connector.query(query, [itemID]);
@@ -367,29 +390,64 @@ export class EvidenceExtractor {
       };
     }
 
-    // 2. Try video transcript (primary - equivalent quality to fulltext per Phase 15 research)
+    // 2. Try Zotero notes (secondary) - Moved up to support transcript fallback strategies
+    const notesContent = await this.extractNotes(item.itemID);
+    const hasNotes = this.isValidEvidence(notesContent);
+
+    // 3. Try video transcript (primary - equivalent quality to fulltext per Phase 15 research)
+    let transcriptContent = '';
+    let transcriptSource = '';
+
     if (item.url) {
       try {
         const transcript = await this.transcriptExtractor.extractTranscript(item.url);
         if (this.isValidEvidence(transcript.transcript)) {
-          return {
-            level: 'FullText', // Transcript quality equivalent to FullText per research
-            content: transcript.transcript,
-            sources: [`video_transcript_${transcript.platform}`],
-            tokenEstimate: this.estimateTokens(transcript.transcript)
-          };
+          transcriptContent = transcript.transcript;
+          transcriptSource = `video_transcript_${transcript.platform}`;
         }
       } catch (error) {
-        // Transcript extraction failed; log and fall through to next level
-        const errorMessage = error instanceof Error ? error.message : String(error);
-        console.log(`[EvidenceExtractor] Transcript extraction failed for ${item.itemKey}: ${errorMessage}`);
-        // Don't throw - graceful degradation to notes/abstract
+        // Check if manual input is needed
+        if (error instanceof TranscriptExtractionError && error.requiresManualInput) {
+          console.log(`[EvidenceExtractor] Transcript extraction failed asking for manual input: ${error.message}`);
+
+          // CRITICAL FIX: If we already have notes, DO NOT prompt for transcript
+          if (hasNotes) {
+            console.log('[EvidenceExtractor] Skipping manual transcript prompt because valid Zotero notes exist');
+            // We leave transcriptContent empty; aggregation logic will use notes
+          } else {
+            const manualTranscript = await this.promptForManualTranscript(item);
+            if (this.isValidEvidence(manualTranscript)) {
+              transcriptContent = manualTranscript;
+              transcriptSource = 'video_transcript_manual';
+            }
+          }
+        } else {
+          console.log(`[EvidenceExtractor] Transcript extraction failed (non-recoverable): ${error}`);
+        }
       }
     }
 
-    // 3. Try Zotero notes (secondary)
-    const notesContent = await this.extractNotes(item.itemID);
-    if (this.isValidEvidence(notesContent)) {
+    // AGGREGATION STRATEGY: Combine Transcript + Notes if both available
+    if (transcriptContent) {
+      let finalContent = transcriptContent;
+      const sources = [transcriptSource];
+
+      if (hasNotes) {
+        console.log('[EvidenceExtractor] Aggregating Transcript and Notes');
+        finalContent += '\n\n--- ADDITIONAL NOTES FROM ZOTERO ---\n\n' + notesContent;
+        sources.push('zotero_notes');
+      }
+
+      return {
+        level: 'FullText',
+        content: finalContent,
+        sources: sources,
+        tokenEstimate: this.estimateTokens(finalContent)
+      };
+    }
+
+    // If only notes are available
+    if (hasNotes) {
       return {
         level: 'Notes',
         content: notesContent,
@@ -470,5 +528,21 @@ export class EvidenceExtractor {
       case 'MetadataOnly':
         return 'No content available (queued)';
     }
+  }
+  /**
+   * Prompt user for manual transcript input
+   * @param item - Zotero item
+   * @returns User provided transcript or empty string
+   */
+  private async promptForManualTranscript(item: ZoteroItem): Promise<string> {
+    return new Promise<string>((resolve) => {
+      const modal = new TranscriptInputModal(
+        this.app,
+        item,
+        (transcript) => resolve(transcript),
+        () => resolve('') // Resolve empty on cancel
+      );
+      modal.open();
+    });
   }
 }

@@ -94,19 +94,37 @@ export function createTriageCard(
       : 'triage-btn triage-btn-accept',
     text: validationResult && !validationResult.valid ? 'Accept Anyway' : 'Accept'
   });
-  acceptBtn.addEventListener('click', () => onAccept(item));
+  acceptBtn.addEventListener('click', (e) => {
+    // Disable all buttons in this card
+    const allBtns = actions.querySelectorAll('button');
+    allBtns.forEach(btn => (btn as HTMLButtonElement).disabled = true);
+    acceptBtn.textContent = 'Accepting...';
+    onAccept(item);
+  });
 
   const deferBtn = actions.createEl('button', {
     cls: 'triage-btn triage-btn-defer',
     text: 'Defer'
   });
-  deferBtn.addEventListener('click', () => onDefer(item));
+  deferBtn.addEventListener('click', (e) => {
+    // Disable all buttons in this card
+    const allBtns = actions.querySelectorAll('button');
+    allBtns.forEach(btn => (btn as HTMLButtonElement).disabled = true);
+    deferBtn.textContent = 'Deferring...';
+    onDefer(item);
+  });
 
   const rejectBtn = actions.createEl('button', {
     cls: 'triage-btn triage-btn-reject',
     text: 'Reject'
   });
-  rejectBtn.addEventListener('click', () => onReject(item));
+  rejectBtn.addEventListener('click', (e) => {
+    // Disable all buttons in this card
+    const allBtns = actions.querySelectorAll('button');
+    allBtns.forEach(btn => (btn as HTMLButtonElement).disabled = true);
+    rejectBtn.textContent = 'Rejecting...';
+    onReject(item);
+  });
 
   return card;
 }

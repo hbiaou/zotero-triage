@@ -36,6 +36,16 @@ export interface AIServiceConfig {
 }
 
 /**
+ * Default models for each provider (used during fallback)
+ */
+const DEFAULT_MODELS: Record<string, string> = {
+  openai: 'gpt-4o',
+  anthropic: 'claude-3-5-sonnet-20240620',
+  google: 'gemini-1.5-pro',
+  openrouter: 'openai/gpt-4o-mini', // Safe default, low cost
+};
+
+/**
  * AI Service orchestrator
  *
  * Main entry point for all AI operations. Abstracts provider selection,
@@ -172,9 +182,16 @@ export class AIService {
         }
 
         // Attempt completion with fallback
+        // CRITICAL: Must use a model compatible with the fallback provider
+        // We cannot use the primary provider's model ID
+        const fallbackRequest = {
+          ...request,
+          model: DEFAULT_MODELS[fallbackProviderId] || request.model
+        };
+
         const response = await this.resilience.execute(
           fallbackProviderId,
-          () => fallbackProvider.complete(request)
+          () => fallbackProvider.complete(fallbackRequest)
         );
 
         console.log(

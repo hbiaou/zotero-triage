@@ -116,7 +116,7 @@ export class EnrichmentService {
       throw new EnrichmentAPIError(
         item.itemID,
         `Insufficient evidence for enrichment. Level: ${evidence.level}. ` +
-          'FullText or Notes required.'
+        'FullText or Notes required.'
       );
     }
 
@@ -218,7 +218,8 @@ CRITICAL INSTRUCTIONS:
 
 OUTPUT FORMAT:
 - Return valid Markdown with YAML frontmatter
-- Frontmatter format: ---\\nfields\\n---
+- Frontmatter format: ---\\nkey: value\\n...\\n---
+- CRITICAL: You must include "note_type: literature-note" in frontmatter
 - NO code blocks wrapping the output
 - NO emojis in the content
 - Generate 6-8 relevant tags at the end (single line format)`;
@@ -288,7 +289,7 @@ INSTRUCTIONS:
 3. Preserve verbatim quotes for key claims, methods, and results
 4. Use mixed style: quotes for claims, paraphrasing for context
 5. Generate 6-8 relevant tags at the end (single line)
-6. Output format: YAML frontmatter (---\\nfields\\n---) followed by markdown body
+6. Output format: YAML frontmatter (---\\nkey: value\\n---) followed by markdown body
 7. NO code blocks wrapping the output
 8. NO emojis in the content
 

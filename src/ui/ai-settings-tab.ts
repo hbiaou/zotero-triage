@@ -78,7 +78,7 @@ export class AISettingsTab {
   private renderProviderSection(providerId: ProviderID, displayName: string): void {
     const isConfigured = this.secretStorage.hasAPIKey(providerId);
     const statusText = this.providerTestStatus.get(providerId) ||
-                      (isConfigured ? '✓ Configured' : 'Not configured');
+      (isConfigured ? '✓ Configured' : 'Not configured');
 
     // Provider header with status
     new Setting(this.containerEl)
@@ -245,9 +245,23 @@ export class AISettingsTab {
                 fallbackOrder: [],
               };
             }
-            this.plugin.settings.aiConfig.fallbackOrder = configuredProviders.filter(
-              (p) => p !== this.plugin.settings.aiConfig?.selectedProvider
+
+            // Enforce preferred default order: OpenRouter, OpenAI, Anthropic, Google
+            const preferredOrder: ProviderID[] = ['openrouter', 'openai', 'anthropic', 'google'];
+
+            // Filter configured providers based on preference
+            const defaults = preferredOrder.filter(p =>
+              configuredProviders.includes(p) &&
+              p !== this.plugin.settings.aiConfig?.selectedProvider
             );
+
+            // Add any remaining configured providers that weren't in preferred list
+            const others = configuredProviders.filter(p =>
+              !defaults.includes(p) &&
+              p !== this.plugin.settings.aiConfig?.selectedProvider
+            );
+
+            this.plugin.settings.aiConfig.fallbackOrder = [...defaults, ...others];
           } else {
             // Disable fallback
             if (this.plugin.settings.aiConfig) {

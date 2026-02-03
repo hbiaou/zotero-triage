@@ -131,7 +131,8 @@ export const YAMLFrontmatterSchema = z.object({
     'conferencePaper',
     'report',
     'bookSection',
-    'manuscript'
+    'manuscript',
+    'preprint'
   ]),
   knowledge_domain: z.enum(['Academic', 'Software', 'Farming', 'General']),
   evidence_level: z.enum(['FullText', 'Transcript', 'Notes', 'Abstract', 'MetadataOnly']),

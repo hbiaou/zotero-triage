@@ -138,7 +138,8 @@ export default class ZoteroTriagePlugin extends Plugin {
     this.evidenceExtractor = new EvidenceExtractor(
       this.connector,
       zoteroDataPath || '', // Provide empty string if no path configured yet
-      transcriptExtractor
+      transcriptExtractor,
+      this.app
     );
 
     // Initialize domain classifier for Phase 15
@@ -445,6 +446,12 @@ export default class ZoteroTriagePlugin extends Plugin {
     // Update note generator with new settings
     if (this.noteGenerator) {
       this.noteGenerator.setOutputFolder(this.settings.outputFolder);
+    }
+
+    // Update evidence extractor with new data path
+    if (this.evidenceExtractor) {
+      const zoteroDataPath = this.getZoteroDataPath();
+      this.evidenceExtractor.updateZoteroDataPath(zoteroDataPath || '');
     }
   }
 
