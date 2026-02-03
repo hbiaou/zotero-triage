@@ -9,6 +9,7 @@ import { BaseAIProvider } from '../base-provider';
 import type { AIRequest, AIResponse } from '../types';
 import { AIServiceError } from '../types';
 import { registerProvider } from '../provider-factory';
+import { requestUrl } from 'obsidian';
 
 /**
  * Google Generative AI provider implementation
@@ -186,19 +187,19 @@ export class GoogleProvider extends BaseAIProvider {
       // Build URL with model name
       const url = `${this.baseUrl}/${request.model}:generateContent`;
 
-      // Make HTTP request
-      const response = await fetch(url, {
+      // Make HTTP request using Obsidian's requestUrl to bypass CORS
+      const response = await requestUrl({
+        url: url,
         method: 'POST',
         headers: this.getHeaders(),
         body: JSON.stringify(requestBody),
+        throw: false,
       });
 
-      // Handle HTTP errors (use private method via any cast for access)
-      if (!response.ok) {
-        // Call parent's private handleHttpError via complete retry
-        const errorData = await response.json().catch(() => ({}));
+      // Handle HTTP errors
+      if (response.status < 200 || response.status >= 300) {
         throw new AIServiceError(
-          `HTTP ${response.status}: ${response.statusText}`,
+          `HTTP ${response.status}`,
           this.providerId,
           {
             statusCode: response.status,
@@ -207,8 +208,8 @@ export class GoogleProvider extends BaseAIProvider {
         );
       }
 
-      // Parse response body
-      const responseData = await response.json();
+      // Parse response body (requestUrl returns json directly)
+      const responseData = response.json;
 
       // Parse provider-specific response format
       const aiResponse = this.parseResponse(responseData);
@@ -256,11 +257,13 @@ export class GoogleProvider extends BaseAIProvider {
     }
 
     try {
-      const response = await fetch(`${this.baseUrl}?key=${this.apiKey}`, {
+      const response = await requestUrl({
+        url: `${this.baseUrl}?key=${this.apiKey}`,
         method: 'GET',
+        throw: false,
       });
 
-      return response.ok;
+      return response.status >= 200 && response.status < 300;
     } catch {
       return false;
     }

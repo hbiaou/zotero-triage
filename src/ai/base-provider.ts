@@ -16,6 +16,7 @@ import type {
 } from './types';
 import { AIServiceError } from './types';
 import { SUPPORTED_MODELS } from './models';
+import { requestUrl } from 'obsidian';
 
 /**
  * Abstract base provider class
@@ -96,20 +97,22 @@ export abstract class BaseAIProvider implements AIProvider {
       // Build provider-specific request body
       const requestBody = this.buildRequestBody(request);
 
-      // Make HTTP request
-      const response = await fetch(this.baseUrl, {
+      // Make HTTP request using Obsidian's requestUrl to bypass CORS
+      const response = await requestUrl({
+        url: this.baseUrl,
         method: 'POST',
         headers: this.getHeaders(),
         body: JSON.stringify(requestBody),
+        throw: false, // Don't throw on non-200 status
       });
 
       // Handle HTTP errors
-      if (!response.ok) {
+      if (response.status < 200 || response.status >= 300) {
         await this.handleHttpError(response);
       }
 
-      // Parse response body
-      const responseData = await response.json();
+      // Parse response body (requestUrl returns json directly)
+      const responseData = response.json;
 
       // Parse provider-specific response format
       const aiResponse = this.parseResponse(responseData);
@@ -205,19 +208,27 @@ export abstract class BaseAIProvider implements AIProvider {
    *
    * Maps HTTP status codes to AIServiceError with retry metadata.
    *
-   * @param response - HTTP response object
+   * @param response - requestUrl response object
    * @throws AIServiceError with appropriate retry metadata
    */
-  private async handleHttpError(response: Response): Promise<never> {
+  private async handleHttpError(response: {
+    status: number;
+    headers: Record<string, string>;
+    json?: unknown;
+    text?: string;
+  }): Promise<never> {
     const status = response.status;
-    let errorMessage = `HTTP ${status}: ${response.statusText}`;
+    let errorMessage = `HTTP ${status}`;
 
     // Try to extract error message from response body
     try {
-      const errorBody = await response.json();
-      if (errorBody.error?.message) {
+      const errorBody = response.json as {
+        error?: { message?: string };
+        message?: string;
+      };
+      if (errorBody?.error?.message) {
         errorMessage = errorBody.error.message;
-      } else if (errorBody.message) {
+      } else if (errorBody?.message) {
         errorMessage = errorBody.message;
       }
     } catch {
@@ -241,7 +252,7 @@ export abstract class BaseAIProvider implements AIProvider {
     } else if (status === 429) {
       // Rate limiting - retryable with backoff
       errorOptions.isRetryable = true;
-      const retryAfter = response.headers.get('retry-after');
+      const retryAfter = response.headers['retry-after'];
       if (retryAfter) {
         errorOptions.retryAfterSeconds = parseInt(retryAfter, 10);
       } else {

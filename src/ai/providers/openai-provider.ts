@@ -9,6 +9,7 @@ import { BaseAIProvider } from '../base-provider';
 import type { AIRequest, AIResponse, ProviderID } from '../types';
 import { AIServiceError } from '../types';
 import { registerProvider } from '../provider-factory';
+import { requestUrl } from 'obsidian';
 
 /**
  * OpenAI API provider implementation
@@ -162,14 +163,16 @@ export class OpenAIProvider extends BaseAIProvider {
     }
 
     try {
-      const response = await fetch('https://api.openai.com/v1/models', {
+      const response = await requestUrl({
+        url: 'https://api.openai.com/v1/models',
         method: 'GET',
         headers: {
           Authorization: `Bearer ${this.apiKey}`,
         },
+        throw: false,
       });
 
-      return response.ok;
+      return response.status >= 200 && response.status < 300;
     } catch {
       return false;
     }
