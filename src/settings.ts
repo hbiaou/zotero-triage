@@ -430,21 +430,29 @@ export class ZoteroTriageSettingTab extends PluginSettingTab {
     new Setting(containerEl)
       .setName('Zotero Database Path')
       .setDesc('Path to your zotero.sqlite file')
-      .addText(text => text
-        .setPlaceholder('C:\\Users\\...\\Zotero\\zotero.sqlite')
-        .setValue(this.plugin.settings.zoteroDbPath)
-        .onChange(async (value) => {
-          console.log('[Settings] Zotero database path changed:', {
-            oldValue: this.plugin.settings.zoteroDbPath,
-            newValue: value,
-            valueLength: value.length,
-            valueType: typeof value
+      .addText(text => {
+        const currentValue = this.plugin.settings.zoteroDbPath;
+        console.log('[Settings] Creating text field with value:', {
+          value: currentValue,
+          valueType: typeof currentValue,
+          valueLength: currentValue?.length
+        });
+        return text
+          .setPlaceholder('C:\\Users\\...\\Zotero\\zotero.sqlite')
+          .setValue(currentValue)
+          .onChange(async (value) => {
+            console.log('[Settings] Zotero database path changed:', {
+              oldValue: this.plugin.settings.zoteroDbPath,
+              newValue: value,
+              valueLength: value.length,
+              valueType: typeof value
+            });
+            this.plugin.settings.zoteroDbPath = value;
+            console.log('[Settings] After assignment, settings.zoteroDbPath:', this.plugin.settings.zoteroDbPath);
+            await this.plugin.saveSettings();
+            console.log('[Settings] After saveSettings, settings object:', JSON.stringify(this.plugin.settings, null, 2));
           });
-          this.plugin.settings.zoteroDbPath = value;
-          console.log('[Settings] After assignment, settings.zoteroDbPath:', this.plugin.settings.zoteroDbPath);
-          await this.plugin.saveSettings();
-          console.log('[Settings] After saveSettings, settings object:', JSON.stringify(this.plugin.settings, null, 2));
-        }));
+      });
 
     // Auto-detect and Browse buttons
     new Setting(containerEl)
@@ -472,6 +480,7 @@ export class ZoteroTriageSettingTab extends PluginSettingTab {
         .onClick(async () => {
           // Use Electron's dialog if available
           try {
+            console.log('[Settings] Browse clicked');
             // eslint-disable-next-line @typescript-eslint/no-var-requires
             const { remote } = require('@electron/remote');
             const result = await remote.dialog.showOpenDialog({
@@ -481,8 +490,11 @@ export class ZoteroTriageSettingTab extends PluginSettingTab {
               ],
               properties: ['openFile']
             });
+            console.log('[Settings] Browse dialog result:', result);
             if (!result.canceled && result.filePaths.length > 0) {
+              console.log('[Settings] Before assignment, settings.zoteroDbPath:', this.plugin.settings.zoteroDbPath);
               this.plugin.settings.zoteroDbPath = result.filePaths[0];
+              console.log('[Settings] After assignment, settings.zoteroDbPath:', this.plugin.settings.zoteroDbPath);
               await this.plugin.saveSettings();
               this.display();
             }
