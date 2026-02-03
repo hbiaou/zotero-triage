@@ -129,7 +129,14 @@ export class DomainClassifier {
 
 - General: News articles, blogs, news media, miscellaneous content that doesn't fit other domains. Used as fallback when content spans multiple domains or doesn't clearly belong to Academic, Software, or Farming.
 
-Respond with JSON only: { "domain": "Domain", "confidence": 0.95, "reasoning": "Brief explanation" }
+IMPORTANT: You must respond with ONLY valid JSON. Do not include any explanatory text, markdown formatting, or code blocks. Return only the raw JSON object.
+
+Required JSON format:
+{
+  "domain": "Academic" | "Software" | "Farming" | "General",
+  "confidence": 0.95,
+  "reasoning": "Brief explanation of classification decision"
+}
 
 Confidence scoring:
 - 0.90-1.0: Very confident, clear domain indicators
@@ -236,6 +243,11 @@ Be conservative with confidence scores. When uncertain, lower the confidence.`;
    * Extracts JSON from LLM response text, validates with Zod schema,
    * normalizes domain name, and clamps confidence to 0.0-1.0 range.
    *
+   * Handles multiple response formats:
+   * - Plain JSON: { "domain": "Academic", ... }
+   * - Markdown code blocks: ```json { ... } ```
+   * - Text with embedded JSON
+   *
    * @param content - Raw LLM response text
    * @returns Parsed classification with domain, confidence, reasoning
    *
@@ -247,13 +259,39 @@ Be conservative with confidence scores. When uncertain, lower the confidence.`;
     reasoning: string;
   } {
     try {
-      // Extract JSON from response (LLM may add text around it)
-      const jsonMatch = content.match(/\{[\s\S]*\}/);
-      if (!jsonMatch) {
+      let jsonText = '';
+
+      // Strategy 1: Try to extract JSON from markdown code blocks first
+      // Matches: ```json { ... } ``` or ``` { ... } ```
+      const codeBlockMatch = content.match(/```(?:json)?\s*(\{[\s\S]*?\})\s*```/);
+      if (codeBlockMatch) {
+        jsonText = codeBlockMatch[1];
+      } else {
+        // Strategy 2: Try to extract JSON object from text
+        // Matches first occurrence of { ... } with proper nesting
+        const jsonMatch = content.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          jsonText = jsonMatch[0];
+        } else {
+          // Strategy 3: Try parsing entire response as JSON
+          jsonText = content.trim();
+        }
+      }
+
+      if (!jsonText) {
+        console.error('[DomainClassifier] No JSON found in response:', content);
         throw new Error('No JSON found in response');
       }
 
-      const parsed = JSON.parse(jsonMatch[0]);
+      // Parse and validate JSON
+      let parsed: unknown;
+      try {
+        parsed = JSON.parse(jsonText);
+      } catch (parseError) {
+        console.error('[DomainClassifier] JSON parse failed. Content:', content);
+        console.error('[DomainClassifier] Attempted to parse:', jsonText);
+        throw new Error(`JSON parse failed: ${parseError instanceof Error ? parseError.message : 'Unknown error'}`);
+      }
 
       // Validate with Zod schema
       const validated = ClassificationResponseSchema.parse(parsed);
@@ -270,7 +308,9 @@ Be conservative with confidence scores. When uncertain, lower the confidence.`;
         reasoning: validated.reasoning || 'No reasoning provided',
       };
     } catch (error) {
-      // Fallback if parsing fails
+      // Fallback if parsing fails - log the actual response for debugging
+      console.error('[DomainClassifier] Classification response parsing failed');
+      console.error('[DomainClassifier] Raw response:', content);
       throw new Error(
         `Failed to parse classification response: ${error instanceof Error ? error.message : 'Unknown error'}`
       );
