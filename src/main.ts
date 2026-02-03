@@ -44,7 +44,7 @@ import { RetryQueue } from './error-recovery/retry-queue';
  * with strict quality gates.
  */
 export default class ZoteroTriagePlugin extends Plugin {
-  settings: ZoteroTriageSettings = DEFAULT_SETTINGS;
+  settings!: ZoteroTriageSettings;
   connector!: ZoteroConnector;
   private connectorInitialized = false;
   registry!: RegistryService;
