@@ -367,6 +367,24 @@ WHERE it.typeName NOT IN ('attachment', 'annotation')
 `;
 
 /**
+ * Query to get Zotero preferences/settings
+ * Used to retrieve custom storage locations (baseAttachmentPath, dataDir)
+ *
+ * Zotero stores settings in a key-value settings table.
+ * Key settings for storage:
+ * - 'baseAttachmentPath': Custom storage directory for attachments
+ * - 'dataDir': Custom data directory (rare, but possible)
+ * - 'useDataDir': Whether custom dataDir is enabled
+ *
+ * Returns: setting, value pairs
+ */
+export const SETTINGS_QUERY = `
+SELECT setting, value
+FROM settings
+WHERE setting IN ('baseAttachmentPath', 'dataDir', 'useDataDir')
+`;
+
+/**
  * Creator row from CREATORS_QUERY result
  */
 export interface CreatorRow {

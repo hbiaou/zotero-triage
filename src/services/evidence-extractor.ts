@@ -41,12 +41,13 @@ const STALE_CACHE_DAYS = 30;
 export class EvidenceExtractor {
   private connector: ZoteroConnector;
   private zoteroDataPath: string;
+  private customStoragePath: string | null = null;
   private transcriptExtractor: TranscriptExtractor;
 
   /**
    * Create evidence extractor
    * @param connector - ZoteroConnector instance for database queries
-   * @param zoteroDataPath - Path to Zotero data directory
+   * @param zoteroDataPath - Path to Zotero data directory (derived from database path)
    * @param transcriptExtractor - TranscriptExtractor instance for video transcript extraction
    */
   constructor(
@@ -57,6 +58,49 @@ export class EvidenceExtractor {
     this.connector = connector;
     this.zoteroDataPath = zoteroDataPath;
     this.transcriptExtractor = transcriptExtractor;
+
+    // Initialize custom storage path asynchronously
+    this.initializeStoragePath();
+  }
+
+  /**
+   * Initialize storage path by querying Zotero database for custom location
+   * This runs asynchronously after construction
+   */
+  private async initializeStoragePath(): Promise<void> {
+    try {
+      if (this.connector.isConnected) {
+        this.customStoragePath = await this.connector.getCustomStoragePath();
+        if (this.customStoragePath) {
+          console.log('[EvidenceExtractor] Using custom storage location:', this.customStoragePath);
+        } else {
+          console.log('[EvidenceExtractor] Using default storage location:', path.join(this.zoteroDataPath, 'storage'));
+        }
+      } else {
+        console.log('[EvidenceExtractor] Database not connected yet, will use default storage path');
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error('[EvidenceExtractor] Failed to query custom storage path:', errorMessage);
+      // Continue with default path
+    }
+  }
+
+  /**
+   * Refresh storage path configuration
+   * Call this after database connection is established to ensure custom storage path is loaded
+   */
+  async refreshStoragePath(): Promise<void> {
+    await this.initializeStoragePath();
+  }
+
+  /**
+   * Get the storage base directory (custom or default)
+   * @returns Base directory for Zotero storage
+   */
+  private getStorageBasePath(): string {
+    // Use custom path if configured, otherwise use default
+    return this.customStoragePath || path.join(this.zoteroDataPath, 'storage');
   }
 
   /**
@@ -154,16 +198,29 @@ export class EvidenceExtractor {
   /**
    * Locate Zotero storage directory for an item
    *
-   * @param itemKey - Zotero item key
+   * Supports both default storage (dataDir/storage/KEY) and custom storage locations.
+   * Custom storage paths can be absolute or relative.
+   *
+   * @param itemKey - Zotero item key (8-character identifier)
    * @returns Storage directory path or null if doesn't exist
    */
   private locateStorageDir(itemKey: string): string | null {
-    const storagePath = path.join(this.zoteroDataPath, 'storage', itemKey);
+    // Get base storage path (custom or default)
+    const storageBasePath = this.getStorageBasePath();
+    const storagePath = path.join(storageBasePath, itemKey);
+
+    console.log(`[EvidenceExtractor] Looking for storage directory:`, {
+      itemKey,
+      storageBasePath,
+      fullPath: storagePath
+    });
 
     if (fs.existsSync(storagePath) && fs.statSync(storagePath).isDirectory()) {
+      console.log(`[EvidenceExtractor] Storage directory found: ${storagePath}`);
       return storagePath;
     }
 
+    console.log(`[EvidenceExtractor] Storage directory not found: ${storagePath}`);
     return null;
   }
 

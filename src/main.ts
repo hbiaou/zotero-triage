@@ -339,6 +339,13 @@ export default class ZoteroTriagePlugin extends Plugin {
       await this.connector.connect(this.settings.zoteroDbPath);
       this.connectorInitialized = true;
 
+      // Refresh evidence extractor's storage path now that database is connected
+      // This ensures custom storage locations are detected
+      if (this.evidenceExtractor) {
+        console.log('[Main] Refreshing evidence extractor storage path after database connection');
+        await this.evidenceExtractor.refreshStoragePath();
+      }
+
       if (this.isDev()) {
         this.memoryMonitor.check('after database connection');
       }
@@ -403,6 +410,11 @@ export default class ZoteroTriagePlugin extends Plugin {
 
   async loadSettings(): Promise<void> {
     this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+    console.log('[Main] Settings loaded:', {
+      zoteroDbPath: this.settings.zoteroDbPath || '(not configured)',
+      outputFolder: this.settings.outputFolder,
+      hasAiConfig: !!this.settings.aiConfig
+    });
   }
 
   async saveSettings(): Promise<void> {
@@ -440,6 +452,13 @@ export default class ZoteroTriagePlugin extends Plugin {
    * @returns Zotero data directory or null if not configured
    */
   private getZoteroDataPath(): string | null {
+    console.log('[Main] getZoteroDataPath called, current settings:', {
+      zoteroDbPath: this.settings.zoteroDbPath,
+      zoteroDbPathType: typeof this.settings.zoteroDbPath,
+      zoteroDbPathLength: this.settings.zoteroDbPath?.length,
+      settingsObject: this.settings
+    });
+
     // Extract data directory from database path
     // e.g., /Users/x/Zotero/zotero.sqlite -> /Users/x/Zotero
     if (!this.settings.zoteroDbPath || this.settings.zoteroDbPath.trim() === '') {

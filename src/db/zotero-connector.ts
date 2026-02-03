@@ -638,6 +638,40 @@ export class ZoteroConnector {
   }
 
   /**
+   * Query Zotero settings to get custom storage location
+   *
+   * Zotero allows users to specify a custom storage directory for attachments.
+   * This is stored in the settings table as 'baseAttachmentPath'.
+   *
+   * @returns Custom storage base path, or null if using default location
+   * @throws Error if database not connected
+   */
+  async getCustomStoragePath(): Promise<string | null> {
+    if (!this.db) {
+      throw new Error('Database not connected. Call connect() first.');
+    }
+
+    try {
+      const query = `SELECT value FROM settings WHERE setting = 'baseAttachmentPath'`;
+      const results = this.db.exec(query);
+
+      if (!results || results.length === 0 || !results[0].values || results[0].values.length === 0) {
+        // No custom storage path configured - using default
+        return null;
+      }
+
+      const customPath = results[0].values[0][0] as string;
+      console.log('[ZoteroConnector] Custom storage path found in database:', customPath);
+      return customPath;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      console.error('Failed to query custom storage path:', errorMessage);
+      // Return null on error - fall back to default storage location
+      return null;
+    }
+  }
+
+  /**
    * Query library statistics for scope transparency.
    *
    * Returns counts for each library type and trash status:
