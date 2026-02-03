@@ -290,6 +290,20 @@ Be conservative with confidence scores. When uncertain, lower the confidence.`;
       } catch (parseError) {
         console.error('[DomainClassifier] JSON parse failed. Content:', content);
         console.error('[DomainClassifier] Attempted to parse:', jsonText);
+
+        // Fallback: Try to extract domain from incomplete JSON using regex
+        // Handles truncated responses like: {"domain": "Academic
+        const domainMatch = jsonText.match(/"domain"\s*:\s*"(Academic|Software|Farming|General)/i);
+        if (domainMatch) {
+          const extractedDomain = domainMatch[1] as Domain;
+          console.warn('[DomainClassifier] Recovered domain from incomplete JSON:', extractedDomain);
+          return {
+            domain: extractedDomain,
+            confidence: 0.5, // Low confidence due to incomplete response
+            reasoning: 'Recovered from truncated LLM response'
+          };
+        }
+
         throw new Error(`JSON parse failed: ${parseError instanceof Error ? parseError.message : 'Unknown error'}`);
       }
 

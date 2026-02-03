@@ -132,6 +132,15 @@ export class GoogleProvider extends BaseAIProvider {
       .filter(text => text.length > 0)
       .join('');
 
+    // Debug logging for truncation issues
+    console.log('[GoogleProvider] Response details:', {
+      partsCount: parts.length,
+      contentLength: content.length,
+      finishReason: candidate.finishReason,
+      firstPartPreview: parts[0]?.text?.substring(0, 100),
+      lastPartPreview: parts[parts.length - 1]?.text?.substring(Math.max(0, (parts[parts.length - 1]?.text?.length || 0) - 100))
+    });
+
     if (!content) {
       throw new AIServiceError(
         'Invalid Google response: empty content',
@@ -144,11 +153,13 @@ export class GoogleProvider extends BaseAIProvider {
     // Google uses: STOP, MAX_TOKENS, SAFETY, RECITATION, OTHER
     let finishReason: 'stop' | 'max_tokens' | 'error' = 'stop';
     if (candidate.finishReason === 'MAX_TOKENS') {
+      console.warn('[GoogleProvider] Response truncated due to MAX_TOKENS');
       finishReason = 'max_tokens';
     } else if (
       candidate.finishReason !== 'STOP' &&
       candidate.finishReason !== undefined
     ) {
+      console.warn('[GoogleProvider] Unexpected finishReason:', candidate.finishReason);
       finishReason = 'error';
     }
 
