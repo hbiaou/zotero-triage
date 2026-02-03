@@ -426,6 +426,17 @@ export default class ZoteroTriagePlugin extends Plugin {
     console.log('[Main] Saving settings to data.json:', JSON.stringify(this.settings, null, 2));
     await this.saveData(this.settings);
     console.log('[Main] Settings saved successfully');
+
+    // Verify save by reading back
+    const verifyData = await this.loadData();
+    console.log('[Main] Verification - data read back after save:', JSON.stringify(verifyData, null, 2));
+    if (verifyData?.zoteroDbPath !== this.settings.zoteroDbPath) {
+      console.error('[Main] ERROR: zoteroDbPath mismatch after save!', {
+        expected: this.settings.zoteroDbPath,
+        actual: verifyData?.zoteroDbPath
+      });
+    }
+
     // Update note generator with new settings
     if (this.noteGenerator) {
       this.noteGenerator.setOutputFolder(this.settings.outputFolder);
