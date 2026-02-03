@@ -72,9 +72,9 @@ export class EvidenceExtractor {
    * @returns PDF fulltext or empty string if unavailable
    */
   private async extractPDFFulltext(itemID: number): Promise<string> {
-    // Skip if Zotero data path not configured
-    if (!this.zoteroDataPath) {
-      console.log(`[EvidenceExtractor] PDF extraction skipped: No Zotero data path configured`);
+    // Skip if Zotero data path not configured (null, undefined, or empty string)
+    if (!this.zoteroDataPath || this.zoteroDataPath.trim() === '') {
+      console.log(`[EvidenceExtractor] PDF extraction skipped: No Zotero data path configured (path: ${this.zoteroDataPath})`);
       return '';
     }
 

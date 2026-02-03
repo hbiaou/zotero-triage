@@ -133,6 +133,7 @@ export default class ZoteroTriagePlugin extends Plugin {
     // Initialize evidence extractor (needs Zotero data path)
     // Always initialize it - it will handle missing path gracefully
     const zoteroDataPath = this.getZoteroDataPath();
+    console.log('[Main] Initializing EvidenceExtractor with Zotero data path:', zoteroDataPath || '(not configured)');
     this.evidenceExtractor = new EvidenceExtractor(
       this.connector,
       zoteroDataPath || '', // Provide empty string if no path configured yet
@@ -441,8 +442,16 @@ export default class ZoteroTriagePlugin extends Plugin {
   private getZoteroDataPath(): string | null {
     // Extract data directory from database path
     // e.g., /Users/x/Zotero/zotero.sqlite -> /Users/x/Zotero
-    if (!this.settings.zoteroDbPath) return null;
-    return path.dirname(this.settings.zoteroDbPath);
+    if (!this.settings.zoteroDbPath || this.settings.zoteroDbPath.trim() === '') {
+      console.log('[Main] No Zotero database path configured in settings');
+      return null;
+    }
+    const dataPath = path.dirname(this.settings.zoteroDbPath);
+    console.log('[Main] Zotero data path derived from db path:', {
+      dbPath: this.settings.zoteroDbPath,
+      dataPath: dataPath
+    });
+    return dataPath;
   }
 
   /**
