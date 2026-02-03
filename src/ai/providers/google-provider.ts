@@ -114,11 +114,27 @@ export class GoogleProvider extends BaseAIProvider {
     }
 
     const candidate = data.candidates[0];
-    const content = candidate.content?.parts?.[0]?.text;
+
+    // Extract all text parts and concatenate them
+    // Google may split response across multiple parts
+    const parts = candidate.content?.parts;
+    if (!parts || parts.length === 0) {
+      throw new AIServiceError(
+        'Invalid Google response: missing content parts',
+        this.providerId,
+        { isRetryable: false }
+      );
+    }
+
+    // Concatenate all text parts to get full response
+    const content = parts
+      .map(part => part.text || '')
+      .filter(text => text.length > 0)
+      .join('');
 
     if (!content) {
       throw new AIServiceError(
-        'Invalid Google response: missing content',
+        'Invalid Google response: empty content',
         this.providerId,
         { isRetryable: false }
       );
@@ -209,7 +225,20 @@ export class GoogleProvider extends BaseAIProvider {
       }
 
       // Parse response body (requestUrl returns json directly)
+      // Note: response.json is already the parsed JSON object, not a method
       const responseData = response.json;
+
+      // Debug: Log response size to diagnose truncation issues
+      if (!responseData) {
+        console.error('[GoogleProvider] Response data is null or undefined');
+        console.error('[GoogleProvider] Response status:', response.status);
+        console.error('[GoogleProvider] Response text:', response.text);
+        throw new AIServiceError(
+          'Empty response from Google API',
+          this.providerId,
+          { isRetryable: false }
+        );
+      }
 
       // Parse provider-specific response format
       const aiResponse = this.parseResponse(responseData);

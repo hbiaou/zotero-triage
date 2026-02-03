@@ -7,6 +7,7 @@
  */
 
 import { YoutubeTranscript } from 'youtube-transcript';
+import { requestUrl } from 'obsidian';
 import type { TranscriptExtraction } from './types';
 import { TranscriptExtractionError } from './types';
 
@@ -75,8 +76,33 @@ export class YouTubeService {
    */
   async fetchTranscript(url: string): Promise<TranscriptExtraction> {
     try {
-      // Fetch transcript segments from YouTube
-      const segments = await YoutubeTranscript.fetchTranscript(url);
+      // Patch global fetch to use Obsidian's requestUrl (bypasses CORS)
+      const originalFetch = globalThis.fetch;
+      globalThis.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
+        const urlString = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
+
+        const response = await requestUrl({
+          url: urlString,
+          method: init?.method || 'GET',
+          headers: init?.headers as Record<string, string> || {},
+          body: init?.body as string,
+          throw: false,
+        });
+
+        // Create a Response-like object that youtube-transcript expects
+        return {
+          ok: response.status >= 200 && response.status < 300,
+          status: response.status,
+          statusText: response.status.toString(),
+          text: async () => response.text,
+          json: async () => response.json,
+          headers: new Headers(response.headers),
+        } as Response;
+      };
+
+      try {
+        // Fetch transcript segments from YouTube
+        const segments = await YoutubeTranscript.fetchTranscript(url);
 
       if (!segments || segments.length === 0) {
         throw new TranscriptExtractionError(
@@ -86,22 +112,26 @@ export class YouTubeService {
         );
       }
 
-      // Extract text from segments and join with spaces
-      const transcriptText = segments
-        .map(segment => segment.text)
-        .join(' ');
+        // Extract text from segments and join with spaces
+        const transcriptText = segments
+          .map(segment => segment.text)
+          .join(' ');
 
-      // Calculate word count for token estimation
-      const wordCount = transcriptText.split(/\s+/).filter(w => w.length > 0).length;
+        // Calculate word count for token estimation
+        const wordCount = transcriptText.split(/\s+/).filter(w => w.length > 0).length;
 
-      return {
-        platform: 'youtube',
-        transcript: transcriptText,
-        wordCount,
-        language: segments[0]?.lang || 'en', // Default to English
-        source: 'auto',
-        sourceUrl: url
-      };
+        return {
+          platform: 'youtube',
+          transcript: transcriptText,
+          wordCount,
+          language: segments[0]?.lang || 'en', // Default to English
+          source: 'auto',
+          sourceUrl: url
+        };
+      } finally {
+        // Restore original fetch
+        globalThis.fetch = originalFetch;
+      }
     } catch (err) {
       // If already a TranscriptExtractionError, re-throw
       if (err instanceof TranscriptExtractionError) {
