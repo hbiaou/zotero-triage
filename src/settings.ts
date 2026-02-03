@@ -36,6 +36,13 @@ export class ZoteroTriageSettingTab extends PluginSettingTab {
     const { containerEl } = this;
     containerEl.empty();
 
+    console.log('[Settings] Display called, current settings:', {
+      zoteroDbPath: this.plugin.settings.zoteroDbPath,
+      zoteroDbPathType: typeof this.plugin.settings.zoteroDbPath,
+      zoteroDbPathLength: this.plugin.settings.zoteroDbPath?.length,
+      fullSettings: JSON.stringify(this.plugin.settings, null, 2)
+    });
+
     containerEl.createEl('h1', { text: 'Zotero Triage Settings' });
 
     // Section 1: Library Scope (NEW - render first, async for query)
@@ -427,8 +434,16 @@ export class ZoteroTriageSettingTab extends PluginSettingTab {
         .setPlaceholder('C:\\Users\\...\\Zotero\\zotero.sqlite')
         .setValue(this.plugin.settings.zoteroDbPath)
         .onChange(async (value) => {
+          console.log('[Settings] Zotero database path changed:', {
+            oldValue: this.plugin.settings.zoteroDbPath,
+            newValue: value,
+            valueLength: value.length,
+            valueType: typeof value
+          });
           this.plugin.settings.zoteroDbPath = value;
+          console.log('[Settings] After assignment, settings.zoteroDbPath:', this.plugin.settings.zoteroDbPath);
           await this.plugin.saveSettings();
+          console.log('[Settings] After saveSettings, settings object:', JSON.stringify(this.plugin.settings, null, 2));
         }));
 
     // Auto-detect and Browse buttons
@@ -438,9 +453,13 @@ export class ZoteroTriageSettingTab extends PluginSettingTab {
       .addButton(button => button
         .setButtonText('Auto-detect')
         .onClick(async () => {
+          console.log('[Settings] Auto-detect clicked');
           const detectedPath = detectZoteroPath();
+          console.log('[Settings] Detected path:', detectedPath);
           if (detectedPath) {
+            console.log('[Settings] Before assignment, settings.zoteroDbPath:', this.plugin.settings.zoteroDbPath);
             this.plugin.settings.zoteroDbPath = detectedPath;
+            console.log('[Settings] After assignment, settings.zoteroDbPath:', this.plugin.settings.zoteroDbPath);
             await this.plugin.saveSettings();
             new Notice(`Database found: ${detectedPath}`);
             this.display(); // Refresh to show new path

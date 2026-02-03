@@ -409,16 +409,23 @@ export default class ZoteroTriagePlugin extends Plugin {
   }
 
   async loadSettings(): Promise<void> {
-    this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+    const loadedData = await this.loadData();
+    console.log('[Main] Raw data loaded from data.json:', JSON.stringify(loadedData, null, 2));
+    this.settings = Object.assign({}, DEFAULT_SETTINGS, loadedData);
+    console.log('[Main] Settings after merge with defaults:', JSON.stringify(this.settings, null, 2));
     console.log('[Main] Settings loaded:', {
       zoteroDbPath: this.settings.zoteroDbPath || '(not configured)',
+      zoteroDbPathType: typeof this.settings.zoteroDbPath,
+      zoteroDbPathLength: this.settings.zoteroDbPath?.length,
       outputFolder: this.settings.outputFolder,
       hasAiConfig: !!this.settings.aiConfig
     });
   }
 
   async saveSettings(): Promise<void> {
+    console.log('[Main] Saving settings to data.json:', JSON.stringify(this.settings, null, 2));
     await this.saveData(this.settings);
+    console.log('[Main] Settings saved successfully');
     // Update note generator with new settings
     if (this.noteGenerator) {
       this.noteGenerator.setOutputFolder(this.settings.outputFolder);
