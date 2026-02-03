@@ -65,35 +65,88 @@ export class EvidenceExtractor {
    * Zotero indexes PDFs and stores plaintext in .zotero-ft-cache files.
    * This is the highest quality evidence source.
    *
-   * @param itemKey - Zotero item key (8-character identifier)
+   * IMPORTANT: The cache file is stored in the ATTACHMENT's storage directory,
+   * not the parent item's directory. We need to query for attachment keys.
+   *
+   * @param itemID - Zotero database item ID (used to find attachments)
    * @returns PDF fulltext or empty string if unavailable
    */
-  private async extractPDFFulltext(itemKey: string): Promise<string> {
+  private async extractPDFFulltext(itemID: number): Promise<string> {
     // Skip if Zotero data path not configured
     if (!this.zoteroDataPath) {
+      console.log(`[EvidenceExtractor] PDF extraction skipped: No Zotero data path configured`);
       return '';
     }
 
     try {
-      // Locate storage directory for this item
-      const storageDir = this.locateStorageDir(itemKey);
-      if (!storageDir) {
+      // Query for PDF attachments and their keys
+      const query = `
+        SELECT
+          i.key AS attachmentKey,
+          ia.itemID,
+          ia.linkMode
+        FROM itemAttachments ia
+        JOIN items i ON ia.itemID = i.itemID
+        WHERE ia.parentItemID = ?
+          AND ia.contentType = 'application/pdf'
+          AND ia.linkMode IN (0, 1)
+      `;
+
+      const result = await this.connector.query(query, [itemID]);
+
+      console.log(`[EvidenceExtractor] Found ${result?.length || 0} PDF attachments for itemID ${itemID}`);
+
+      if (!result || result.length === 0) {
+        console.log(`[EvidenceExtractor] No PDF attachments found for itemID ${itemID}`);
         return '';
       }
 
-      // Check for Zotero's fulltext cache file
-      const cachePath = path.join(storageDir, '.zotero-ft-cache');
-      if (!fs.existsSync(cachePath)) {
-        return '';
+      // Try each attachment until we find one with cached fulltext
+      for (const row of result) {
+        const attachmentKey = row.attachmentKey as string;
+        const linkMode = row.linkMode as number;
+
+        console.log(`[EvidenceExtractor] Checking attachment ${attachmentKey} (linkMode: ${linkMode})`);
+
+        // Locate storage directory for this attachment
+        const storageDir = this.locateStorageDir(attachmentKey);
+        if (!storageDir) {
+          console.log(`[EvidenceExtractor] Storage directory not found for attachment ${attachmentKey}`);
+          continue;
+        }
+
+        console.log(`[EvidenceExtractor] Storage directory found: ${storageDir}`);
+
+        // Check for Zotero's fulltext cache file
+        const cachePath = path.join(storageDir, '.zotero-ft-cache');
+        console.log(`[EvidenceExtractor] Checking cache path: ${cachePath}`);
+
+        if (!fs.existsSync(cachePath)) {
+          console.log(`[EvidenceExtractor] Cache file does not exist at: ${cachePath}`);
+          continue;
+        }
+
+        console.log(`[EvidenceExtractor] Cache file exists, reading content...`);
+
+        // Read cached fulltext
+        const content = await fs.promises.readFile(cachePath, 'utf-8');
+        const contentLength = content.length;
+
+        console.log(`[EvidenceExtractor] Successfully read ${contentLength} characters from cache`);
+
+        if (contentLength > 0) {
+          return content;
+        } else {
+          console.log(`[EvidenceExtractor] Cache file is empty`);
+        }
       }
 
-      // Read cached fulltext
-      const content = await fs.promises.readFile(cachePath, 'utf-8');
-      return content;
+      console.log(`[EvidenceExtractor] No valid fulltext cache found for any attachment`);
+      return '';
     } catch (err) {
       // Log error but don't throw - graceful degradation to next evidence level
       const errorMessage = err instanceof Error ? err.message : String(err);
-      console.error(`Failed to extract PDF fulltext for ${itemKey}: ${errorMessage}`);
+      console.error(`[EvidenceExtractor] Failed to extract PDF fulltext for itemID ${itemID}: ${errorMessage}`);
       return '';
     }
   }
@@ -245,8 +298,10 @@ export class EvidenceExtractor {
    */
   async extract(item: ZoteroItem): Promise<EvidenceExtraction> {
     // 1. Try PDF fulltext (primary)
-    const pdfContent = await this.extractPDFFulltext(item.itemKey);
+    console.log(`[EvidenceExtractor] Extracting evidence for item ${item.itemKey} (itemID: ${item.itemID})`);
+    const pdfContent = await this.extractPDFFulltext(item.itemID);
     if (this.isValidEvidence(pdfContent)) {
+      console.log(`[EvidenceExtractor] Valid PDF fulltext found (${pdfContent.length} chars)`);
       return {
         level: 'FullText',
         content: pdfContent,
