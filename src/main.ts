@@ -413,17 +413,9 @@ export default class ZoteroTriagePlugin extends Plugin {
     const loadedData = await this.loadData();
     console.log('[Main] Raw data loaded from data.json:', JSON.stringify(loadedData, null, 2));
 
-    // Deep merge: Start with fresh defaults, then overlay saved data
-    // Use JSON parse/stringify to ensure deep clone with no references
-    const defaultsCopy = JSON.parse(JSON.stringify(DEFAULT_SETTINGS));
-
-    if (loadedData && Object.keys(loadedData).length > 0) {
-      // Merge loaded data over defaults (deep merge for nested objects)
-      this.settings = this.deepMerge(defaultsCopy, loadedData);
-    } else {
-      // No saved data - use defaults
-      this.settings = defaultsCopy;
-    }
+    // Simple spread merge - more predictable for flat/shallow settings
+    // Loaded data overwrites defaults, no complex deep merge issues
+    this.settings = { ...DEFAULT_SETTINGS, ...loadedData };
 
     console.log('[Main] Settings after merge with defaults:', JSON.stringify(this.settings, null, 2));
     console.log('[Main] Settings loaded:', {
@@ -433,33 +425,6 @@ export default class ZoteroTriagePlugin extends Plugin {
       outputFolder: this.settings.outputFolder,
       hasAiConfig: !!this.settings.aiConfig
     });
-  }
-
-  /**
-   * Deep merge two objects (source overwrites target)
-   */
-  private deepMerge(target: any, source: any): any {
-    const output = { ...target };
-
-    if (this.isObject(target) && this.isObject(source)) {
-      Object.keys(source).forEach(key => {
-        if (this.isObject(source[key])) {
-          if (!(key in target)) {
-            output[key] = source[key];
-          } else {
-            output[key] = this.deepMerge(target[key], source[key]);
-          }
-        } else {
-          output[key] = source[key];
-        }
-      });
-    }
-
-    return output;
-  }
-
-  private isObject(item: any): boolean {
-    return item && typeof item === 'object' && !Array.isArray(item);
   }
 
   async saveSettings(): Promise<void> {

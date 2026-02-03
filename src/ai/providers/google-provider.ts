@@ -41,13 +41,28 @@ export class GoogleProvider extends BaseAIProvider {
    * }
    */
   protected buildRequestBody(request: AIRequest): unknown {
+    const generationConfig: {
+      temperature: number;
+      maxOutputTokens: number;
+      responseMimeType?: string;
+      responseSchema?: unknown;
+    } = {
+      temperature: request.temperature ?? 0.7,
+      maxOutputTokens: request.maxTokens ?? 4096,
+    };
+
+    // Add JSON mode and schema for controlled generation (Google-specific)
+    if (request.responseMimeType) {
+      generationConfig.responseMimeType = request.responseMimeType;
+    }
+    if (request.responseSchema) {
+      generationConfig.responseSchema = request.responseSchema;
+    }
+
     const body: {
       contents: Array<{ role: string; parts: Array<{ text: string }> }>;
       systemInstruction?: { parts: Array<{ text: string }> };
-      generationConfig: {
-        temperature: number;
-        maxOutputTokens: number;
-      };
+      generationConfig: typeof generationConfig;
     } = {
       contents: [
         {
@@ -55,10 +70,7 @@ export class GoogleProvider extends BaseAIProvider {
           parts: [{ text: request.prompt }],
         },
       ],
-      generationConfig: {
-        temperature: request.temperature ?? 0.7,
-        maxOutputTokens: request.maxTokens ?? 4096,
-      },
+      generationConfig,
     };
 
     // Add system instruction if provided

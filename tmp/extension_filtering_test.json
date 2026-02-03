@@ -1,0 +1,37 @@
+{
+  "extension_filtered_count": 9392,
+  "test_script_count": 11494,
+  "personal_library_annotations": 2100,
+  "personal_library_retracted": 2,
+  "calculation": {
+    "test_script_count": 11494,
+    "minus_annotations": 2100,
+    "minus_retracted": 2,
+    "expected_extension_count": 9392,
+    "actual_extension_count": 9392,
+    "difference": 0
+  },
+  "item_types_breakdown": {
+    "journalArticle": 6523,
+    "book": 935,
+    "videoRecording": 902,
+    "bookSection": 321,
+    "webpage": 207,
+    "document": 100,
+    "conferencePaper": 91,
+    "thesis": 77,
+    "report": 67,
+    "blogPost": 64,
+    "patent": 45,
+    "dataset": 15,
+    "preprint": 13,
+    "encyclopediaArticle": 8,
+    "computerProgram": 8,
+    "magazineArticle": 4,
+    "presentation": 3,
+    "manuscript": 3,
+    "forumPost": 3,
+    "map": 2,
+    "newspaperArticle": 1
+  }
+}

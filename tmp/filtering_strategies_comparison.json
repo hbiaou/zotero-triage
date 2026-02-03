@@ -1,0 +1,80 @@
+{
+  "strategy_1_current_extension": {
+    "count": 9293,
+    "excludes": [
+      "attachments",
+      "all notes (child + standalone)",
+      "annotations",
+      "group libraries",
+      "feeds",
+      "trash",
+      "retracted items"
+    ]
+  },
+  "strategy_2_exclude_child_notes_only": {
+    "count": 9301,
+    "excludes": [
+      "attachments",
+      "child notes only",
+      "annotations",
+      "group libraries",
+      "feeds",
+      "trash",
+      "retracted items"
+    ],
+    "includes": [
+      "standalone notes"
+    ]
+  },
+  "strategy_3_minimal": {
+    "count": 12560,
+    "excludes": [
+      "attachments",
+      "annotations",
+      "group libraries",
+      "feeds",
+      "trash",
+      "retracted items"
+    ],
+    "includes": [
+      "all notes (child + standalone)"
+    ]
+  },
+  "impact_analysis": {
+    "current_extension_count": 9293,
+    "with_standalone_notes": 9301,
+    "standalone_notes_excluded": 8,
+    "child_notes_excluded": 3259,
+    "all_notes_excluded": 3267
+  },
+  "item_types_with_standalone_notes": {
+    "journalArticle": 6438,
+    "book": 923,
+    "videoRecording": 898,
+    "bookSection": 320,
+    "webpage": 217,
+    "document": 100,
+    "conferencePaper": 88,
+    "thesis": 75,
+    "report": 66,
+    "blogPost": 63,
+    "patent": 45,
+    "dataset": 15,
+    "preprint": 13,
+    "note": 8,
+    "encyclopediaArticle": 8,
+    "computerProgram": 8,
+    "magazineArticle": 4,
+    "presentation": 3,
+    "manuscript": 3,
+    "forumPost": 3,
+    "map": 2,
+    "newspaperArticle": 1
+  },
+  "personal_library_stats": {
+    "standalone_notes": 8,
+    "child_notes": 3259,
+    "annotations": 2100,
+    "attachments": 6937
+  }
+}

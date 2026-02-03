@@ -1,0 +1,50 @@
+{
+  "total_notes_personal_library": 3267,
+  "child_notes": 3259,
+  "standalone_notes": 8,
+  "note_breakdown_check": {
+    "child_notes": 3259,
+    "standalone_notes": 8,
+    "sum": 3267,
+    "total_notes": 3267,
+    "matches": true
+  },
+  "standalone_note_samples": [
+    {
+      "itemID": 49887,
+      "title": "# Guide: Uninstalling Packages Installed from GitHub"
+    },
+    {
+      "itemID": 49898,
+      "title": "# Guide: Update Agent-Zero to the latest version"
+    },
+    {
+      "itemID": 49903,
+      "title": "How do I add a .bat file to the start menu?"
+    },
+    {
+      "itemID": 52489,
+      "title": "AI-Assisted Development with Cursor"
+    },
+    {
+      "itemID": 52495,
+      "title": "oTToDev (Bolt.new-any-llm) N8N Chat Interface Prompts"
+    },
+    {
+      "itemID": 53065,
+      "title": "Things to do When migrating to a new PC"
+    },
+    {
+      "itemID": 53409,
+      "title": "Why Research Gaps Are Bullsh*t"
+    },
+    {
+      "itemID": 57268,
+      "title": "Creating Windows Shortcuts for Terminal-Based Programs"
+    }
+  ],
+  "attachment_info": {
+    "items_with_child_attachments": 4756,
+    "standalone_attachments": 585
+  }
+}

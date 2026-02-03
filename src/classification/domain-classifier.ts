@@ -148,13 +148,38 @@ Be conservative with confidence scores. When uncertain, lower the confidence.`;
 
     const userPrompt = this.buildClassificationPrompt(item, evidence);
 
+    // Response schema for Google's controlled generation
+    // Forces model to return valid JSON matching this exact structure
+    const responseSchema = {
+      type: 'OBJECT',
+      properties: {
+        domain: {
+          type: 'STRING',
+          enum: ['Academic', 'Software', 'Farming', 'General'],
+          description: 'The classified domain category'
+        },
+        confidence: {
+          type: 'NUMBER',
+          description: 'Confidence score between 0 and 1'
+        },
+        reasoning: {
+          type: 'STRING',
+          description: 'Brief explanation for the classification'
+        }
+      },
+      required: ['domain', 'confidence', 'reasoning']
+    };
+
     try {
       const response = await this.aiService.complete({
         systemPrompt,
         prompt: userPrompt,
-        temperature: 0.3, // Low temperature for consistent classification
-        maxTokens: 200,
+        temperature: 0.1, // Very low for consistent JSON generation
+        maxTokens: 1000, // Increased buffer for schema compliance
         model: this.aiService.getCurrentModel() || 'gemini-3-flash-preview',
+        // Google-specific: Force JSON mode with controlled schema
+        responseMimeType: 'application/json',
+        responseSchema: responseSchema,
       });
 
       // Parse LLM response for domain + confidence

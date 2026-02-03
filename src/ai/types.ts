@@ -42,6 +42,18 @@ export interface AIRequest {
   temperature?: number;
   /** Maximum tokens to generate (default: 4096) */
   maxTokens?: number;
+  /** Response format (Google-specific: "application/json" for JSON mode) */
+  responseMimeType?: string;
+  /** Response schema for controlled generation (Google-specific) */
+  responseSchema?: {
+    type: string;
+    properties: Record<string, {
+      type: string;
+      enum?: string[];
+      description?: string;
+    }>;
+    required?: string[];
+  };
 }
 
 /**
