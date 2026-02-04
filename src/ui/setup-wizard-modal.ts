@@ -435,8 +435,21 @@ export class SetupWizardModal extends Modal {
 
             dropdown.onChange(value => {
               this.wizardData.aiConfig.modelId = value;
+              // Clear custom input checks if needed, but simple override is fine
             });
           });
+
+        // Custom Model Input
+        new Setting(container)
+          .setName('Or Custom Model ID')
+          .setDesc('Manually enter a model ID (e.g., "provider/model" for OpenRouter). Overrides selection above.')
+          .addText(text => text
+            .setPlaceholder('e.g. google/gemini-pro-1.5')
+            .onChange(value => {
+              if (value.trim()) {
+                this.wizardData.aiConfig.modelId = value.trim();
+              }
+            }));
       }
     }
   }
@@ -676,11 +689,27 @@ export class SetupWizardModal extends Modal {
 
     // Save AI Config (API key already saved in storage)
     if (this.wizardData.aiConfig.providerId && this.wizardData.aiConfig.modelId) {
+      const providerId = this.wizardData.aiConfig.providerId;
+      const modelId = this.wizardData.aiConfig.modelId;
+
+      // Handle custom model persistence
+      const customModels = this.plugin.settings.aiConfig?.customModels || {};
+      const standardModels = SUPPORTED_MODELS[providerId] || [];
+      const isStandard = standardModels.some(m => m.id === modelId);
+
+      // If manual entry and not in standard list, save as custom
+      if (!isStandard) {
+        if (!customModels[providerId]) customModels[providerId] = [];
+        if (!customModels[providerId].includes(modelId)) {
+          customModels[providerId].push(modelId);
+        }
+      }
+
       this.plugin.settings.aiConfig = {
-        selectedProvider: this.wizardData.aiConfig.providerId,
-        selectedModel: this.wizardData.aiConfig.modelId,
+        selectedProvider: providerId,
+        selectedModel: modelId,
         fallbackOrder: [],
-        customModels: this.plugin.settings.aiConfig?.customModels // Preserve existing custom models if any
+        customModels: customModels
       };
 
       // Initialize service
