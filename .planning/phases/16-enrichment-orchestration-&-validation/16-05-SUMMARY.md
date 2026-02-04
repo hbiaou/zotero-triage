@@ -64,7 +64,7 @@ Integrate enrichment orchestrator into Accept workflow with error recovery fallb
 
 ## Production Fixes & Enhancements
 
-During testing and integration, multiple critical issues were discovered and resolved:
+During testing and integration, 12 critical issues were discovered and resolved:
 
 ### 1. Settings Persistence (8854dfe, aa4c8f1, a00bf86)
 
@@ -201,6 +201,57 @@ During testing and integration, multiple critical issues were discovered and res
 
 **Files:** `src/services/evidence-extractor.ts`
 
+### 11. Transcript Skip State Persistence (9f4b9b5)
+
+**Problem:** After canceling manual transcript prompt once, user was prompted again on next Accept action.
+
+**Root Cause:** No persistent state tracking user's decision to skip transcript input.
+
+**Fix:**
+- Added `TRANSCRIPT_SKIPPED = '__SKIPPED__'` sentinel constant
+- `saveManualTranscript()` can save this sentinel value
+- `getManualTranscript()` returns sentinel, evidence extractor checks and skips prompt
+- User cancels/provides empty input → save as SKIPPED, never prompt again for that item
+- Prioritize notes check: If notes exist, skip transcript prompt entirely
+
+**Impact:** No more infinite prompting loops, user's skip decision persists across sessions.
+
+**Files:**
+- `src/services/evidence-extractor.ts` - TRANSCRIPT_SKIPPED constant and skip logic
+- `src/registry/registry-service.ts` - saveManualTranscript() handles sentinel
+
+### 12. Statistics Filtering by Library Scope (9f4b9b5)
+
+**Problem:** Library Overview stats showed counts from ALL items ever processed, including items from:
+- Group libraries (when personal-only filter enabled)
+- Deleted items from Zotero
+- Items from previous library configurations
+
+**Root Cause:** `registry.getStats()` counted all registry entries without filtering by currently loaded items.
+
+**Fix:**
+- Extended `getStats(validItemIds?: Set<number>)` to accept optional filter set
+- If `validItemIds` provided, only count entries whose itemID is in the set
+- `triage-view.ts` creates `Set` from `connector.getCachedItems()` and passes to `getStats()`
+- `stats-panel.ts` receives filtered stats for Library Overview rendering
+
+**Impact:** Library Overview now shows accurate counts matching current library scope filter.
+
+**Files:**
+- `src/registry/registry-service.ts:184-214` - getStats() filtering logic
+- `src/ui/triage-view.ts:271-280` - Create validItemIds Set from cached items
+- `src/ui/stats-panel.ts:17-25` - Accept and use validItemIds parameter
+- `src/registry/types.ts` - Updated type signatures
+
+**Example:**
+```
+Before (incorrect):
+  Library Overview: Total 500, Imported 100 (includes group libraries + deleted items)
+
+After (correct):
+  Library Overview: Total 450, Imported 95 (personal library only, current items)
+```
+
 ## Commits
 
 **Initial Implementation:**
@@ -227,8 +278,9 @@ During testing and integration, multiple critical issues were discovered and res
 - `cb677a8` - fix(16-05): add Google response truncation debugging and recovery
 - `8854dfe` - fix(16-05): replace deepMerge with spread operator and add Google response_schema
 - `f19a6af` - fix: transcript loop, enrichment timeout, validation and stats logic
+- `9f4b9b5` - fix: resolve transcript loop and statistics inaccuracies
 
-**Total:** 19 commits (2 features + 17 fixes/debug)
+**Total:** 20 commits (2 features + 18 fixes/debug)
 
 ## Verification Results
 
