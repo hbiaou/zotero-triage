@@ -145,7 +145,8 @@ export class EnrichmentOrchestrator {
         progressModal.updateProgress(45, 'Generating enriched content...');
         const enrichment = await this.enrichmentService.enrich(
           item,
-          this.currentState!.classification! as ClassificationResult
+          this.currentState!.classification! as ClassificationResult,
+          this.currentState!.evidence! as EvidenceExtraction
         );
         this.currentState!.enrichment = enrichment;
         progressModal.updateProgress(70, 'Enrichment complete');

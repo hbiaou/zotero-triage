@@ -61,9 +61,24 @@ export class AISettingsTab {
 
     // Provider configuration sections
     this.renderProviderSection('openai', 'OpenAI');
+    if (this.secretStorage.hasAPIKey('openai')) {
+      this.renderCustomModelManager('openai', 3);
+    }
+
     this.renderProviderSection('google', 'Google AI');
+    if (this.secretStorage.hasAPIKey('google')) {
+      this.renderCustomModelManager('google', 3);
+    }
+
     this.renderProviderSection('anthropic', 'Anthropic');
+    if (this.secretStorage.hasAPIKey('anthropic')) {
+      this.renderCustomModelManager('anthropic', 3);
+    }
+
     this.renderProviderSection('openrouter', 'OpenRouter');
+    if (this.secretStorage.hasAPIKey('openrouter')) {
+      this.renderCustomModelManager('openrouter', 5);
+    }
 
     // Model selection
     this.renderModelSelection();
@@ -95,6 +110,111 @@ export class AISettingsTab {
           .setDisabled(!isConfigured)
           .onClick(() => this.clearAPIKey(providerId, displayName))
       );
+  }
+
+  /**
+   * Render custom model manager for a provider
+   */
+  private renderCustomModelManager(providerId: ProviderID, limit: number): void {
+    const customModels = this.plugin.settings.aiConfig?.customModels?.[providerId] || [];
+
+    // Container for custom models
+    const container = this.containerEl.createDiv({ cls: 'custom-models-container' });
+    container.style.marginLeft = '2em';
+    container.style.marginBottom = '1em';
+    container.style.borderLeft = '2px solid var(--background-modifier-border)';
+    container.style.paddingLeft = '1em';
+
+    container.createEl('h4', { text: 'Custom Models' });
+    const p = container.createEl('p', {
+      text: `Add up to ${limit} custom model IDs (e.g., "gpt-4-32k").`,
+      cls: 'setting-item-description'
+    });
+    p.style.marginBottom = '0.5em';
+
+    // List existing models
+    if (customModels.length > 0) {
+      const list = container.createEl('ul');
+      list.style.margin = '0';
+      list.style.paddingLeft = '1.5em';
+
+      customModels.forEach(modelId => {
+        const li = list.createEl('li');
+        li.style.display = 'flex';
+        li.style.justifyContent = 'space-between';
+        li.style.alignItems = 'center';
+        li.style.marginBottom = '4px';
+
+        li.createSpan({ text: modelId });
+
+        const removeBtn = li.createEl('button', { text: 'Remove' });
+        removeBtn.style.marginLeft = '10px';
+        removeBtn.style.fontSize = '0.8em';
+        removeBtn.style.padding = '2px 6px';
+        removeBtn.addEventListener('click', async () => {
+          await this.removeCustomModel(providerId, modelId);
+        });
+      });
+    }
+
+    // Add new model input
+    if (customModels.length < limit) {
+      const addContainer = container.createDiv();
+      addContainer.style.display = 'flex';
+      addContainer.style.gap = '8px';
+      addContainer.style.marginTop = '8px';
+
+      const input = addContainer.createEl('input', { type: 'text', placeholder: 'Model ID' });
+      const addBtn = addContainer.createEl('button', { text: 'Add' });
+      addBtn.addEventListener('click', async () => {
+        const modelId = input.value.trim();
+        if (modelId) {
+          await this.addCustomModel(providerId, modelId);
+        }
+      });
+    }
+  }
+
+  /**
+   * Add a custom model
+   */
+  private async addCustomModel(providerId: ProviderID, modelId: string): Promise<void> {
+    if (!this.plugin.settings.aiConfig) {
+      this.plugin.settings.aiConfig = {
+        selectedProvider: null,
+        selectedModel: null,
+        fallbackOrder: [],
+        customModels: {}
+      };
+    }
+
+    if (!this.plugin.settings.aiConfig.customModels) {
+      this.plugin.settings.aiConfig.customModels = {};
+    }
+
+    if (!this.plugin.settings.aiConfig.customModels[providerId]) {
+      this.plugin.settings.aiConfig.customModels[providerId] = [];
+    }
+
+    const list = this.plugin.settings.aiConfig.customModels[providerId]!;
+    if (!list.includes(modelId)) {
+      list.push(modelId);
+      await this.plugin.saveSettings();
+      this.render(); // Re-render to show new model
+    }
+  }
+
+  /**
+   * Remove a custom model
+   */
+  private async removeCustomModel(providerId: ProviderID, modelId: string): Promise<void> {
+    if (this.plugin.settings.aiConfig?.customModels?.[providerId]) {
+      this.plugin.settings.aiConfig.customModels[providerId] =
+        this.plugin.settings.aiConfig.customModels[providerId]!.filter(id => id !== modelId);
+
+      await this.plugin.saveSettings();
+      this.render(); // Re-render
+    }
   }
 
   /**
@@ -140,7 +260,8 @@ export class AISettingsTab {
     const modelOptions: Record<string, string> = {};
 
     for (const providerId of configuredProviders) {
-      const models = getModelsForProvider(providerId);
+      const customModels = this.plugin.settings.aiConfig?.customModels?.[providerId] || [];
+      const models = getModelsForProvider(providerId, customModels);
       for (const model of models) {
         const label = `${model.name} (${providerId})`;
         modelOptions[model.id] = label;
@@ -181,12 +302,22 @@ export class AISettingsTab {
       // Find the model to get its provider
       let selectedProvider: ProviderID | null = null;
 
+      // Check standard models
       for (const providerId of Object.keys(SUPPORTED_MODELS) as ProviderID[]) {
         const models = SUPPORTED_MODELS[providerId];
-        const model = models.find((m) => m.id === modelId);
-        if (model) {
+        if (models.some((m) => m.id === modelId)) {
           selectedProvider = providerId;
           break;
+        }
+      }
+
+      // Check custom models if not found
+      if (!selectedProvider && this.plugin.settings.aiConfig?.customModels) {
+        for (const [providerId, models] of Object.entries(this.plugin.settings.aiConfig.customModels)) {
+          if (models && models.includes(modelId)) {
+            selectedProvider = providerId as ProviderID;
+            break;
+          }
         }
       }
 

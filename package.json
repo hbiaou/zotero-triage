@@ -18,7 +18,7 @@
   "dependencies": {
     "lodash.debounce": "^4.0.8",
     "sql.js": "^1.13.0",
-    "youtube-transcript": "^1.2.1",
+    "yaml": "^2.8.2",
     "zod": "^3.25.76",
     "zod-validation-error": "^3.5.4"
   },

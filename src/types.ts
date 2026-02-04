@@ -52,6 +52,13 @@ export interface ZoteroTriageSettings {
     selectedModel: string | null;
     /** Fallback provider order */
     fallbackOrder: ProviderID[];
+    /** Custom user-defined models per provider */
+    customModels?: {
+      openai?: string[];
+      anthropic?: string[];
+      openrouter?: string[];
+      google?: string[];
+    };
   } | null;
 }
 

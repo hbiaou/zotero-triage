@@ -57,7 +57,8 @@ export default class ZoteroTriagePlugin extends Plugin {
   recommendationEngine!: RecommendationEngine;
   adaptiveLearner!: AdaptiveLearner;
   profileInitializer!: ProfileInitializer;
-  private memoryMonitor: MemoryMonitor;
+  public memoryMonitor: MemoryMonitor = new MemoryMonitor();
+  private duplicateDetectionService: DuplicateDetectionService | null = null;
   secretStorage!: SecretStorageService;
   aiService!: AIService;
   evidenceExtractor!: EvidenceExtractor;
@@ -314,7 +315,9 @@ export default class ZoteroTriagePlugin extends Plugin {
     }
 
     // Check for first-time setup (show wizard if no profile)
-    if (!this.profileService.hasProfile()) {
+    const hasProfile = this.profileService.hasProfile();
+    console.log('[Main] Checking profile existence:', hasProfile);
+    if (!hasProfile) {
       // Delay wizard slightly to allow UI to fully load
       setTimeout(() => {
         this.showSetupWizard();
@@ -425,7 +428,9 @@ export default class ZoteroTriagePlugin extends Plugin {
       zoteroDbPathType: typeof this.settings.zoteroDbPath,
       zoteroDbPathLength: this.settings.zoteroDbPath?.length,
       outputFolder: this.settings.outputFolder,
-      hasAiConfig: !!this.settings.aiConfig
+      hasAiConfig: !!this.settings.aiConfig,
+      hasUserProfile: !!this.settings.userProfile,
+      userProfileKeys: this.settings.userProfile ? Object.keys(this.settings.userProfile) : []
     });
   }
 
@@ -645,7 +650,8 @@ export default class ZoteroTriagePlugin extends Plugin {
 
       // Find item in connector by key
       await this.ensureConnected();
-      const item = this.connector.items.find(i => i.key === zoteroKey);
+      const items = this.connector.getCachedItems();
+      const item = items.find(i => i.itemKey === zoteroKey);
       if (!item) {
         new Notice('❌ Could not find Zotero item with key: ' + zoteroKey);
         return;
@@ -724,7 +730,7 @@ export default class ZoteroTriagePlugin extends Plugin {
           // Add to queue if not already present
           await this.retryQueue.enqueue({
             itemId: item.itemID,
-            itemKey: item.key || '',
+            itemKey: item.itemKey || '',
             itemTitle: item.title || 'Untitled',
             notePath: stubPath,
             failureStage: result.stage,

@@ -52,6 +52,7 @@ export class ProfileService {
     const rawProfile = settings?.userProfile;
 
     if (!rawProfile) {
+      console.log('[ProfileService] No profile found in settings');
       return null;
     }
 
@@ -350,6 +351,7 @@ export class ProfileService {
    * Save profile to plugin settings
    */
   private async saveToSettings(): Promise<void> {
+    console.log('[ProfileService] Saving profile to settings');
     await (this.plugin as any).saveSettings();
   }
 

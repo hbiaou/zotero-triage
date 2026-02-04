@@ -45,7 +45,7 @@ import { AIServiceError } from '../ai/types';
 /**
  * Enrichment timeout threshold in milliseconds (2 minutes)
  */
-const ENRICHMENT_TIMEOUT_MS = 120000;
+const ENRICHMENT_TIMEOUT_MS = 300000;
 
 /**
  * Maximum evidence content to include in prompt (30k characters)
@@ -106,10 +106,11 @@ export class EnrichmentService {
    */
   async enrich(
     item: ZoteroItem,
-    classification: ClassificationResult
+    classification: ClassificationResult,
+    evidence: EvidenceExtraction
   ): Promise<EnrichmentResult> {
-    // Step 1: Extract evidence
-    const evidence = await this.evidenceExtractor.extract(item);
+    // Step 1: Use provided evidence (optimized)
+    // evidence is now passed in to avoid re-extraction loop
 
     // Step 2: Check evidence sufficiency (enforce hierarchy)
     if (!this.evidenceExtractor.canEnrich(evidence)) {
@@ -215,6 +216,7 @@ CRITICAL INSTRUCTIONS:
 5. Do NOT add your own interpretations or external knowledge
 6. Do NOT infer information not present in the evidence
 7. When evidence conflicts, prioritize PDF fulltext over notes
+8. Do NOT correct the spelling of technical terms, proper names, or unique jargon (e.g. if the source says 'ClawdBot', do NOT change it to 'ClaudeBot')
 
 OUTPUT FORMAT:
 - Return valid Markdown with YAML frontmatter

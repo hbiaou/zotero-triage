@@ -12,13 +12,14 @@ import * as fs from 'fs';
 import { detectZoteroPath } from '../utils/paths';
 import { SeedPaperPicker } from './seed-paper-picker';
 import type ZoteroTriagePlugin from '../main';
-import type { UserProfile } from '../profile/types';
 import type { ZoteroConnector } from '../db/zotero-connector';
+import { ProviderID, AIModel } from '../ai/types';
+import { SUPPORTED_MODELS, getModelsForProvider } from '../ai/models';
 
 /**
  * Wizard step type
  */
-type WizardStep = 'database' | 'preferences' | 'seed-papers';
+type WizardStep = 'database' | 'preferences' | 'ai-config' | 'seed-papers';
 
 /**
  * Wizard data collected across all steps
@@ -30,6 +31,11 @@ interface WizardData {
     qualityGateEnabled: boolean;
     relevanceVsDiversity: number;
     recencyBoost: boolean;
+  };
+  aiConfig: {
+    providerId: ProviderID | null;
+    apiKey: string;
+    modelId: string | null;
   };
   seedPaperIds: string[];
 }
@@ -52,6 +58,11 @@ export class SetupWizardModal extends Modal {
       qualityGateEnabled: true,
       relevanceVsDiversity: 0,
       recencyBoost: true
+    },
+    aiConfig: {
+      providerId: null,
+      apiKey: '',
+      modelId: null
     },
     seedPaperIds: []
   };
@@ -84,6 +95,15 @@ export class SetupWizardModal extends Modal {
     this.wizardData.dbPath = plugin.settings.zoteroDbPath || '';
     this.wizardData.preferences.batchSize = plugin.settings.batchSize || 5;
     this.wizardData.preferences.qualityGateEnabled = plugin.settings.qualityGate?.enabled ?? true;
+
+    // Initialize AI settings if available
+    if (plugin.settings.aiConfig) {
+      this.wizardData.aiConfig.providerId = plugin.settings.aiConfig.selectedProvider;
+      this.wizardData.aiConfig.modelId = plugin.settings.aiConfig.selectedModel;
+      if (this.wizardData.aiConfig.providerId) {
+        this.wizardData.aiConfig.apiKey = plugin.secretStorage.getAPIKey(this.wizardData.aiConfig.providerId) || '';
+      }
+    }
   }
 
   /**
@@ -118,6 +138,9 @@ export class SetupWizardModal extends Modal {
       case 'preferences':
         this.renderPreferencesStep(stepContent);
         break;
+      case 'ai-config':
+        this.renderAIConfigStep(stepContent);
+        break;
       case 'seed-papers':
         this.renderSeedPapersStep(stepContent);
         break;
@@ -136,24 +159,26 @@ export class SetupWizardModal extends Modal {
     const progressContainer = contentEl.createDiv({ cls: 'wizard-progress' });
 
     const stepNumber = this.getStepNumber();
+    const totalSteps = 4;
     progressContainer.createDiv({
       cls: 'progress-text',
-      text: `Step ${stepNumber} of 3`
+      text: `Step ${stepNumber} of ${totalSteps}`
     });
 
     const progressBar = progressContainer.createDiv({ cls: 'progress-bar' });
     const progressFill = progressBar.createDiv({ cls: 'progress-fill' });
-    progressFill.style.width = `${(stepNumber / 3) * 100}%`;
+    progressFill.style.width = `${(stepNumber / totalSteps) * 100}%`;
   }
 
   /**
-   * Get step number (1-3)
+   * Get step number (1-4)
    */
   private getStepNumber(): number {
     switch (this.currentStep) {
       case 'database': return 1;
       case 'preferences': return 2;
-      case 'seed-papers': return 3;
+      case 'ai-config': return 3;
+      case 'seed-papers': return 4;
     }
   }
 
@@ -293,6 +318,130 @@ export class SetupWizardModal extends Modal {
   }
 
   /**
+   * Render AI configuration step
+   */
+  private renderAIConfigStep(container: HTMLElement): void {
+    container.createEl('h3', { text: 'AI Configuration' });
+    container.createEl('p', {
+      text: 'Configure an AI provider to enable smart enrichment and classification.',
+      cls: 'setting-item-description'
+    });
+
+    // Provider Selection
+    new Setting(container)
+      .setName('AI Provider')
+      .setDesc('Select which AI service to use')
+      .addDropdown(dropdown => {
+        dropdown.addOption('', 'Select a provider...');
+        dropdown.addOption('openai', 'OpenAI');
+        dropdown.addOption('anthropic', 'Anthropic');
+        dropdown.addOption('google', 'Google Gemini');
+        dropdown.addOption('openrouter', 'OpenRouter');
+
+        if (this.wizardData.aiConfig.providerId) {
+          dropdown.setValue(this.wizardData.aiConfig.providerId);
+        }
+
+        dropdown.onChange(async (value) => {
+          this.wizardData.aiConfig.providerId = value as ProviderID;
+          this.wizardData.aiConfig.apiKey = ''; // Clear key on provider change
+          this.wizardData.aiConfig.modelId = null;
+          this.renderStep(); // Refresh to show/hide API key field
+        });
+      });
+
+    // API Key Input (only if provider selected)
+    if (this.wizardData.aiConfig.providerId) {
+      // Use state to track verification status
+      let isVerified = false;
+
+      const apiKeySetting = new Setting(container)
+        .setName('API Key')
+        .setDesc(`Enter your ${this.wizardData.aiConfig.providerId} API Key`)
+        .addText(text => text
+          .setPlaceholder('sk-...')
+          .setValue(this.wizardData.aiConfig.apiKey)
+          .onChange(value => {
+            this.wizardData.aiConfig.apiKey = value.trim();
+            isVerified = false; // Invalidate verification on change
+          }));
+
+      // Verify Button
+      new Setting(container)
+        .setName('Verify Connection')
+        .addButton(button => button
+          .setButtonText('Verify Credential')
+          .setCta()
+          .onClick(async () => {
+            if (!this.wizardData.aiConfig.apiKey) {
+              new Notice('Please enter an API key');
+              return;
+            }
+
+            button.setButtonText('Verifying...');
+            button.setDisabled(true);
+
+            try {
+              if (this.wizardData.aiConfig.providerId) {
+                const isValid = await this.plugin.aiService.testProvider(
+                  this.wizardData.aiConfig.providerId,
+                  this.wizardData.aiConfig.apiKey
+                );
+
+                if (isValid) {
+                  new Notice('✅ API Key verified successfully!');
+                  isVerified = true;
+
+                  // Save key immediately to secret storage so we can fetch models
+                  this.plugin.secretStorage.setAPIKey(
+                    this.wizardData.aiConfig.providerId,
+                    this.wizardData.aiConfig.apiKey
+                  );
+
+                  this.renderStep(); // Refresh to show model selection
+                } else {
+                  new Notice('❌ Validation failed. Check your API key.');
+                }
+              }
+            } catch (err) {
+              new Notice(`Validation error: ${String(err)}`);
+            } finally {
+              button.setButtonText('Verify Credential');
+              button.setDisabled(false);
+            }
+          }));
+
+      // Model Selection (only if verified or key exists in storage)
+      const hasStoredKey = this.plugin.secretStorage.hasAPIKey(this.wizardData.aiConfig.providerId);
+
+      if (hasStoredKey) {
+        // Prepare model options
+        // Get custom models if any from existing settings (though wizard might be for new install)
+        const customModels = this.plugin.settings.aiConfig?.customModels?.[this.wizardData.aiConfig.providerId] || [];
+        const models = getModelsForProvider(this.wizardData.aiConfig.providerId, customModels);
+
+        new Setting(container)
+          .setName('Select Model')
+          .setDesc('Choose the model to use for analysis')
+          .addDropdown(dropdown => {
+            dropdown.addOption('', 'Select a model...');
+            models.forEach(model => {
+              dropdown.addOption(model.id, model.name);
+            });
+
+            if (this.wizardData.aiConfig.modelId) {
+              dropdown.setValue(this.wizardData.aiConfig.modelId);
+            }
+
+            dropdown.onChange(value => {
+              this.wizardData.aiConfig.modelId = value;
+            });
+          });
+      }
+    }
+  }
+
+  /**
    * Get label for relevance vs diversity value
    */
   private getRelevanceLabel(value: number): string {
@@ -395,8 +544,11 @@ export class SetupWizardModal extends Modal {
       case 'preferences':
         this.currentStep = 'database';
         break;
-      case 'seed-papers':
+      case 'ai-config':
         this.currentStep = 'preferences';
+        break;
+      case 'seed-papers':
+        this.currentStep = 'ai-config';
         break;
     }
     this.renderStep();
@@ -417,7 +569,10 @@ export class SetupWizardModal extends Modal {
         this.currentStep = 'preferences';
         break;
       case 'preferences':
-        // Load items before showing seed picker
+        this.currentStep = 'ai-config';
+        break;
+      case 'ai-config':
+        // Load items before showing seed picker (can be time consuming)
         await this.loadItemsForSeedSelection();
         this.currentStep = 'seed-papers';
         break;
@@ -443,6 +598,24 @@ export class SetupWizardModal extends Modal {
 
       case 'preferences':
         // No validation needed - all have defaults
+        return true;
+
+      case 'ai-config':
+        // Check if provider selected
+        if (this.wizardData.aiConfig.providerId) {
+          // If provider selected, must have verified key (handled by save check or existence)
+          const hasKey = this.plugin.secretStorage.hasAPIKey(this.wizardData.aiConfig.providerId);
+          if (!hasKey) {
+            new Notice('Please verify your API key first');
+            return false;
+          }
+          if (!this.wizardData.aiConfig.modelId) {
+            new Notice('Please select a model');
+            return false;
+          }
+        }
+        // It is optional to configure AI now? 
+        // Let's assume yes, if no provider selected it's fine to skip
         return true;
 
       case 'seed-papers':
@@ -497,9 +670,23 @@ export class SetupWizardModal extends Modal {
     this.plugin.settings.zoteroDbPath = this.wizardData.dbPath;
     this.plugin.settings.batchSize = this.wizardData.preferences.batchSize;
     this.plugin.settings.qualityGate.enabled = this.wizardData.preferences.qualityGateEnabled;
-    // Save recommendation preferences (NEW - these now persist to settings)
+    // Save recommendation preferences
     this.plugin.settings.relevanceVsDiversity = this.wizardData.preferences.relevanceVsDiversity;
     this.plugin.settings.recencyBoost = this.wizardData.preferences.recencyBoost;
+
+    // Save AI Config (API key already saved in storage)
+    if (this.wizardData.aiConfig.providerId && this.wizardData.aiConfig.modelId) {
+      this.plugin.settings.aiConfig = {
+        selectedProvider: this.wizardData.aiConfig.providerId,
+        selectedModel: this.wizardData.aiConfig.modelId,
+        fallbackOrder: [],
+        customModels: this.plugin.settings.aiConfig?.customModels // Preserve existing custom models if any
+      };
+
+      // Initialize service
+      await this.plugin.aiService.initialize(this.plugin.settings.aiConfig);
+    }
+
     await this.plugin.saveSettings();
 
     // Call completion callback with only seed paper IDs

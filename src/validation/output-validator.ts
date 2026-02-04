@@ -61,7 +61,7 @@ export interface ValidationResult {
 export class OutputValidator {
   constructor(
     private aiService: AIService
-  ) {}
+  ) { }
 
   /**
    * Validate enriched note content
@@ -310,7 +310,8 @@ Return empty array [] if all claims are supported.`;
       });
 
       // Parse LLM response
-      const unsupportedClaims = JSON.parse(response.content);
+      const cleanResponse = this.cleanJson(response.content);
+      const unsupportedClaims = JSON.parse(cleanResponse);
 
       if (Array.isArray(unsupportedClaims) && unsupportedClaims.length > 0) {
         unsupportedClaims.forEach((claim: any) => {
@@ -367,5 +368,41 @@ Return empty array [] if all claims are supported.`;
     const frontmatter = parseYaml(frontmatterText);
 
     return { frontmatter, body };
+  }
+
+  /**
+   * Clean JSON response from LLM
+   *
+   * Strips markdown code blocks and finds the JSON object.
+   *
+   * @param text - Raw LLM response
+   * @returns Cleaned JSON string
+   */
+  private cleanJson(text: string): string {
+    let jsonText = text.trim();
+
+    // Remove markdown code blocks
+    const codeBlockMatch = jsonText.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+    if (codeBlockMatch) {
+      jsonText = codeBlockMatch[1];
+    } else {
+      // Try finding the first { and last }
+      const firstBrace = jsonText.indexOf('{');
+      const lastBrace = jsonText.lastIndexOf('}');
+      const firstBracket = jsonText.indexOf('[');
+      const lastBracket = jsonText.lastIndexOf(']');
+
+      // Determine if it's likely an array or object
+      if (firstBracket !== -1 && (firstBrace === -1 || firstBracket < firstBrace)) {
+        // It's an array
+        if (lastBracket !== -1) {
+          jsonText = jsonText.substring(firstBracket, lastBracket + 1);
+        }
+      } else if (firstBrace !== -1 && lastBrace !== -1) {
+        jsonText = jsonText.substring(firstBrace, lastBrace + 1);
+      }
+    }
+
+    return jsonText;
   }
 }

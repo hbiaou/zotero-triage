@@ -35,6 +35,7 @@ export class SeedPaperPicker {
 
   // Scroll position tracking
   private scrollPosition: number = 0;
+  private filterTimeout: NodeJS.Timeout | null = null;
 
   // Constants
   private readonly MIN_SELECTION = 5;
@@ -171,7 +172,16 @@ export class SeedPaperPicker {
 
     this.searchInput.addEventListener('input', (e) => {
       this.searchQuery = (e.target as HTMLInputElement).value.toLowerCase();
-      this.applyFilters();
+
+      // Debounce filtering to prevent UI freezing while typing
+      if (this.filterTimeout) {
+        clearTimeout(this.filterTimeout);
+      }
+
+      this.filterTimeout = setTimeout(() => {
+        this.applyFilters();
+        this.filterTimeout = null;
+      }, 300);
     });
   }
 

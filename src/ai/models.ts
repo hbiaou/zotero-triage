@@ -127,10 +127,32 @@ export const SUPPORTED_MODELS: Record<ProviderID, AIModel[]> = {
  * Get all models for a specific provider
  *
  * @param providerId - Provider identifier
+ * @param customModels - Optional list of custom model IDs to include
  * @returns Array of models available from this provider
  */
-export function getModelsForProvider(providerId: ProviderID): AIModel[] {
-  return SUPPORTED_MODELS[providerId] || [];
+export function getModelsForProvider(
+  providerId: ProviderID,
+  customModels: string[] = []
+): AIModel[] {
+  const supported = SUPPORTED_MODELS[providerId] || [];
+
+  if (!customModels || customModels.length === 0) {
+    return supported;
+  }
+
+  // Map custom model IDs to AIModel objects
+  const customAIModels: AIModel[] = customModels.map((id) => ({
+    id,
+    name: `${id} (Custom)`,
+    providerId,
+    contextWindow: 128000, // Default assumption
+    costPer1MInputTokens: 0, // Unknown
+    costPer1MOutputTokens: 0, // Unknown
+  }));
+
+  // Combine and deduplicate by ID
+  const allModels = [...supported, ...customAIModels];
+  return Array.from(new Map(allModels.map((m) => [m.id, m])).values());
 }
 
 /**

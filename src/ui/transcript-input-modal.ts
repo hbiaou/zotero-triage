@@ -10,6 +10,7 @@ export class TranscriptInputModal extends Modal {
     private onConfirm: (transcript: string) => void;
     private onCancel: () => void;
     private transcriptText = '';
+    private submitted = false;
 
     constructor(
         app: App,
@@ -62,6 +63,7 @@ export class TranscriptInputModal extends Modal {
             .addButton(btn => btn
                 .setButtonText('Skip (Use Fallbacks)')
                 .onClick(() => {
+                    this.submitted = true;
                     this.close();
                     this.onCancel();
                 }))
@@ -73,6 +75,7 @@ export class TranscriptInputModal extends Modal {
                         new Notice('Transcript is too short. Please paste valid content.');
                         return;
                     }
+                    this.submitted = true;
                     this.close();
                     this.onConfirm(this.transcriptText);
                 }));
@@ -81,5 +84,10 @@ export class TranscriptInputModal extends Modal {
     onClose() {
         const { contentEl } = this;
         contentEl.empty();
+
+        // If closed without explicit submission (e.g. Esc or click outside), treat as cancel
+        if (!this.submitted) {
+            this.onCancel();
+        }
     }
 }

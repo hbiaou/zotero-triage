@@ -548,8 +548,8 @@ export class TriageView extends ItemView {
             }
             console.log('⚠️ ACCEPT DEBUG: Diagnostic note saved successfully');
 
-            // Mark as enrichment_pending instead of imported
-            this.plugin.registry.markState(item.itemID, 'enrichment_pending');
+            // Mark as imported (stub/diagnostic note exists in vault)
+            this.plugin.registry.markState(item.itemID, 'imported');
             this.plugin.registry.setEnrichmentMetadata(item.itemID, {
               evidenceLevel: evidence.level,
               pendingReason: this.getEvidencePendingReason(evidence),
@@ -707,8 +707,8 @@ export class TriageView extends ItemView {
 
         new Notice(`⚠️ Enrichment failed - stub note created. Queued for retry.`, 5000);
 
-        // Mark as enrichment_pending
-        this.plugin.registry.markState(item.itemID, 'enrichment_pending');
+        // Mark as imported (stub note exists)
+        this.plugin.registry.markState(item.itemID, 'imported');
 
         // Update status badge on card
         const card = this.containerEl.querySelector(`[data-item-id="${item.itemID}"]`) as HTMLElement;
