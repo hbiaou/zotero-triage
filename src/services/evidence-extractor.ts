@@ -17,10 +17,14 @@ import * as path from 'path';
 import type { ZoteroConnector } from '../db/zotero-connector';
 import type { EvidenceLevel, EvidenceExtraction } from '../ai/types';
 import type { ZoteroItem } from '../types';
+import { normalizeItemKey } from '../utils/normalization';
 import { TranscriptExtractor } from '../extraction/transcript-extractor';
 import { TranscriptExtractionError } from '../extraction/types';
 import { App } from 'obsidian';
 import { TranscriptInputModal } from '../ui/transcript-input-modal';
+import type { RegistryService } from '../registry/registry-service';
+
+const TRANSCRIPT_SKIPPED = '__SKIPPED__';
 
 /**
  * Minimum characters required for valid evidence
@@ -45,6 +49,7 @@ export class EvidenceExtractor {
   private zoteroDataPath: string;
   private customStoragePath: string | null = null;
   private transcriptExtractor: TranscriptExtractor;
+  private registry: RegistryService;
   private app: App;
 
   /**
@@ -58,11 +63,13 @@ export class EvidenceExtractor {
     connector: ZoteroConnector,
     zoteroDataPath: string,
     transcriptExtractor: TranscriptExtractor,
+    registry: RegistryService,
     app: App
   ) {
     this.connector = connector;
     this.zoteroDataPath = zoteroDataPath;
     this.transcriptExtractor = transcriptExtractor;
+    this.registry = registry;
     this.app = app;
 
     // Initialize custom storage path asynchronously
@@ -398,7 +405,18 @@ export class EvidenceExtractor {
     let transcriptContent = '';
     let transcriptSource = '';
 
-    if (item.url) {
+    // Check registry for previously provided manual transcript
+    const registryManualTranscript = this.registry.getManualTranscript(item.itemID);
+    if (registryManualTranscript) {
+      if (registryManualTranscript === TRANSCRIPT_SKIPPED) {
+        console.log('[EvidenceExtractor] Manual transcript was previously skipped by user');
+        // Do not prompt again
+      } else {
+        console.log('[EvidenceExtractor] Found cached manual transcript in registry');
+        transcriptContent = registryManualTranscript;
+        transcriptSource = 'video_transcript_manual_cached';
+      }
+    } else if (item.url) {
       try {
         const transcript = await this.transcriptExtractor.extractTranscript(item.url);
         if (this.isValidEvidence(transcript.transcript)) {
@@ -417,8 +435,14 @@ export class EvidenceExtractor {
           } else {
             const manualTranscript = await this.promptForManualTranscript(item);
             if (this.isValidEvidence(manualTranscript)) {
+              // Save to registry to prevent re-prompting
+              this.registry.saveManualTranscript(item.itemID, manualTranscript);
               transcriptContent = manualTranscript;
               transcriptSource = 'video_transcript_manual';
+            } else {
+              // User cancelled or provided empty input - save as SKIPPED
+              console.log('[EvidenceExtractor] User skipped manual transcript, saving skip state');
+              this.registry.saveManualTranscript(item.itemID, TRANSCRIPT_SKIPPED);
             }
           }
         } else {

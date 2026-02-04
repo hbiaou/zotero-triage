@@ -14,14 +14,15 @@ export interface StatsPanelOptions {
   registry: RegistryService;
   sessionTracker: SessionTracker;
   totalZoteroItems: number;
+  validItemIds?: Set<number>;
 }
 
 export function renderStatsPanel(
   container: HTMLElement,
   options: StatsPanelOptions
 ): HTMLElement {
-  const { registry, sessionTracker, totalZoteroItems } = options;
-  const registryStats = registry.getStats();
+  const { registry, sessionTracker, totalZoteroItems, validItemIds } = options;
+  const registryStats = registry.getStats(validItemIds);
   const sessionStats = sessionTracker.getStats();
 
   const panel = container.createDiv({ cls: 'zotero-triage-stats-panel' });

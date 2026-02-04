@@ -86,7 +86,7 @@ export interface ZoteroItem {
   /** List of authors in "Last, First" format */
   authors: string[];
   /** Publication year (extracted from date field) */
-  year: string | null;
+  year: string;
   /** Digital Object Identifier */
   doi: string | null;
   /** Journal/publication title */
@@ -108,7 +108,16 @@ export interface ZoteroItem {
   /** Zotero item type (journalArticle, book, etc.) */
   itemType: string;
   /** ISO date when item was added to Zotero */
+  /** ISO date when item was added to Zotero */
   dateAdded: string;
+  /** Last modified date (ISO 8601) */
+  dateModified: string;
+  /** Zotero tags */
+  tags: string[];
+  /** Collection keys/names */
+  collections: string[];
+  /** Issue number */
+  issue: string | null;
 }
 
 /**
@@ -170,7 +179,16 @@ export interface RegistryEntry {
     classification_confidence?: number;
     /** Template used for enrichment */
     template_used?: string;
+    /** Timestamp of successful enrichment */
+    enrichedAt?: string;
+    /** Model used for enrichment */
+    modelUsed?: string;
   };
+  /**
+   * Manually provided transcript content
+   * Persisted to avoid re-prompting user on retry
+   */
+  manualTranscript?: string;
 }
 
 /**

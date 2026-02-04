@@ -133,6 +133,42 @@ export class RegistryService {
   }
 
   /**
+   * Save a manual transcript for an item
+   * @param itemId - Zotero item ID (number or string)
+   * @param transcript - Transcript content
+   */
+  saveManualTranscript(itemId: string | number, transcript: string): void {
+    const normalizedKey = normalizeItemKey(itemId);
+    const entry = this.registry.entries[normalizedKey];
+
+    if (!entry) {
+      // Create entry if it doesn't exist
+      this.registry.entries[normalizedKey] = {
+        state: 'unseen',
+        timestamp: Date.now(),
+        manualTranscript: transcript
+      };
+    } else {
+      // Update existing entry
+      entry.manualTranscript = transcript;
+    }
+
+
+
+    this.debouncedSave();
+  }
+
+  /**
+   * Get manual transcript if available
+   * @param itemId - Zotero item ID (number or string)
+   * @returns Manual transcript or undefined
+   */
+  getManualTranscript(itemId: string | number): string | undefined {
+    const normalizedKey = normalizeItemKey(itemId);
+    return this.registry.entries[normalizedKey]?.manualTranscript;
+  }
+
+  /**
    * Check if an item has been imported
    * @param itemId - Zotero item ID (number or string)
    * @returns true if item state is 'imported'
@@ -145,7 +181,7 @@ export class RegistryService {
    * Get statistics on registry state distribution
    * @returns Stats object with counts per state
    */
-  getStats(): RegistryStats {
+  getStats(validItemIds?: Set<number>): RegistryStats {
     const stats: RegistryStats = {
       total: 0,
       unseen: 0,
@@ -159,7 +195,17 @@ export class RegistryService {
       enrichment_failed: 0
     };
 
-    for (const entry of Object.values(this.registry.entries)) {
+    for (const [key, entry] of Object.entries(this.registry.entries)) {
+      // If filtering is enabled, skip entries not in validItemIds
+      if (validItemIds) {
+        // Extract numeric ID from key (handling potential normalization differences)
+        // Normalized key is usually just the ID as string
+        const id = parseInt(key, 10);
+        if (!isNaN(id) && !validItemIds.has(id)) {
+          continue;
+        }
+      }
+
       stats.total++;
       stats[entry.state]++;
     }

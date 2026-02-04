@@ -139,6 +139,7 @@ export default class ZoteroTriagePlugin extends Plugin {
       this.connector,
       zoteroDataPath || '', // Provide empty string if no path configured yet
       transcriptExtractor,
+      this.registry,
       this.app
     );
 

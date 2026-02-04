@@ -267,10 +267,16 @@ export class TriageView extends ItemView {
    * Render stats panel with library and session statistics
    */
   private renderStatsPanel(container: HTMLElement): void {
+    // Get currently valid item IDs from connector cache to filter stats
+    const validItemIds = new Set(
+      this.plugin.connector.getCachedItems().map(i => i.itemID)
+    );
+
     renderStatsPanel(container, {
       registry: this.plugin.registry,
       sessionTracker: this.plugin.sessionTracker,
-      totalZoteroItems: this.totalZoteroItems
+      totalZoteroItems: this.totalZoteroItems,
+      validItemIds // Pass to stats panel (which needs to pass it to registry.getStats)
     });
   }
 
@@ -404,7 +410,7 @@ export class TriageView extends ItemView {
 
     // Check if more items available
     const hasMore = this.plugin.batchService.getUnprocessedCount() > 0 ||
-                    this.plugin.batchService.getDeferredCount() > 0;
+      this.plugin.batchService.getDeferredCount() > 0;
 
     if (hasMore) {
       const nextBtn = actions.createEl('button', {
@@ -632,7 +638,7 @@ export class TriageView extends ItemView {
         this.plugin.registry.setEnrichmentMetadata(item.itemID, {
           evidenceLevel: 'FullText', // or from result
           enrichedAt: new Date().toISOString(),
-          modelUsed: this.plugin.aiService.getCurrentModel()?.id
+          modelUsed: this.plugin.aiService.getCurrentModel() || 'unknown',
         });
 
         // Show warnings if any
@@ -692,7 +698,7 @@ export class TriageView extends ItemView {
         // Queue for retry
         await this.plugin.retryQueue.enqueue({
           itemId: item.itemID,
-          itemKey: item.key || '',
+          itemKey: item.itemKey || '',
           itemTitle: item.title || 'Untitled',
           notePath: stubPath,
           failureStage: result.stage,
