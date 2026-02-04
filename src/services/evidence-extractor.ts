@@ -554,12 +554,27 @@ export class EvidenceExtractor {
     }
   }
   /**
+   * Pending promise for manual transcript prompt
+   * Used to prevent multiple modals opening simultaneously
+   */
+  private pendingTranscriptPrompt: Promise<string> | null = null;
+
+  /**
    * Prompt user for manual transcript input
+   * Handles concurrent calls by returning existing promise if active
+   * 
    * @param item - Zotero item
    * @returns User provided transcript or empty string
    */
   private async promptForManualTranscript(item: ZoteroItem): Promise<string> {
-    return new Promise<string>((resolve) => {
+    // If a prompt is already active for this session, return its promise
+    if (this.pendingTranscriptPrompt) {
+      console.log('[EvidenceExtractor] Returning existing pending transcript prompt promise');
+      return this.pendingTranscriptPrompt;
+    }
+
+    // Create new prompt promise
+    this.pendingTranscriptPrompt = new Promise<string>((resolve) => {
       const modal = new TranscriptInputModal(
         this.app,
         item,
@@ -568,5 +583,12 @@ export class EvidenceExtractor {
       );
       modal.open();
     });
+
+    try {
+      return await this.pendingTranscriptPrompt;
+    } finally {
+      // Clear pending state when done
+      this.pendingTranscriptPrompt = null;
+    }
   }
 }

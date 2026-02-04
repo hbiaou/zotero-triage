@@ -132,6 +132,11 @@ export class AIService {
       );
       return response;
     } catch (primaryError) {
+      console.warn(
+        `[AIService] Primary provider ${this.currentProvider?.providerId} failed:`,
+        primaryError
+      );
+
       // Try fallback providers if configured
       if (this.config.fallbackOrder.length > 0) {
         return await this.tryFallbackProviders(request, primaryError);
