@@ -104,19 +104,18 @@ export class YouTubeService {
       }
 
       // Step 3: Fetch Transcript Data
-      // The extracted URL might be XML (common) or JSON format depending on params.
-      // Usually it returns XML format by default for these extracted URLs.
+      // Force JSON3 format which is more reliable than XML
       const transcriptBody = await requestUrl({
-        url: captionsUrl,
+        url: captionsUrl + '&fmt=json3',
         headers: {
           'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
         }
       }).then(res => res.text);
 
       // Step 4: Parse Transcript
-      console.log(`[YouTubeService] Transcript body header: ${transcriptBody.slice(0, 100)}`);
-      const segments = this.parseTranscriptXml(transcriptBody);
-      console.log(`[YouTubeService] Parsed ${segments.length} segments`);
+      // console.log(`[YouTubeService] Transcript body header: ${transcriptBody.slice(0, 100)}`);
+      const segments = this.parseTranscriptJson(transcriptBody);
+      // console.log(`[YouTubeService] Parsed ${segments.length} segments`);
 
       if (segments.length === 0) {
         throw new TranscriptExtractionError(
@@ -127,8 +126,8 @@ export class YouTubeService {
       }
 
       // Formatting
-      // Decode HTML entities (e.g. &amp;) and join
-      const transcriptText = segments.map(s => this.decodeHtmlEntities(s.text)).join(' ');
+      // Join segments
+      const transcriptText = segments.map(s => s.text).join(' ');
       const wordCount = transcriptText.split(/\s+/).filter(w => w.length > 0).length;
 
       return {
@@ -233,6 +232,43 @@ export class YouTubeService {
       }
     }
 
+    return segments;
+  }
+
+  /**
+   * Parse JSON3 transcript format
+   * {
+   *   "events": [
+   *     { "tStartMs": 0, "dDurationMs": 2000, "segs": [{ "utf8": "Hello" }] }
+   *   ]
+   * }
+   */
+  private parseTranscriptJson(json: string): TranscriptSegment[] {
+    const segments: TranscriptSegment[] = [];
+    try {
+      const data = JSON.parse(json);
+      if (!data.events) return [];
+
+      for (const event of data.events) {
+        if (!event.segs) continue;
+
+        const segmentText = event.segs
+          .map((seg: any) => seg.utf8)
+          .join('')
+          .replace(/\n/g, ' ')
+          .trim();
+
+        if (segmentText) {
+          segments.push({
+            text: segmentText,
+            start: (event.tStartMs || 0) / 1000,
+            duration: (event.dDurationMs || 0) / 1000
+          });
+        }
+      }
+    } catch (e) {
+      console.error('JSON transcript parsing failed', e);
+    }
     return segments;
   }
 
