@@ -83,13 +83,18 @@ export class YouTubeService {
     try {
       // Step 1: Fetch Video Page
       // We mimic a browser request to get the initial player response
-      const videoPageBody = await requestUrl({
+      const userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36';
+
+      const videoPageResponse = await requestUrl({
         url: `https://www.youtube.com/watch?v=${videoId}`,
         headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+          'User-Agent': userAgent,
           'Accept-Language': 'en-US,en;q=0.9',
         }
-      }).then(res => res.text);
+      });
+
+      const videoPageBody = videoPageResponse.text;
+      const cookies = videoPageResponse.headers['set-cookie'] || videoPageResponse.headers['Set-Cookie'] || '';
 
       // Step 2: Extract Captions Data
       const captionsUrl = this.extractCaptionsUrl(videoPageBody);
@@ -105,15 +110,26 @@ export class YouTubeService {
 
       // Step 3: Fetch Transcript Data
       // Force JSON3 format which is more reliable than XML
-      const transcriptBody = await requestUrl({
+      // Pass cookies from video page request to maintain session context
+      const transcriptResponse = await requestUrl({
         url: captionsUrl + '&fmt=json3',
         headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+          'User-Agent': userAgent,
+          'Cookie': Array.isArray(cookies) ? cookies.join('; ') : cookies
         }
-      }).then(res => res.text);
+      });
+
+      const transcriptBody = transcriptResponse.text;
 
       // Step 4: Parse Transcript
-      // console.log(`[YouTubeService] Transcript body header: ${transcriptBody.slice(0, 100)}`);
+      if (transcriptResponse.status >= 400) {
+        console.error(`[YouTubeService] Failed to fetch transcript. Status: ${transcriptResponse.status}`);
+      }
+
+      console.log(`[YouTubeService] Transcript body length: ${transcriptBody.length}`);
+      if (transcriptBody.length < 500) {
+        console.log(`[YouTubeService] Transcript body header: ${transcriptBody}`);
+      }
       const segments = this.parseTranscriptJson(transcriptBody);
       // console.log(`[YouTubeService] Parsed ${segments.length} segments`);
 
