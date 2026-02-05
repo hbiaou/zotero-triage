@@ -109,10 +109,9 @@ export class YouTubeService {
       }
 
       // Step 3: Fetch Transcript Data
-      // Force JSON3 format which is more reliable than XML
-      // Pass cookies from video page request to maintain session context
+      // Use standard XML format (default) but pass session cookies
       const transcriptResponse = await requestUrl({
-        url: captionsUrl + '&fmt=json3',
+        url: captionsUrl, // Remove explicit fmt param
         headers: {
           'User-Agent': userAgent,
           'Cookie': Array.isArray(cookies) ? cookies.join('; ') : cookies
@@ -127,11 +126,9 @@ export class YouTubeService {
       }
 
       console.log(`[YouTubeService] Transcript body length: ${transcriptBody.length}`);
-      if (transcriptBody.length < 500) {
-        console.log(`[YouTubeService] Transcript body header: ${transcriptBody}`);
-      }
-      const segments = this.parseTranscriptJson(transcriptBody);
-      // console.log(`[YouTubeService] Parsed ${segments.length} segments`);
+
+      const segments = this.parseTranscriptXml(transcriptBody);
+      console.log(`[YouTubeService] Parsed ${segments.length} segments`);
 
       if (segments.length === 0) {
         throw new TranscriptExtractionError(
@@ -142,8 +139,8 @@ export class YouTubeService {
       }
 
       // Formatting
-      // Join segments
-      const transcriptText = segments.map(s => s.text).join(' ');
+      // Decode HTML entities (e.g. &amp;) and join
+      const transcriptText = segments.map(s => this.decodeHtmlEntities(s.text)).join(' ');
       const wordCount = transcriptText.split(/\s+/).filter(w => w.length > 0).length;
 
       return {
