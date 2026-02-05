@@ -93,6 +93,7 @@ export class YouTubeService {
 
       // Step 2: Extract Captions Data
       const captionsUrl = this.extractCaptionsUrl(videoPageBody);
+      console.log('[YouTubeService] Extracted captions URL:', captionsUrl);
 
       if (!captionsUrl) {
         throw new TranscriptExtractionError(
@@ -113,7 +114,9 @@ export class YouTubeService {
       }).then(res => res.text);
 
       // Step 4: Parse Transcript
+      console.log(`[YouTubeService] Transcript body header: ${transcriptBody.slice(0, 100)}`);
       const segments = this.parseTranscriptXml(transcriptBody);
+      console.log(`[YouTubeService] Parsed ${segments.length} segments`);
 
       if (segments.length === 0) {
         throw new TranscriptExtractionError(
