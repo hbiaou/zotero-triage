@@ -82,22 +82,39 @@ export class YouTubeService {
 
     try {
       // Step 1: Fetch Video Page
-      // We mimic a browser request to get the initial player response
-      const userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36';
+      // Using User-Agent from youtube-transcript library
+      const userAgent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.83 Safari/537.36,gzip(gfe)';
 
       const videoPageResponse = await requestUrl({
         url: `https://www.youtube.com/watch?v=${videoId}`,
         headers: {
           'User-Agent': userAgent,
-          'Accept-Language': 'en-US,en;q=0.9',
+          'Accept-Language': 'en-US',
         }
       });
 
       const videoPageBody = videoPageResponse.text;
-      const cookies = videoPageResponse.headers['set-cookie'] || videoPageResponse.headers['Set-Cookie'] || '';
 
-      // Step 2: Extract Captions Data
-      const captionsUrl = this.extractCaptionsUrl(videoPageBody);
+      // Check for rate limiting/captcha
+      if (videoPageBody.includes('class="g-recaptcha"')) {
+        throw new TranscriptExtractionError('YouTube is receiving too many requests from this IP (Captcha).', 'youtube', { requiresManualInput: true });
+      }
+
+      // Step 2: Extract Captions Data logic adapted from youtube-transcript
+      const splitHTML = videoPageBody.split('"captions":');
+      let captions: any = null;
+
+      if (splitHTML.length > 1) {
+        try {
+          captions = JSON.parse(splitHTML[1].split(',"videoDetails')[0].replace('\n', ''))['playerCaptionsTracklistRenderer'];
+        } catch (e) {
+          console.log('[YouTubeService] Failed to parse captions JSON, falling back to regex extraction');
+        }
+      }
+
+      // Fallback to previous extraction method if simple split fails
+      const captionsUrl = captions ? (captions.captionTracks?.[0]?.baseUrl) : this.extractCaptionsUrl(videoPageBody);
+
       console.log('[YouTubeService] Extracted captions URL:', captionsUrl);
 
       if (!captionsUrl) {
@@ -109,28 +126,38 @@ export class YouTubeService {
       }
 
       // Step 3: Fetch Transcript Data
-      // Use standard XML format (default) but pass session cookies
+      // No cookies, exact same headers as library
       const transcriptResponse = await requestUrl({
-        url: captionsUrl, // Remove explicit fmt param
+        url: captionsUrl,
         headers: {
           'User-Agent': userAgent,
-          'Cookie': Array.isArray(cookies) ? cookies.join('; ') : cookies
+          'Accept-Language': 'en-US'
         }
       });
 
       const transcriptBody = transcriptResponse.text;
 
-      // Step 4: Parse Transcript
-      if (transcriptResponse.status >= 400) {
-        console.error(`[YouTubeService] Failed to fetch transcript. Status: ${transcriptResponse.status}`);
+      // Step 4: Parse Transcript using Regex (more robust than DOMParser for simple text)
+      // Regex from youtube-transcript: /<text start="([^"]*)" dur="([^"]*)">([^<]*)<\/text>/g
+      const reXmlTranscript = /<text start="([^"]*)" dur="([^"]*)">([^<]*)<\/text>/g;
+
+      const segments: TranscriptSegment[] = [];
+      let match;
+      while ((match = reXmlTranscript.exec(transcriptBody)) !== null) {
+        segments.push({
+          start: parseFloat(match[1]),
+          duration: parseFloat(match[2]),
+          text: this.decodeHtmlEntities(match[3])
+        });
       }
 
-      console.log(`[YouTubeService] Transcript body length: ${transcriptBody.length}`);
-
-      const segments = this.parseTranscriptXml(transcriptBody);
-      console.log(`[YouTubeService] Parsed ${segments.length} segments`);
+      console.log(`[YouTubeService] Parsed ${segments.length} segments using Regex`);
 
       if (segments.length === 0) {
+        // Log the body to see why regex failed (e.g. empty or json?)
+        if (transcriptBody.length < 500) {
+          console.log(`[YouTubeService] Regex failed. Body: ${transcriptBody}`);
+        }
         throw new TranscriptExtractionError(
           'Transcript parsed but contained no text.',
           'youtube',
@@ -139,8 +166,7 @@ export class YouTubeService {
       }
 
       // Formatting
-      // Decode HTML entities (e.g. &amp;) and join
-      const transcriptText = segments.map(s => this.decodeHtmlEntities(s.text)).join(' ');
+      const transcriptText = segments.map(s => s.text).join(' ');
       const wordCount = transcriptText.split(/\s+/).filter(w => w.length > 0).length;
 
       return {
