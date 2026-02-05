@@ -107,6 +107,7 @@ export class OpenRouterProvider extends BaseAIProvider {
     const content = choice.message?.content;
 
     if (!content) {
+      console.warn('[OpenRouterProvider] Invalid response (missing content). Raw data:', JSON.stringify(data, null, 2));
       throw new AIServiceError(
         'Invalid OpenRouter response: missing content',
         this.providerId,

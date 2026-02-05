@@ -433,7 +433,10 @@ export class EvidenceExtractor {
             console.log('[EvidenceExtractor] Skipping manual transcript prompt because valid Zotero notes exist');
             // We leave transcriptContent empty; aggregation logic will use notes
           } else {
+            console.log('[EvidenceExtractor] Requesting manual transcript from user...');
             const manualTranscript = await this.promptForManualTranscript(item);
+            console.log(`[EvidenceExtractor] Manual transcript received (length: ${manualTranscript.length})`);
+
             if (this.isValidEvidence(manualTranscript)) {
               // Save to registry to prevent re-prompting
               this.registry.saveManualTranscript(item.itemID, manualTranscript);
@@ -574,12 +577,19 @@ export class EvidenceExtractor {
     }
 
     // Create new prompt promise
+    console.log('[EvidenceExtractor] Creating new pending transcript prompt promise');
     this.pendingTranscriptPrompt = new Promise<string>((resolve) => {
       const modal = new TranscriptInputModal(
         this.app,
         item,
-        (transcript) => resolve(transcript),
-        () => resolve('') // Resolve empty on cancel
+        (transcript) => {
+          console.log('[EvidenceExtractor] Modal confirmed with transcript');
+          resolve(transcript);
+        },
+        () => {
+          console.log('[EvidenceExtractor] Modal cancelled');
+          resolve(''); // Resolve empty on cancel
+        }
       );
       modal.open();
     });
@@ -588,6 +598,7 @@ export class EvidenceExtractor {
       return await this.pendingTranscriptPrompt;
     } finally {
       // Clear pending state when done
+      console.log('[EvidenceExtractor] Clearing pending transcript prompt promise');
       this.pendingTranscriptPrompt = null;
     }
   }
