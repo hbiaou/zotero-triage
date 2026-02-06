@@ -8,10 +8,12 @@ Zotero Triage is an Obsidian plugin that helps you progressively triage and proc
 
 ## Features
 
-- Progressive literature processing workflow
-- Direct integration with Zotero database
-- Batch processing capabilities with status indicators
-- Clean, minimal interface for focused triage work
+- **Progressive Literature Processing**: A structured workflow for moving references from inbox to permanent notes.
+- **YouTube Transcript Fetching**: Automatically fetches transcripts for YouTube videos, supporting both manual and auto-looping modes.
+- **Metadata Validation & Auto-correction**: diverse checks for metadata quality with an auto-fix capability for common issues.
+- **Dry Run / Simulation Mode**: Test your workflow configurations safely without modifying your actual data.
+- **Direct Zotero Integration**: Seamlessly connect with your Zotero database.
+- **Clean Interface**: A minimal, focused UI for efficient triage work.
 
 ## Installation
 

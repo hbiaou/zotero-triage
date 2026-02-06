@@ -39,6 +39,7 @@ export class TriageView extends ItemView {
   private searchInput: HTMLInputElement | null = null;
   private validationWarnings: Map<string, number> = new Map();
   private scrollPosition: number = 0;
+  private processingItems: Set<any> = new Set(); // Stores IDs of items currently being treated (prevent double-click)
 
   constructor(leaf: WorkspaceLeaf, plugin: ZoteroTriagePlugin) {
     super(leaf);
@@ -485,7 +486,22 @@ export class TriageView extends ItemView {
     }
 
     // Validation passed or disabled - proceed
-    this.performAccept(item, previousState);
+    if (this.processingItems.has(item.itemID)) {
+      console.log(`[TriageView] Item ${item.itemID} is already processing, ignoring click.`);
+      return;
+    }
+    this.processingItems.add(item.itemID);
+
+    // Update card UI to show loading state immediately (optional but good UX)
+    const card = this.containerEl.querySelector(`[data-item-id="${item.itemID}"]`) as HTMLElement;
+    if (card) updateCardStatus(card, 'processing');
+
+    try {
+      await this.performAccept(item, previousState);
+    } finally {
+      this.processingItems.delete(item.itemID);
+      // Status update happens inside performAccept or refresh, so no need to revert status here usually
+    }
   }
 
   /**

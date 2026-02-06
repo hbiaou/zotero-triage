@@ -76,7 +76,9 @@ export const BookSchema = z.object({
  */
 export const VideoRecordingSchema = z.object({
   title: z.string().min(1, 'Title is required'),
-  url: z.string().min(1, 'URL is required').nullable()
+  // Validation failed: Invalid url often happens with weird YouTube URLs or missing ones
+  // Relaxing to string().nullable() to prevent blocking
+  url: z.string().nullable().optional()
 });
 
 /**
@@ -122,17 +124,48 @@ export const ITEM_TYPE_SCHEMAS: Record<string, z.ZodSchema> = {
 export const YAMLFrontmatterSchema = z.object({
   note_type: z.literal('literature-note'),
   zotero_item_type: z.enum([
-    'journalArticle',
+    'artwork',
+    'audioRecording',
+    'bill',
+    'blogPost',
     'book',
-    'thesis',
-    'webpage',
-    'document',
-    'videoRecording',
-    'conferencePaper',
-    'report',
     'bookSection',
+    'case',
+    'computerProgram',
+    'conferencePaper',
+    'dataset',
+    'dictionaryEntry',
+    'document',
+    'email',
+    'encyclopediaArticle',
+    'film',
+    'forumPost',
+    'hearing',
+    'instantMessage',
+    'interview',
+    'journalArticle',
+    'letter',
+    'magazineArticle',
     'manuscript',
-    'preprint'
+    'map',
+    'newspaperArticle',
+    'note',
+    'patent',
+    'podcast',
+    'preprint',
+    'presentation',
+    'radioBroadcast',
+    'report',
+    'standard',
+    'statute',
+    'thesis',
+    'tvBroadcast',
+    'videoRecording',
+    'webpage',
+    // Types observed in runtime but not in basic API list or special internal types
+    'workingPaper',
+    'attachment',
+    'annotation'
   ]),
   knowledge_domain: z.enum(['Academic', 'Software', 'Farming', 'General']),
   evidence_level: z.enum(['FullText', 'Transcript', 'Notes', 'Abstract', 'MetadataOnly']),
@@ -142,7 +175,8 @@ export const YAMLFrontmatterSchema = z.object({
   // Optional fields
   zotero_key: z.string().optional(),
   doi: z.string().optional(),
-  url: z.string().url().optional(),
+  // Relaxed URL validation to prevent blocking on malformed URLs
+  url: z.string().optional().nullable(),
   confidence_score: z.number().min(0).max(1).optional(),
   model_used: z.string().optional(),
   token_count: z.number().int().positive().optional(),

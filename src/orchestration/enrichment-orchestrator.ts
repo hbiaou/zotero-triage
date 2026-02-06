@@ -155,20 +155,74 @@ export class EnrichmentOrchestrator {
       // Stage 4: Validation (70-90%)
       await this.runStage('validating', async () => {
         progressModal.updateProgress(75, 'Validating output...');
-        const validationResult = await this.outputValidator.validate(
+        let validationResult = await this.outputValidator.validate(
           this.currentState!.enrichment!.content,
           item,
           this.currentState!.evidence! as EvidenceExtraction
         );
         this.currentState!.validationResult = validationResult;
 
-        if (!validationResult.valid) {
-          throw new Error(
-            `Validation failed: ${validationResult.errors.map((e) => e.message).join('; ')}`
-          );
+        // NEW: Check for correctable issues (metadata or hallucinations)
+        const correctableWarnings = validationResult.warnings.filter(w =>
+          w.type === 'metadata' || w.type === 'hallucination'
+        );
+
+        if (correctableWarnings.length > 0) {
+          // Trigger Correction Stage
+          progressModal.updateProgress(80, `Correcting ${correctableWarnings.length} issues...`);
+
+          try {
+            const correctedEnrichment = await this.enrichmentService.correctContent(
+              this.currentState!.enrichment!.content,
+              correctableWarnings,
+              this.currentState!.evidence! as EvidenceExtraction,
+              item
+            );
+
+            // Update state with corrected content
+            this.currentState!.enrichment = correctedEnrichment;
+
+            // Re-validate
+            validationResult = await this.outputValidator.validate(
+              correctedEnrichment.content,
+              item,
+              this.currentState!.evidence! as EvidenceExtraction
+            );
+            this.currentState!.validationResult = validationResult;
+
+            progressModal.updateProgress(85, 'Correction complete. Re-validating...');
+          } catch (e) {
+            console.error("Auto-correction failed, keeping original content:", e);
+            // Verify we fallback gracefully
+          }
         }
 
-        progressModal.updateProgress(90, 'Validation passed');
+        // Inject REMAINING warnings into content
+        if (validationResult.warnings.length > 0) {
+          const warningsText = validationResult.warnings
+            .map(w => `- **${w.type.toUpperCase()}**: ${w.message} ${w.details?.reason ? `(${w.details.reason})` : ''}`)
+            .join('\n');
+
+          const callout = `\n\n> [!WARNING] Validation Issues\n> The following issues were detected during validation:\n> \n${warningsText.replace(/^/gm, '> ')}`;
+
+          this.currentState!.enrichment!.content += callout;
+        }
+
+        if (!validationResult.valid) {
+          // Changed per user request: Do not block generation on validation errors.
+          // Instead, append a critical error callout to the note.
+          const errorsText = validationResult.errors
+            .map(e => `- **CRITICAL ${e.type.toUpperCase()}**: ${e.message}`)
+            .join('\n');
+
+          const errorCallout = `\n\n> [!CAUTION] Validation Failures\n> The following critical issues were detected:\n> \n${errorsText.replace(/^/gm, '> ')}`;
+
+          this.currentState!.enrichment!.content += errorCallout;
+
+          progressModal.updateProgress(90, 'Validation failed (saved with errors)');
+        } else {
+          progressModal.updateProgress(90, validationResult.warnings.length > 0 ? 'Validation passed with warnings' : 'Validation passed');
+        }
       });
 
       // Stage 5: Save Note (90-100%)

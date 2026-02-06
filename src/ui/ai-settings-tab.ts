@@ -18,6 +18,13 @@ import type { AIService } from '../services/ai-service';
 import type { ProviderID } from '../ai/types';
 import { SUPPORTED_MODELS, getModelsForProvider } from '../ai/models';
 
+const PROVIDER_DOCS: Record<ProviderID, string> = {
+  openai: 'https://platform.openai.com/docs/models',
+  google: 'https://ai.google.dev/gemini-api/docs/models',
+  anthropic: 'https://platform.claude.com/docs/en/about-claude/models/overview',
+  openrouter: 'https://openrouter.ai/models',
+};
+
 /**
  * AI Settings Tab Component
  *
@@ -95,10 +102,22 @@ export class AISettingsTab {
     const statusText = this.providerTestStatus.get(providerId) ||
       (isConfigured ? '✓ Configured' : 'Not configured');
 
+    const descFragment = document.createDocumentFragment();
+    descFragment.append(statusText);
+    descFragment.append(document.createElement('br'));
+
+    const link = document.createElement('a');
+    link.href = PROVIDER_DOCS[providerId];
+    link.text = 'View available models';
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    link.style.fontSize = '0.85em';
+    descFragment.append(link);
+
     // Provider header with status
     new Setting(this.containerEl)
       .setName(displayName)
-      .setDesc(statusText)
+      .setDesc(descFragment)
       .addButton((button) =>
         button
           .setButtonText(isConfigured ? 'Reconfigure' : 'Configure')

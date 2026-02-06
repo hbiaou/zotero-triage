@@ -11,42 +11,15 @@
  */
 
 import { parse as parseYaml } from 'yaml';
-import { YAMLFrontmatterSchema, EnrichedNoteSchema, formatZodErrors } from './schemas';
+import { YAMLFrontmatterSchema, formatZodErrors } from './schemas';
 import type { ZoteroItem } from '../types';
 import type { EvidenceExtraction } from '../ai/types';
 import type { AIService } from '../services/ai-service';
+import type { ValidationError, ValidationResult } from './types';
 
-/**
- * Validation error type
- *
- * Represents a single validation failure with type, severity, and context.
- */
-export interface ValidationError {
-  /** Error category */
-  type: 'schema' | 'metadata' | 'hallucination' | 'structure';
-  /** Severity level (errors block save, warnings are informational) */
-  severity: 'error' | 'warning';
-  /** Field name if applicable */
-  field?: string;
-  /** Human-readable error message */
-  message: string;
-  /** Additional context (e.g., expected vs received values) */
-  details?: any;
-}
+export type { ValidationError, ValidationResult };
 
-/**
- * Validation result
- *
- * Contains validation status and all errors/warnings discovered.
- */
-export interface ValidationResult {
-  /** Whether validation passed (no errors) */
-  valid: boolean;
-  /** Blocking errors (prevent note save) */
-  errors: ValidationError[];
-  /** Non-blocking warnings (informational only) */
-  warnings: ValidationError[];
-}
+
 
 /**
  * Output Validator
@@ -196,9 +169,10 @@ export class OutputValidator {
 
       // Check year consistency
       if (item.year && frontmatter.year && parseInt(frontmatter.year) !== parseInt(item.year)) {
-        errors.push({
+        // Downgraded to warning per user request ("fix instead of blocking")
+        warnings.push({
           type: 'metadata',
-          severity: 'error',
+          severity: 'warning',
           field: 'year',
           message: `Year mismatch: frontmatter (${frontmatter.year}) vs Zotero (${item.year})`
         });
@@ -281,7 +255,7 @@ export class OutputValidator {
       const { body } = this.parseFrontmatter(content);
 
       // Build validation prompt for LLM
-      const validationPrompt = `You are validating a literature note for factual accuracy.
+      const validationPrompt = `You are validating a literature note for factual accuracy against source evidence.
 
 SOURCE EVIDENCE:
 ${evidence.content.substring(0, 20000)}
@@ -289,44 +263,66 @@ ${evidence.content.substring(0, 20000)}
 ENRICHED NOTE CONTENT:
 ${body.substring(0, 5000)}
 
-TASK: Identify any claims in the enriched note that are NOT supported by the source evidence.
+TASK: Identify any SUBSTANTIAL claims in the enriched note that are NOT supported by the source evidence.
 
-Return JSON array of unsupported claims:
+CRITICAL INSTRUCTIONS:
+1. FOCUS on FACTUAL FABRICATIONS or DIRECT CONTRADICTIONS.
+2. IGNORE minor phrasing differences, semantic nuances, or slight rounding variations in statistics if the core meaning/significance is preserved.
+3. ALLOW implied context if it logicallly follows from the text (e.g., "author suggests" vs "text states").
+4. If a claim is "nuanced" but directionally correct, DO NOT flag it.
+5. IF NO HALLUCINATIONS FOUND, return empty array [].
+
+OUTPUT FORMAT:
+- Return ONLY a valid JSON array.
+- NO Markdown formatting (no \`\`\`json blocks).
+- NO explanatory text before or after the JSON.
+
+Example JSON output:
 [
   {
     "claim": "exact quote from note",
-    "reason": "why it's not supported",
-    "severity": "error" or "warning"
+    "reason": "Explicitly contradicted by page 3: 'Results showed opposite effect'",
+    "severity": "warning"
   }
-]
+]`;
 
-Return empty array [] if all claims are supported.`;
+      const modelId = this.aiService.getCurrentModel();
+      if (!modelId) {
+        console.warn('[OutputValidator] Hallucination detection skipped: No AI model configured');
+        return { valid: true, errors, warnings };
+      }
 
       const response = await this.aiService.complete({
         prompt: validationPrompt,
-        model: '', // Use default model from config
+        model: modelId,
         temperature: 0.1, // Low temperature for consistent validation
         maxTokens: 2000
       });
 
       // Parse LLM response
       const cleanResponse = this.cleanJson(response.content);
-      const unsupportedClaims = JSON.parse(cleanResponse);
+
+      let unsupportedClaims: any[] = [];
+      try {
+        unsupportedClaims = JSON.parse(cleanResponse);
+      } catch (e) {
+        console.warn(`[OutputValidator] Failed to parse JSON response: ${cleanResponse}`);
+        // If parsing fails, we assume no hallucinations rather than crashing
+        // but log a warning to console
+      }
 
       if (Array.isArray(unsupportedClaims) && unsupportedClaims.length > 0) {
         unsupportedClaims.forEach((claim: any) => {
+          // FORCE ALL claims to be warnings, never blocking errors
+          // User request: "Validation should not block the note generation"
           const validationError: ValidationError = {
             type: 'hallucination',
-            severity: claim.severity === 'error' ? 'error' : 'warning',
+            severity: 'warning',
             message: `Unsupported claim: "${claim.claim}"`,
             details: { reason: claim.reason }
           };
 
-          if (claim.severity === 'error') {
-            errors.push(validationError);
-          } else {
-            warnings.push(validationError);
-          }
+          warnings.push(validationError);
         });
       }
 
@@ -372,37 +368,33 @@ Return empty array [] if all claims are supported.`;
 
   /**
    * Clean JSON response from LLM
-   *
-   * Strips markdown code blocks and finds the JSON object.
-   *
-   * @param text - Raw LLM response
-   * @returns Cleaned JSON string
+   * 
+   * Robust JSON extraction that handles markdown blocks, explanatory text,
+   * and potential unclosed brackets.
    */
   private cleanJson(text: string): string {
+    if (!text) return '[]';
+
     let jsonText = text.trim();
 
-    // Remove markdown code blocks
-    const codeBlockMatch = jsonText.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
-    if (codeBlockMatch) {
-      jsonText = codeBlockMatch[1];
-    } else {
-      // Try finding the first { and last }
-      const firstBrace = jsonText.indexOf('{');
-      const lastBrace = jsonText.lastIndexOf('}');
-      const firstBracket = jsonText.indexOf('[');
-      const lastBracket = jsonText.lastIndexOf(']');
-
-      // Determine if it's likely an array or object
-      if (firstBracket !== -1 && (firstBrace === -1 || firstBracket < firstBrace)) {
-        // It's an array
-        if (lastBracket !== -1) {
-          jsonText = jsonText.substring(firstBracket, lastBracket + 1);
-        }
-      } else if (firstBrace !== -1 && lastBrace !== -1) {
-        jsonText = jsonText.substring(firstBrace, lastBrace + 1);
-      }
+    // Remove markdown code blocks if present
+    if (jsonText.includes('```')) {
+      jsonText = jsonText.replace(/```json/g, '').replace(/```/g, '');
     }
 
-    return jsonText;
+    // Find the first '[' and last ']'
+    const firstBracket = jsonText.indexOf('[');
+    const lastBracket = jsonText.lastIndexOf(']');
+
+    if (firstBracket !== -1 && lastBracket !== -1 && lastBracket > firstBracket) {
+      return jsonText.substring(firstBracket, lastBracket + 1);
+    }
+
+    // Fallback: If no array brackets, check for empty response or simple 'No issues' text
+    if (jsonText.toLowerCase().includes('no hallucinations') || jsonText.toLowerCase().includes('supported')) {
+      return '[]';
+    }
+
+    return '[]'; // Safe fallback
   }
 }

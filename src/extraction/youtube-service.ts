@@ -2,9 +2,9 @@
  * YouTube Transcript Extraction Service
  *
  * Provides automatic transcript fetching for YouTube videos.
- * Implements a robust, dependency-free scraper that mimics the behavior
- * of successful plugins like YTranscript, using Obsidian's requestUrl
- * to bypass CORS and avoid heavy external dependencies.
+ * Implements a robust scraper using YouTube's Internal Innertube API (Android Client).
+ * This bypasses CAPTCHAs and consent screens often encountered with the web client.
+ * Based on the verified implementation in obsidian-youtube-transcript.
  */
 
 import { requestUrl } from 'obsidian';
@@ -13,15 +13,26 @@ import { TranscriptExtractionError } from './types';
 
 interface TranscriptSegment {
   text: string;
-  start: number;
-  duration: number;
+  startTime: number;
 }
+
+// Public Android API Key for YouTube Internal API
+const INNERTUBE_API_KEY = "AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8";
+const INNERTUBE_PLAYER_URL = `https://www.youtube.com/youtubei/v1/player?key=${INNERTUBE_API_KEY}`;
+
+// Android client context - less restricted than WEB client for transcript access
+const INNERTUBE_ANDROID_CONTEXT = {
+  client: {
+    clientName: "ANDROID",
+    clientVersion: "19.09.37",
+    androidSdkVersion: 30,
+    hl: "en",
+    gl: "US",
+  },
+};
 
 /**
  * YouTube video transcript extraction service
- *
- * Stateless service for fetching transcripts from YouTube videos.
- * Supports both youtube.com and youtu.be URL formats.
  */
 export class YouTubeService {
 
@@ -53,6 +64,10 @@ export class YouTubeService {
       if (host.includes('youtube.com')) {
         const v = urlObj.searchParams.get('v');
         if (v) return v;
+        // Handle embed URLs
+        if (urlObj.pathname.startsWith('/embed/')) {
+          return urlObj.pathname.split('/')[2];
+        }
       }
       return null;
     } catch {
@@ -61,13 +76,58 @@ export class YouTubeService {
   }
 
   /**
-   * Fetch transcript for a YouTube video
-   *
-   * Orchestrates the extraction process:
-   * 1. Fetch video page HTML
-   * 2. Extract caption tracks data
-   * 3. Fetch transcript XML/JSON
-   * 4. Parse and return
+   * Fetch player data from YouTube's InnerTube API using ANDROID client.
+   * The ANDROID client is less restricted than WEB client for caption access.
+   */
+  private async fetchPlayerDataWithAndroidClient(videoId: string): Promise<any> {
+    const context = {
+      ...INNERTUBE_ANDROID_CONTEXT,
+      client: {
+        ...INNERTUBE_ANDROID_CONTEXT.client,
+        hl: "en",
+        gl: "US",
+      },
+    };
+
+    const response = await requestUrl({
+      url: INNERTUBE_PLAYER_URL,
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "User-Agent":
+          "com.google.android.youtube/19.09.37 (Linux; U; Android 11) gzip",
+      },
+      body: JSON.stringify({
+        context: context,
+        videoId: videoId,
+      }),
+    });
+
+    if (response.status < 200 || response.status >= 300) {
+      throw new Error(`Failed to fetch video info: ${response.status}`);
+    }
+
+    const data = response.json;
+
+    // Check playability status
+    const playabilityStatus = data.playabilityStatus;
+    if (playabilityStatus) {
+      if (playabilityStatus.status === "ERROR") {
+        throw new Error(playabilityStatus.reason || "Video unavailable");
+      }
+      if (playabilityStatus.status === "LOGIN_REQUIRED") {
+        throw new Error("This video requires login to view");
+      }
+      if (playabilityStatus.status === "UNPLAYABLE") {
+        throw new Error(playabilityStatus.reason || "Video is unplayable");
+      }
+    }
+
+    return data;
+  }
+
+  /**
+   * Fetch transcript for a YouTube video using the robust Android client method
    */
   async fetchTranscript(url: string): Promise<TranscriptExtraction> {
     const videoId = this.extractVideoId(url);
@@ -81,83 +141,46 @@ export class YouTubeService {
     }
 
     try {
-      // Step 1: Fetch Video Page
-      // Using User-Agent from youtube-transcript library
-      const userAgent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.83 Safari/537.36,gzip(gfe)';
+      console.log(`[YouTubeService] Fetching player data for ${videoId}...`);
+      const videoData = await this.fetchPlayerDataWithAndroidClient(videoId);
 
-      const videoPageResponse = await requestUrl({
-        url: `https://www.youtube.com/watch?v=${videoId}`,
-        headers: {
-          'User-Agent': userAgent,
-          'Accept-Language': 'en-US',
-        }
-      });
+      const captionsRenderer = videoData?.captions?.playerCaptionsTracklistRenderer;
+      const captionTracks = captionsRenderer?.captionTracks;
 
-      const videoPageBody = videoPageResponse.text;
-
-      // Check for rate limiting/captcha
-      if (videoPageBody.includes('class="g-recaptcha"')) {
-        throw new TranscriptExtractionError('YouTube is receiving too many requests from this IP (Captcha).', 'youtube', { requiresManualInput: true });
-      }
-
-      // Step 2: Extract Captions Data logic adapted from youtube-transcript
-      const splitHTML = videoPageBody.split('"captions":');
-      let captions: any = null;
-
-      if (splitHTML.length > 1) {
-        try {
-          captions = JSON.parse(splitHTML[1].split(',"videoDetails')[0].replace('\n', ''))['playerCaptionsTracklistRenderer'];
-        } catch (e) {
-          console.log('[YouTubeService] Failed to parse captions JSON, falling back to regex extraction');
-        }
-      }
-
-      // Fallback to previous extraction method if simple split fails
-      const captionsUrl = captions ? (captions.captionTracks?.[0]?.baseUrl) : this.extractCaptionsUrl(videoPageBody);
-
-      console.log('[YouTubeService] Extracted captions URL:', captionsUrl);
-
-      if (!captionsUrl) {
+      if (!captionTracks || captionTracks.length === 0) {
+        console.log("[YouTubeService] No caption tracks found.");
         throw new TranscriptExtractionError(
-          'Video has no captions available (or they are disabled).',
+          'Video has no captions available.',
           'youtube',
           { requiresManualInput: true }
         );
       }
 
-      // Step 3: Fetch Transcript Data
-      // No cookies, exact same headers as library
-      const transcriptResponse = await requestUrl({
-        url: captionsUrl,
-        headers: {
-          'User-Agent': userAgent,
-          'Accept-Language': 'en-US'
-        }
-      });
+      console.log(`[YouTubeService] Found ${captionTracks.length} caption tracks.`);
 
-      const transcriptBody = transcriptResponse.text;
+      // Prioritize English
+      const enTrack = captionTracks.find((t: any) => t.languageCode === 'en' || t.languageCode?.startsWith('en'));
+      const selectedTrack = enTrack || captionTracks[0];
+      const captionsUrl = selectedTrack.baseUrl;
+      const langCode = selectedTrack.languageCode;
 
-      // Step 4: Parse Transcript using Regex (more robust than DOMParser for simple text)
-      // Regex from youtube-transcript: /<text start="([^"]*)" dur="([^"]*)">([^<]*)<\/text>/g
-      const reXmlTranscript = /<text start="([^"]*)" dur="([^"]*)">([^<]*)<\/text>/g;
-
-      const segments: TranscriptSegment[] = [];
-      let match;
-      while ((match = reXmlTranscript.exec(transcriptBody)) !== null) {
-        segments.push({
-          start: parseFloat(match[1]),
-          duration: parseFloat(match[2]),
-          text: this.decodeHtmlEntities(match[3])
-        });
+      if (!captionsUrl) {
+        throw new TranscriptExtractionError(
+          'Caption track found but has no URL.',
+          'youtube',
+          { requiresManualInput: true }
+        );
       }
 
-      console.log(`[YouTubeService] Parsed ${segments.length} segments using Regex`);
+      console.log(`[YouTubeService] Fetching transcript from: ${captionsUrl}`);
+
+      // Robust fetching with fallbacks
+      const transcriptXml = await this.fetchTranscriptContent(captionsUrl, videoId, langCode);
+
+      // Parse content
+      const segments = this.parseTranscript(transcriptXml);
 
       if (segments.length === 0) {
-        // Log the body to see why regex failed (e.g. empty or json?)
-        if (transcriptBody.length < 500) {
-          console.log(`[YouTubeService] Regex failed. Body: ${transcriptBody}`);
-        }
         throw new TranscriptExtractionError(
           'Transcript parsed but contained no text.',
           'youtube',
@@ -167,13 +190,17 @@ export class YouTubeService {
 
       // Formatting
       const transcriptText = segments.map(s => s.text).join(' ');
-      const wordCount = transcriptText.split(/\s+/).filter(w => w.length > 0).length;
+
+      // Basic formatting cleanup (remove double spaces, fix punctuation spacing)
+      const cleanedText = transcriptText.replace(/\s+/g, ' ').replace(/ ([.!?])/g, '$1');
+
+      const wordCount = cleanedText.split(/\s+/).filter(w => w.length > 0).length;
 
       return {
         platform: 'youtube',
-        transcript: transcriptText,
+        transcript: cleanedText,
         wordCount,
-        language: 'en', // Defaulting to 'en' as we prioritize it in extraction
+        language: langCode || 'en',
         source: 'auto',
         sourceUrl: url
       };
@@ -187,126 +214,177 @@ export class YouTubeService {
       throw new TranscriptExtractionError(
         `YouTube transcript extraction failed: ${msg}`,
         'youtube',
-        { requiresManualInput: true } // Suggest manual input on scrape failure
+        { requiresManualInput: true }
       );
     }
   }
 
   /**
-   * Extract the captions URL from the video page HTML.
-   * Looks for 'captionTracks' inside the player response.
+   * Fetch the actual transcript content handling fallbacks for empty responses
    */
-  private extractCaptionsUrl(html: string): string | null {
+  private async fetchTranscriptContent(transcriptUrl: string, videoId: string, langCode: string): Promise<string> {
+    const transcriptHeaders: Record<string, string> = {
+      "User-Agent":
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+      "Accept-Language": "en-US,en;q=0.9",
+      Referer: `https://www.youtube.com/watch?v=${videoId}`,
+      Accept:
+        "text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,*/*;q=0.8",
+    };
+
     try {
-      // Look for "captionTracks" in the HTML source
-      // It's usually inside ytInitialPlayerResponse
-      const splitHtml = html.split('"captionTracks":');
+      const response = await requestUrl({
+        url: transcriptUrl,
+        headers: transcriptHeaders
+      });
 
-      if (splitHtml.length <= 1) {
-        return null;
+      if (response.status >= 200 && response.status < 300 && response.text && response.text.trim()) {
+        return response.text;
       }
 
-      // Extract the array json
-      const afterCaptions = splitHtml[1];
-      const endBracketIndex = afterCaptions.indexOf(']');
-      if (endBracketIndex === -1) return null;
+      console.warn("[YouTubeService] Primary transcript URL returned empty/error. Trying fallbacks...");
 
-      const jsonArrayString = afterCaptions.substring(0, endBracketIndex + 1);
-      const tracks = JSON.parse(jsonArrayString);
-
-      if (!Array.isArray(tracks) || tracks.length === 0) {
-        return null;
-      }
-
-      // Prefer English, otherwise take the first one available
-      // tracks usually have .languageCode
-      const enTrack = tracks.find((t: any) => t.languageCode === 'en' || t.languageCode?.startsWith('en'));
-      const selectedTrack = enTrack || tracks[0];
-
-      return selectedTrack.baseUrl || null;
     } catch (e) {
-      console.error('Error extracting captions URL', e);
-      return null;
+      console.warn("[YouTubeService] Primary fetch failed:", e);
     }
+
+    // Fallback URLs
+    const isAutoGenerated = transcriptUrl.includes("kind=asr") || transcriptUrl.includes("caps=asr");
+    const fallbackUrls = [
+      ...(isAutoGenerated
+        ? [`https://www.youtube.com/api/timedtext?v=${videoId}&lang=${langCode}&caps=asr&fmt=xml3`]
+        : []),
+      `https://www.youtube.com/api/timedtext?v=${videoId}&lang=${langCode}&fmt=xml3`,
+      `https://www.youtube.com/api/timedtext?v=${videoId}&lang=${langCode}&fmt=srv3`,
+      `https://www.youtube.com/api/timedtext?v=${videoId}&lang=${langCode}`,
+      `https://www.youtube.com/api/timedtext?v=${videoId}&lang=${langCode}&fmt=ttml`,
+      `https://www.youtube.com/api/timedtext?v=${videoId}&lang=${langCode}&fmt=xml`,
+    ];
+
+    for (const fallbackUrl of fallbackUrls) {
+      try {
+        console.log(`[YouTubeService] Trying fallback: ${fallbackUrl}`);
+        const response = await requestUrl({
+          url: fallbackUrl,
+          headers: transcriptHeaders
+        });
+
+        if (response.status >= 200 && response.status < 300 && response.text && response.text.trim()) {
+          console.log("[YouTubeService] Fallback succeeded!");
+          return response.text;
+        }
+      } catch (e) {
+        console.warn(`[YouTubeService] Fallback ${fallbackUrl} failed:`, e);
+      }
+    }
+
+    throw new Error("All transcript URL attempts returned empty response. YouTube may be blocking automated requests.");
   }
 
-  /**
-   * Parse XML transcript format.
-   * Format is usually <text start="0" dur="2">Hello world</text>
-   */
-  private parseTranscriptXml(xml: string): TranscriptSegment[] {
-    const segments: TranscriptSegment[] = [];
 
-    // We use DOMParser available in the browser/electron environment
+  /**
+   * Parse transcript content (XML mostly)
+   */
+  private parseTranscript(transcriptXml: string): TranscriptSegment[] {
+    // If it happens to be JSON (rare with these endpoints but possible)
+    if (transcriptXml.trim().startsWith('{')) {
+      return this.parseTranscriptJson(transcriptXml);
+    }
+
+    // Parse XML
+    const segments: TranscriptSegment[] = [];
     try {
       const parser = new DOMParser();
-      const doc = parser.parseFromString(xml, 'text/xml');
-      const textNodes = doc.getElementsByTagName('text');
+      const xmlDoc = parser.parseFromString(transcriptXml, "text/xml");
 
-      for (let i = 0; i < textNodes.length; i++) {
-        const node = textNodes[i];
-        const text = node.textContent || '';
-        const start = parseFloat(node.getAttribute('start') || '0');
-        const duration = parseFloat(node.getAttribute('dur') || '0');
+      const parserError = xmlDoc.querySelector("parsererror");
+      if (parserError) {
+        console.error("XML parsing error:", parserError.textContent);
+      }
 
-        if (text.trim()) {
+      // Try different tag names
+      let textElements = xmlDoc.getElementsByTagName("text");
+      if (textElements.length === 0) {
+        textElements = xmlDoc.getElementsByTagName("transcript");
+        if (textElements.length === 0) {
+          textElements = xmlDoc.getElementsByTagName("p");
+        }
+      }
+
+      // If still empty, try generic selector
+      let allNodes = textElements.length > 0 ? Array.from(textElements) : Array.from(xmlDoc.querySelectorAll("*")).filter(n => n.children.length === 0 && n.textContent?.trim());
+
+      for (let i = 0; i < allNodes.length; i++) {
+        const element = allNodes[i] as Element;
+        let text = element.textContent || "";
+
+        if (text) {
+          text = this.decodeHtmlEntities(text);
+        }
+
+        if (text && text.trim()) {
+          const startAttr =
+            element.getAttribute("start") ??
+            element.getAttribute("t") ??
+            element.getAttribute("begin");
+
+          const startTime = startAttr ? parseFloat(startAttr) : -1;
+
           segments.push({
             text: text.trim(),
-            start,
-            duration
+            startTime
           });
         }
       }
+
     } catch (e) {
       console.error('XML parsing failed', e);
-      // Fallback regex if DOMParser somehow fails
-      const regex = /<text start="([\d.]+)" dur="([\d.]+)">([^<]+)<\/text>/g;
-      let match;
-      while ((match = regex.exec(xml)) !== null) {
-        segments.push({
-          start: parseFloat(match[1]),
-          duration: parseFloat(match[2]),
-          text: match[3]
-        });
+    }
+
+    // Force unit normalization (ms vs s)
+    if (segments.length >= 2) {
+      // Calculate median gap
+      const gaps: number[] = [];
+      for (let i = 1; i < segments.length; i++) {
+        const a = segments[i - 1].startTime;
+        const b = segments[i].startTime;
+        if (a >= 0 && b >= 0) gaps.push(b - a);
+      }
+
+      if (gaps.length > 0) {
+        const sorted = [...gaps].sort((x, y) => x - y);
+        const medianGap = sorted[Math.floor(sorted.length / 2)]!;
+
+        // If median gap is huge (> 5 minutes aka 300s), it's likely ms
+        if (medianGap > 300) {
+          // Convert all to seconds
+          segments.forEach(s => { if (s.startTime >= 0) s.startTime /= 1000; });
+        }
       }
     }
 
     return segments;
   }
 
-  /**
-   * Parse JSON3 transcript format
-   * {
-   *   "events": [
-   *     { "tStartMs": 0, "dDurationMs": 2000, "segs": [{ "utf8": "Hello" }] }
-   *   ]
-   * }
-   */
   private parseTranscriptJson(json: string): TranscriptSegment[] {
     const segments: TranscriptSegment[] = [];
     try {
       const data = JSON.parse(json);
-      if (!data.events) return [];
-
-      for (const event of data.events) {
-        if (!event.segs) continue;
-
-        const segmentText = event.segs
-          .map((seg: any) => seg.utf8)
-          .join('')
-          .replace(/\n/g, ' ')
-          .trim();
-
-        if (segmentText) {
-          segments.push({
-            text: segmentText,
-            start: (event.tStartMs || 0) / 1000,
-            duration: (event.dDurationMs || 0) / 1000
-          });
+      if (data.events) {
+        for (const event of data.events) {
+          if (event.segs) {
+            const text = event.segs.map((s: any) => s.utf8).join('').trim();
+            if (text) {
+              segments.push({
+                text,
+                startTime: (event.tStartMs || 0) / 1000
+              });
+            }
+          }
         }
       }
     } catch (e) {
-      console.error('JSON transcript parsing failed', e);
+      console.error("JSON parsing failed", e);
     }
     return segments;
   }

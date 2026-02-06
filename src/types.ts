@@ -12,6 +12,11 @@ import type { ProviderID, EvidenceLevel } from './ai/types';
  * Plugin settings stored in data.json
  */
 export interface ZoteroTriageSettings {
+  /**
+   * Settings schema version
+   * Used for migration of existing data when plugin updates
+   */
+  version: number;
   /** Path to the Zotero SQLite database file */
   zoteroDbPath: string;
   /** Output folder for literature notes (relative to vault root) */
@@ -68,6 +73,7 @@ import { DEFAULT_QUALITY_GATE_CONFIG } from './validation/types';
  * Default settings applied on first plugin load
  */
 export const DEFAULT_SETTINGS: ZoteroTriageSettings = {
+  version: 1,
   zoteroDbPath: '',
   outputFolder: '10_Literature',
   batchSize: 5,

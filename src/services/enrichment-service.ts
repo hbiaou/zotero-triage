@@ -41,6 +41,7 @@ import {
   EnrichmentParseError,
 } from '../types';
 import { AIServiceError } from '../ai/types';
+import { stringify } from 'yaml';
 
 /**
  * Enrichment timeout threshold in milliseconds (2 minutes)
@@ -140,12 +141,17 @@ export class EnrichmentService {
         }, ENRICHMENT_TIMEOUT_MS);
       });
 
+      const modelId = this.aiService.getCurrentModel();
+      if (!modelId) {
+        throw new EnrichmentAPIError(item.itemID, "No AI model configured. Please select a model in settings.");
+      }
+
       const completionPromise = this.aiService.complete({
         systemPrompt: this.getSystemPrompt(),
         prompt,
         temperature: 0.7, // Balanced creativity for note writing
         maxTokens: 4096, // Sufficient for full literature note
-        model: this.aiService.getCurrentModel() || 'gemini-3-flash-preview',
+        model: modelId,
       });
 
       const response = await Promise.race([completionPromise, timeoutPromise]);
@@ -156,9 +162,21 @@ export class EnrichmentService {
         item.itemID
       );
 
+      // CRITICAL FIX: Ensure evidence_level in metadata matches actual evidence used
+      // LLM often hallucinates 'FullText' or keeps defaults. using the source of truth here.
+      if (metadata) {
+        metadata.evidence_level = evidence.level;
+      }
+
+      // Reconstruct content with correct metadata to ensure saved file is accurate
+      // We parse the raw content to separate frontmatter/body, then rebuild it
+      const { body: cleanBody } = this.parseFrontmatterFromContent(content);
+      const yamlString = stringify(metadata);
+      const finalContent = `---\n${yamlString}---\n${cleanBody}`;
+
       // Step 7: Return EnrichmentResult
       return {
-        content,
+        content: finalContent,
         metadata,
         evidenceUsed: {
           level: evidence.level,
@@ -457,5 +475,108 @@ Generate the enriched literature note now.`;
     }
 
     return metadata;
+  }
+
+  /**
+   * Correct enrichment content based on validation warnings
+   * 
+   * @param previousContent - The content that generated warnings
+   * @param warnings - List of validation warnings to resolve
+   * @param evidence - Evidence to use for correction
+   * @param item - Zotero item for context
+   * @returns Promise resolving to corrected EnrichmentResult
+   */
+  async correctContent(
+    previousContent: string,
+    warnings: Array<{ type: string; message: string; details?: any }>,
+    evidence: EvidenceExtraction,
+    item: ZoteroItem
+  ): Promise<EnrichmentResult> {
+
+    // Construct correction prompt
+    const uniqueWarnings = warnings.map(w => w.message).filter((v, i, a) => a.indexOf(v) === i);
+    const warningsText = uniqueWarnings.map(w => `- ${w}`).join('\n');
+
+    const evidenceLevelDescription = this.evidenceExtractor.getEvidenceDescription(evidence.level, evidence.sources);
+    const evidenceContent = evidence.content.length > MAX_EVIDENCE_LENGTH
+      ? evidence.content.substring(0, MAX_EVIDENCE_LENGTH) + '\n\n[Content truncated...]'
+      : evidence.content;
+
+    const correctionPrompt = `You are a strict editor correcting a literature note.
+    
+CONTEXT:
+The following note was generated from evidence but contains specific issues (metadata mismatches or unsupported claims).
+
+ISSUES TO FIX:
+${warningsText}
+
+EVIDENCE AVAILABLE:
+${evidenceLevelDescription}
+${evidenceContent}
+
+INSTRUCTIONS:
+1. Fix ONLY the issues listed above. Keep the rest of the content mostly unchanged unless it needs flow adjustments.
+2. For Metadata Mismatches (e.g. Year/Authors):
+   - Check the EVIDENCE. If the evidence supports a different year/author than Zotero, use the EVIDENCE value.
+   - If the evidence is unclear, defer to Zotero's metadata: Year=${item.year || 'Unknown'}, Authors=${item.authors.join(', ')}.
+3. For Unsupported Claims (Hallucinations):
+   - SEARCH the evidence for the claim. 
+   - If the claim is actually supported by evidence, keep it and ensure it's properly stated.
+   - If the claim is NOT supported by evidence, REMOVE it or REWRITE it to strictly match what is in the text.
+4. CRITICAL: Output the FULL corrected note, STARTING IMMEDIATELY WITH YAML FRONTMATTER.
+   - Format: ---\nkey: value\n---\n[Markdown Body]
+   - Ensure 'note_type: literature-note' is preserved.
+
+CURRENT NOTE CONTENT:
+${previousContent}
+
+GENERATE CORRECTED NOTE NOW (Start with ---):`;
+
+    // Call AI Service
+    try {
+      const modelId = this.aiService.getCurrentModel();
+      if (!modelId) throw new EnrichmentAPIError(item.itemID, "No AI model configured.");
+
+      const completionPromise = this.aiService.complete({
+        systemPrompt: "You are an automated editor. Your goal is to fix factual inconsistencies in notes based on provided evidence.",
+        prompt: correctionPrompt,
+        temperature: 0.3, // Lower temperature for correction/editing
+        maxTokens: 4096,
+        model: modelId,
+      });
+
+      // Re-use timeout logic if needed, or just await
+      const response = await completionPromise;
+
+      // Parse response
+      const { content, metadata } = this.parseEnrichmentResponse(response.content, item.itemID);
+
+      return {
+        content,
+        metadata,
+        evidenceUsed: { level: evidence.level, sources: evidence.sources }, // Re-use evidence info
+        // We don't track correction tokens separately in this return, but typically you might add them up.
+        // For now, simpler is better.
+        enrichedAt: new Date().toISOString(),
+        modelUsed: response.model,
+        tokenCount: response.tokensUsed.input + response.tokensUsed.output,
+      };
+
+    } catch (error) {
+      // Using same error handling structure
+      if (error instanceof AIServiceError) {
+        throw new EnrichmentAPIError(item.itemID, `AI correction failed: ${error.message}`, error);
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Helper to separate frontmatter and body used during reconstruction
+   */
+  private parseFrontmatterFromContent(content: string): { frontmatter: string, body: string } {
+    const match = content.match(/^---\s*\n([\s\S]*?)\n---\s*\n([\s\S]*)$/);
+    if (!match) return { frontmatter: '', body: content };
+    return { frontmatter: match[1], body: match[2] };
   }
 }

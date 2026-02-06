@@ -1,6 +1,7 @@
 import { Plugin, Notice, Modal } from 'obsidian';
 import * as path from 'path';
 import { ZoteroTriageSettings, DEFAULT_SETTINGS } from './types';
+import { migrateSettings, SETTINGS_VERSION } from './settings/migration';
 import { ZoteroTriageSettingTab } from './settings';
 import { ZoteroConnector, ZoteroItem } from './db/zotero-connector';
 import { RegistryService } from './registry/registry-service';
@@ -9,6 +10,7 @@ import { BatchService } from './batch/batch-service';
 import { SessionTracker } from './ui/session-tracker';
 import { ItemSearchModal } from './ui/search-modal';
 import { PreviewModal } from './ui/preview-modal';
+import { deepMerge } from './utils/merge';
 import { TriageView, TRIAGE_VIEW_TYPE } from './ui/triage-view';
 import { ValidationService } from './validation/validation-service';
 import { ProfileService } from './profile/profile-service';
@@ -418,12 +420,18 @@ export default class ZoteroTriagePlugin extends Plugin {
     const loadedData = await this.loadData();
     console.log('[Main] Raw data loaded from data.json:', JSON.stringify(loadedData, null, 2));
 
-    // Simple spread merge - more predictable for flat/shallow settings
-    // Loaded data overwrites defaults, no complex deep merge issues
-    this.settings = { ...DEFAULT_SETTINGS, ...loadedData };
+    // Migrate settings to ensure compatibility with current version
+    const migratedData = migrateSettings(loadedData);
 
-    console.log('[Main] Settings after merge with defaults:', JSON.stringify(this.settings, null, 2));
-    console.log('[Main] Settings loaded:', {
+    // Use deep merge to preserve nested defaults while keeping user overrides
+    // This fixes the issue where partial nested objects in data.json would overwrite complete defaults
+    this.settings = deepMerge(DEFAULT_SETTINGS, migratedData);
+
+    // Explicitly enforce current version in case merge overwrote it
+    this.settings.version = SETTINGS_VERSION;
+
+    console.log('[Main] Settings loaded and migrated:', {
+      version: this.settings.version,
       zoteroDbPath: this.settings.zoteroDbPath || '(not configured)',
       zoteroDbPathType: typeof this.settings.zoteroDbPath,
       zoteroDbPathLength: this.settings.zoteroDbPath?.length,

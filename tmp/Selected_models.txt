@@ -1,0 +1,71 @@
+      "openrouter": [
+        "openai/gpt-5-nano",
+        "meta-llama/llama-4-scout",
+        "google/gemini-2.5-flash-lite",
+        "openai/gpt-4.1-nano",
+        "qwen/qwen3-235b-a22b-thinking-2507"
+      ],
+      "google": [
+        "gemini-3-flash-preview",
+        "gemini-2.5-flash-lite",
+        "gemini-3-pro-preview"
+      ],
+      "openai": [
+        "gpt-5-nano-2025-08-07",
+        "gpt-5-mini-2025-08-07",
+        "gpt-4o-mini-2024-07-18"
+      ],
+      "anthropic": [
+        "claude-sonnet-4-5",
+        "claude-haiku-4-5"
+
+
+https://platform.openai.com/docs/models
+https://platform.claude.com/docs/en/about-claude/models/overview
+https://ai.google.dev/gemini-api/docs/models
+
+
+Selected Models (ordered from cheapest to most expensive)
+OpenAI
+gpt-5-nano (i/o: $0.05/$0.40)
+GPT-4o mini (i/o: $0.15/$0.60)
+GPT-5 Mini (i/o: $0.25/$2.00)
+gpt-5.1 (i/o: $1.25/$10.00)
+gpt-5.2 (i/o: $1.75/$14.00)
+
+Google
+Gemini 2.5 Flash-Lite (i/o: $0.10/$0.40)
+gemini-2.5-flash (i/o: $0.30/$2.50)
+Gemini 3 Flash Preview (i/o: $0.50/$3.00)
+
+Anthropic
+Claude 3.5 Haiku (i/o: $0.80/$4)
+Claude 4.5 Haiku (i/o: $1/$5)
+Claude 4.5 Sonnet (i/o: $3/$15)
+
+OpenRouter
+nvidia/nemotron-3-nano-30b-a3b (i/o: $0.05/$0.20)
+google/gemini-2.5-flash-lite (i/o: $0.10/$0.40)
+mistralai/devstral-2512 (i/o: $0.05/$0.22)
+xiaomi/mimo-v2-flash (i/o: $0.09/$0.29)
+allenai/olmo-3.1-32b-think (i/o: $0.15/$0.50)
+mistralai/ministral-14b-2512 (i/o: $0.20/$0.20)
+essentialai/rnj-1-instruct (i/o: $0.15/$0.15)
+nex-agi/deepseek-v3.1-nex-n1 (i/o: $0.27/$1)
+google/gemini-3-flash-preview (i/o: $0.50/$3)
+
+
+anthropic/claude-3.5-haiku (i/o: $0.80/$4)
+anthropic/claude-haiku-4.5 (i/o: $1/$5)
+anthropic/claude-sonnet-4.5 (i/o: $3/$15)
+google/gemini-2.5-flash (i/o: $0.30/$2.50)
+openai/gpt-5-nano (i/o: $0.05/$0.40)
+openai/gpt-4o-mini (i/o: $0.15/$0.60)
+openai/gpt-5-mini (i/o: $0.25/$2.00)
+openai/gpt-5.1 (i/o: $1.25/$10.00)
+openai/gpt-5.2 (i/o: $1.75/$14.00)
+
+moonshotai/kimi-k2.5 (i/o: $0.45/$2.50)
+meta-llama/llama-3.1-70b-instruct (i/o: $0.40/$0.40)
+
+
