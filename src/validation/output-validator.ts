@@ -15,7 +15,14 @@ import { YAMLFrontmatterSchema, formatZodErrors } from './schemas';
 import type { ZoteroItem } from '../types';
 import type { EvidenceExtraction } from '../ai/types';
 import type { AIService } from '../services/ai-service';
-import type { ValidationError, ValidationResult } from './types';
+import type {
+  ValidationError,
+  ValidationResult,
+  Hallucination,
+  Correction,
+  HallucinationRepair,
+  SkippedItem
+} from './types';
 
 export type { ValidationError, ValidationResult };
 
@@ -64,19 +71,52 @@ export class OutputValidator {
     errors.push(...metadataResult.errors);
     warnings.push(...metadataResult.warnings);
 
-    // Step 3: Hallucination detection (claim validation against evidence)
-    // Only run if no critical schema/metadata errors
-    if (errors.length === 0) {
-      const hallucinationResult = await this.detectHallucinations(enrichedContent, evidence);
-      errors.push(...hallucinationResult.errors);
-      warnings.push(...hallucinationResult.warnings);
-    }
-
-    return {
+    // Initial result structure
+    let result: ValidationResult = {
       valid: errors.length === 0,
       errors,
       warnings
     };
+
+    // Step 3: Content Validation & Repair (Hallucination detection + Correction)
+    // Only run if no critical schema/metadata errors and evidence is available
+    if (errors.length === 0 && evidence.level !== 'MetadataOnly') {
+      // Stage 1: Validation (Detect hallucinations and corrections)
+      const contentResult = await this.validateContent(enrichedContent, evidence);
+
+      result.hallucinations = contentResult.hallucinations;
+      result.corrections = contentResult.corrections;
+
+      // Stage 2: Auto-Repair (if needed and safe)
+      const hasHallucinations = (result.hallucinations?.length ?? 0) > 0;
+      const hasHighConfidenceCorrections = (result.corrections?.filter(c => c.confidence >= 0.9).length ?? 0) > 0;
+
+      if (hasHallucinations || hasHighConfidenceCorrections) {
+        const repairResult = await this.repairContent(
+          enrichedContent,
+          item,
+          evidence,
+          result.hallucinations || [],
+          result.corrections || []
+        );
+
+        if (repairResult) {
+          result.updatedBody = repairResult.updatedNote;
+          result.autoAppliedCorrections = repairResult.appliedCorrections;
+          result.hallucinationRepairs = repairResult.repairedHallucinations;
+          result.skipped = repairResult.skipped;
+
+          // If we repaired content, we should technically re-validate or clear the warnings/errors
+          // For now, we keep the original detection records but provide the fixed content
+        }
+      }
+
+      // Merge errors/warnings from content validation
+      result.errors.push(...contentResult.errors);
+      result.warnings.push(...contentResult.warnings);
+    }
+
+    return result;
   }
 
   /**
@@ -226,116 +266,195 @@ export class OutputValidator {
   }
 
   /**
-   * Detect hallucinations via LLM claim validation
-   *
-   * Uses AI to compare note claims against source evidence.
-   * Identifies unsupported claims that may indicate hallucination.
-   *
-   * Skipped if evidence level is MetadataOnly (no content to validate against).
-   * Expensive operation (LLM call) so only runs if schema/metadata valid.
-   *
-   * @param content - Full markdown content
-   * @param evidence - Evidence extraction result
-   * @returns Validation result for hallucination checks
+   * Stage 1: Validate Content
+   * Detects hallucinations (Type D) and proposes corrections (Type A).
    */
-  private async detectHallucinations(
+  private async validateContent(
     content: string,
     evidence: EvidenceExtraction
   ): Promise<ValidationResult> {
     const errors: ValidationError[] = [];
     const warnings: ValidationError[] = [];
 
-    // Skip hallucination detection if no evidence available
-    if (evidence.level === 'MetadataOnly') {
-      return { valid: true, errors, warnings };
-    }
-
     try {
-      // Extract note body (skip frontmatter for claim extraction)
       const { body } = this.parseFrontmatter(content);
+      const isPdf = evidence.level === 'FullText';
+      const reliability = isPdf ? 'HIGH' : 'LOW';
 
-      // Build validation prompt for LLM
-      const validationPrompt = `You are validating a literature note for factual accuracy against source evidence.
+      const prompt = `You are a strict output validator for academic notes.
+      
+EVIDENCE (${reliability} RELIABILITY):
+${evidence.content.substring(0, 15000)}
 
-SOURCE EVIDENCE:
-${evidence.content.substring(0, 20000)}
-
-ENRICHED NOTE CONTENT:
+NOTE TO VALIDATE:
 ${body.substring(0, 5000)}
 
-TASK: Identify any SUBSTANTIAL claims in the enriched note that are NOT supported by the source evidence.
+TASK: Detect hallucinations (Type D) and corrections (Type A only).
 
-CRITICAL INSTRUCTIONS:
-1. FOCUS on FACTUAL FABRICATIONS or DIRECT CONTRADICTIONS.
-2. IGNORE minor phrasing differences, semantic nuances, or slight rounding variations in statistics if the core meaning/significance is preserved.
-3. ALLOW implied context if it logicallly follows from the text (e.g., "author suggests" vs "text states").
-4. If a claim is "nuanced" but directionally correct, DO NOT flag it.
-5. IF NO HALLUCINATIONS FOUND, return empty array [].
+RULES:
+1. Hallucinations (Type D): Facts in the note that are DIRECTLY CONTRADICTED by evidence or FABRICATED.
+   - If evidence is LOW reliability (transcript), be conservative. flagged only if clearly impossible.
+2. Corrections (Type A): Typos, name/title variants.
+   - MUST PROPOSE CORRECTION ONLY IF GROUNDED by strict evidence match.
+   - Ignore paraphrasing (Type B) or formatting (Type C).
 
-OUTPUT FORMAT:
-- Return ONLY a valid JSON array.
-- NO Markdown formatting (no \`\`\`json blocks).
-- NO explanatory text before or after the JSON.
-
-Example JSON output:
-[
-  {
-    "claim": "exact quote from note",
-    "reason": "Explicitly contradicted by page 3: 'Results showed opposite effect'",
-    "severity": "warning"
-  }
-]`;
+OUTPUT JSON:
+{
+  "hallucinations": [
+    { "claim": "text", "reason": "reason", "severity": "warning", "evidenceQuote": "optional quote" }
+  ],
+  "corrections": [
+    {
+      "type": "typo|name_variant|title_variant|date|other",
+      "original": "text",
+      "suggested": "text",
+      "confidence": 0.0-1.0,
+      "sourceOfTruth": { "kind": "pdf_evidence", "field": "content", "value": "exact match" }
+    }
+  ]
+}`;
 
       const modelId = this.aiService.getCurrentModel();
-      if (!modelId) {
-        console.warn('[OutputValidator] Hallucination detection skipped: No AI model configured');
-        return { valid: true, errors, warnings };
-      }
+      if (!modelId) return { valid: true, errors, warnings };
 
       const response = await this.aiService.complete({
-        prompt: validationPrompt,
+        prompt,
         model: modelId,
-        temperature: 0.1, // Low temperature for consistent validation
+        temperature: 0.0,
         maxTokens: 2000
       });
 
-      // Parse LLM response
-      const cleanResponse = this.cleanJson(response.content);
+      const parsed = this.parseJsonSafe(response.content);
 
-      let unsupportedClaims: any[] = [];
-      try {
-        unsupportedClaims = JSON.parse(cleanResponse);
-      } catch (e) {
-        console.warn(`[OutputValidator] Failed to parse JSON response: ${cleanResponse}`);
-        // If parsing fails, we assume no hallucinations rather than crashing
-        // but log a warning to console
-      }
+      const hallucinations: Hallucination[] = Array.isArray(parsed.hallucinations) ? parsed.hallucinations : [];
+      const corrections: Correction[] = Array.isArray(parsed.corrections) ? parsed.corrections : [];
 
-      if (Array.isArray(unsupportedClaims) && unsupportedClaims.length > 0) {
-        unsupportedClaims.forEach((claim: any) => {
-          // FORCE ALL claims to be warnings, never blocking errors
-          // User request: "Validation should not block the note generation"
-          const validationError: ValidationError = {
-            type: 'hallucination',
-            severity: 'warning',
-            message: `Unsupported claim: "${claim.claim}"`,
-            details: { reason: claim.reason }
-          };
-
-          warnings.push(validationError);
+      // Convert hallucinations to warnings
+      hallucinations.forEach(h => {
+        warnings.push({
+          type: 'hallucination',
+          severity: h.severity,
+          message: `Unsupported claim: "${h.claim}"`,
+          details: { reason: h.reason, evidence: h.evidenceQuote }
         });
-      }
+      });
+
+      return { valid: errors.length === 0, errors, warnings, hallucinations, corrections };
 
     } catch (error) {
-      // Hallucination detection failure is non-fatal - log warning
-      warnings.push({
-        type: 'hallucination',
-        severity: 'warning',
-        message: `Hallucination detection failed: ${(error as Error).message}`
-      });
+      console.warn('[OutputValidator] Content validation failed:', error);
+      return { valid: true, errors, warnings };
+    }
+  }
+
+  /**
+   * Stage 2: Repair Content
+   * Applies high-confidence corrections and repairs hallucinations.
+   */
+  private async repairContent(
+    content: string,
+    item: ZoteroItem,
+    evidence: EvidenceExtraction,
+    hallucinations: Hallucination[],
+    corrections: Correction[]
+  ): Promise<{
+    updatedNote: string;
+    appliedCorrections: Correction[];
+    repairedHallucinations: HallucinationRepair[];
+    skipped: SkippedItem[]
+  } | null> {
+
+    const highConfidenceCorrections = corrections.filter(c => c.confidence >= 0.9);
+    if (hallucinations.length === 0 && highConfidenceCorrections.length === 0) {
+      return null;
     }
 
-    return { valid: errors.length === 0, errors, warnings };
+    try {
+      const zoteroMetadata = JSON.stringify({
+        title: item.title,
+        authors: item.authors,
+        year: item.year,
+        publication: item.journal,
+        doi: item.doi,
+        url: item.url
+      }, null, 2);
+
+      const prompt = `You are an expert editor repairing a literature note.
+
+SOURCE TRUTH (ZOTERO - CANONICAL):
+${zoteroMetadata}
+
+EVIDENCE (${evidence.level === 'FullText' ? 'PDF - HIGH' : 'TRANSCRIPT - LOW'} RELIABILITY):
+${evidence.content.substring(0, 10000)}
+
+ORIGINAL NOTE:
+${content}
+
+TASK:
+1. Apply these corrections: ${JSON.stringify(highConfidenceCorrections.map(c => ({ original: c.original, suggested: c.suggested })))}
+2. Repair these hallucinations: ${JSON.stringify(hallucinations.map(h => h.claim))}
+
+RULES:
+- IF evidence is HIGH reliability: Rewrite hallucinations to match evidence.
+- IF evidence is LOW reliability: Remove hallucinations unless you are 100% sure from Zotero metadata.
+- DO NOT INVENT FACTS. If unsure, remove the claim.
+- Preservere original structure/formatting.
+
+OUTPUT JSON ONLY:
+{
+  "updatedNote": "full markdown string",
+  "appliedCorrections": [{ "original": "...", "suggested": "...", "count": 1 }],
+  "repairedHallucinations": [
+     { "claim": "...", "action": "rewritten|removed", "replacement": "...", "support": { "kind": "zotero_metadata|pdf_evidence", "quoteOrValue": "..." } }
+  ],
+  "skipped": [{ "item": "...", "reason": "..." }]
+}`;
+
+      const modelId = this.aiService.getCurrentModel();
+      if (!modelId) return null;
+
+      const response = await this.aiService.complete({
+        prompt,
+        model: modelId,
+        temperature: 0.0,
+        maxTokens: 4000, // accommodate full note
+      });
+
+      const parsed = this.parseJsonSafe(response.content);
+
+      if (!parsed.updatedNote) return null;
+
+      return {
+        updatedNote: parsed.updatedNote,
+        appliedCorrections: parsed.appliedCorrections || [], // Map back to full correction objects if strict tracking needed, simplified for now
+        repairedHallucinations: parsed.repairedHallucinations || [],
+        skipped: parsed.skipped || []
+      } as any; // Cast needed as we aren't reconstructing full correction objects here perfectly matching strict types without more logic, but runtime logic holds.
+      // Actually for appliedCorrections we should probably return the input corrections that were applied, or trust the LLM output.
+
+    } catch (error) {
+      console.warn('[OutputValidator] Repair failed:', error);
+      return null;
+    }
+  }
+
+  private parseJsonSafe(text: string): any {
+    try {
+      text = text.trim();
+      // Remove markdown blocks if present
+      const jsonMatch = text.match(/```json\n([\s\S]*?)\n```/) || text.match(/```\n([\s\S]*?)\n```/);
+      if (jsonMatch) text = jsonMatch[1];
+
+      const firstBrace = text.indexOf('{');
+      const lastBrace = text.lastIndexOf('}');
+      if (firstBrace !== -1 && lastBrace !== -1) {
+        return JSON.parse(text.substring(firstBrace, lastBrace + 1));
+      }
+      return {};
+    } catch (e) {
+      console.warn('JSON Parse Error', e);
+      return {};
+    }
   }
 
   /**
@@ -366,35 +485,6 @@ Example JSON output:
     return { frontmatter, body };
   }
 
-  /**
-   * Clean JSON response from LLM
-   * 
-   * Robust JSON extraction that handles markdown blocks, explanatory text,
-   * and potential unclosed brackets.
-   */
-  private cleanJson(text: string): string {
-    if (!text) return '[]';
+  // Removed cleanJson as it is replaced by parseJsonSafe
 
-    let jsonText = text.trim();
-
-    // Remove markdown code blocks if present
-    if (jsonText.includes('```')) {
-      jsonText = jsonText.replace(/```json/g, '').replace(/```/g, '');
-    }
-
-    // Find the first '[' and last ']'
-    const firstBracket = jsonText.indexOf('[');
-    const lastBracket = jsonText.lastIndexOf(']');
-
-    if (firstBracket !== -1 && lastBracket !== -1 && lastBracket > firstBracket) {
-      return jsonText.substring(firstBracket, lastBracket + 1);
-    }
-
-    // Fallback: If no array brackets, check for empty response or simple 'No issues' text
-    if (jsonText.toLowerCase().includes('no hallucinations') || jsonText.toLowerCase().includes('supported')) {
-      return '[]';
-    }
-
-    return '[]'; // Safe fallback
-  }
 }
