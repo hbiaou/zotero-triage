@@ -187,6 +187,7 @@ export default class ZoteroTriagePlugin extends Plugin {
       this.adaptiveLearner,
       this.domainClassifier,
       this.evidenceExtractor,
+      this.validationService,
       this.app
     );
 

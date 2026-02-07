@@ -134,7 +134,7 @@ export class PreflightModal extends Modal {
       this.progressEl.empty();
 
       // Add spinner
-      const spinner = this.progressEl.createDiv({ cls: 'preflight-spinner' });
+      const spinner = this.progressEl.createDiv({ cls: 'zotero-triage-spinner' });
 
       // Add progress message
       this.progressEl.createDiv({
@@ -217,7 +217,7 @@ export class PreflightModal extends Modal {
 
     // If no issues found
     if (result.trashCount === 0 && result.duplicateCount === 0 && !result.hasGroupLibraries &&
-        !result.trashError && !result.duplicateError && !result.groupLibrariesError) {
+      !result.trashError && !result.duplicateError && !result.groupLibrariesError) {
       resultsContainer.createDiv({
         cls: 'preflight-all-clear',
         text: 'No issues detected. Your library looks healthy!'

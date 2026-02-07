@@ -647,7 +647,18 @@ export class SetupWizardModal extends Modal {
    * Load items for seed paper selection
    */
   private async loadItemsForSeedSelection(): Promise<void> {
-    const notice = new Notice('Loading Zotero library...', 0);
+    // Show spinner in the modal content instead of a Notice
+    const { contentEl } = this;
+    contentEl.empty();
+
+    // Use generic empty state container for centering
+    const loadingContainer = contentEl.createDiv({ cls: 'zotero-triage-empty-state' });
+    loadingContainer.createDiv({ cls: 'zotero-triage-spinner' });
+    const messageEl = loadingContainer.createEl('h3', { text: 'Loading Zotero library...' });
+    loadingContainer.createEl('p', { text: 'This may take a moment for large libraries.' });
+
+    // Force UI update
+    await new Promise(resolve => setTimeout(resolve, 0));
 
     try {
       // Connect to database if not already connected
@@ -657,14 +668,13 @@ export class SetupWizardModal extends Modal {
 
       // Load items
       await this.connector.loadItems((loaded, total) => {
-        notice.setMessage(`Loading items: ${loaded}/${total}`);
+        messageEl.setText(`Loading items: ${loaded}/${total}`);
       });
 
-      notice.hide();
     } catch (err) {
-      notice.hide();
       const message = err instanceof Error ? err.message : String(err);
       new Notice(`Failed to load Zotero library: ${message}`);
+      // Re-render current step/error state if needed, but throwing err will likely be caught by caller
       throw err;
     }
   }

@@ -16,6 +16,7 @@ import { OverrideConfirmModal } from './override-modal';
 import { ProgressTracker } from '../performance/progress-tracker';
 import { getErrorContext } from '../error/error-handler';
 import { ErrorModal } from './error-modal';
+import { InsufficientDataModal } from './insufficient-data-modal';
 
 export const TRIAGE_VIEW_TYPE = 'zotero-triage-view';
 
@@ -27,12 +28,18 @@ interface UndoState {
   previousState: RegistryState;
 }
 
+// Assuming SuggestionItem is a type that should be defined or imported.
+// For now, to make the code syntactically correct, I'll define a placeholder.
+// In a real scenario, this would need to be properly imported or defined.
+type SuggestionItem = ZoteroItem; // Placeholder type, adjust as needed
+
 /**
  * TriageView displays batches of items as cards with action buttons
  */
 export class TriageView extends ItemView {
   private plugin: ZoteroTriagePlugin;
   private currentBatch: Batch | null = null;
+  private isLoading: boolean = false;
   private processedCount: number = 0;
   private totalZoteroItems: number = 0;
   private searchQuery: string = '';
@@ -90,48 +97,34 @@ export class TriageView extends ItemView {
    * Generate a new batch and display it
    */
   async generateAndShowBatch(): Promise<void> {
-    const progress = new ProgressTracker();
+    this.isLoading = true;
+    this.renderLoading();
+
+    // Force UI update before blocking operations
+    await new Promise(resolve => setTimeout(resolve, 0));
 
     try {
-      // Ensure database connected before first operation
+
+      // Ensure connected
       await this.plugin.ensureConnected();
 
-      // Start progress tracking
-      progress.start('Loading Zotero library...', 5000); // Estimate 5000 items
-
-      // Load items with progress callback
-      const items = await this.plugin.connector.loadItems((loaded, total) => {
-        progress.update(loaded, `Loading items from database...`);
-        // Update estimate if total differs
-        if (total !== progress['state'].total) {
-          progress['state'].total = total;
-        }
-      });
-
-      // Verify items were loaded
-      console.log('Zotero Triage DEBUG: Loaded', items.length, 'items from Zotero');
+      // Load items if not already loaded
+      let items: any[] = []; // Using any[] temporarily if ZoteroItem[] causes issues, but ZoteroItem[] is better
+      if (!this.plugin.connector.itemsLoaded) {
+        items = await this.plugin.connector.loadItems();
+      } else {
+        items = this.plugin.connector.getCachedItems();
+      }
 
       if (items.length === 0) {
-        progress.error('No items found in Zotero library');
+        new Notice('No items found in Zotero library');
+        this.isLoading = false;
+        this.renderEmptyState(this.containerEl.children[1] as HTMLElement);
         return;
       }
 
       // Store total item count
       this.totalZoteroItems = items.length;
-
-      progress.update(items.length, 'Generating batch...');
-
-      // DEBUG: Log connector and registry state
-      console.log('Zotero Triage DEBUG: Total items in connector:', this.totalZoteroItems);
-      const registryStats = this.plugin.registry.getStats();
-      console.log('Zotero Triage DEBUG: Registry stats:', registryStats);
-      console.log('Zotero Triage DEBUG: First 3 item states:',
-        items.slice(0, 3).map(item => ({
-          id: item.itemID,
-          title: item.title.substring(0, 50),
-          state: this.plugin.registry.getState(item.itemID)
-        }))
-      );
 
       // Generate batch
       const batch = await this.plugin.batchService.generateBatch({
@@ -143,11 +136,11 @@ export class TriageView extends ItemView {
       console.log('Zotero Triage DEBUG: Batch generated with', batch.items.length, 'items');
 
       if (batch.items.length === 0) {
-        progress.error('No unprocessed items available');
+        new Notice('No unprocessed items available');
+        this.isLoading = false;
+        this.renderEmptyState(this.containerEl.children[1] as HTMLElement);
         return;
       }
-
-      progress.complete(`Generated batch of ${batch.items.length} items`);
 
       // Store batch and reset processed count
       this.currentBatch = batch;
@@ -182,10 +175,22 @@ export class TriageView extends ItemView {
 
     } catch (err) {
       const context = getErrorContext(err as Error);
-      progress.error(context.message);
+      new Notice(`Error: ${context.message}`);
       // Show error modal for detailed actions
       new ErrorModal(this.app, context).open();
+    } finally {
+      this.isLoading = false;
     }
+  }
+
+  renderLoading() {
+    const container = this.containerEl.children[1];
+    container.empty();
+
+    const loadingContainer = container.createDiv({ cls: 'zotero-triage-empty-state' });
+    loadingContainer.createDiv({ cls: 'zotero-triage-spinner' });
+    loadingContainer.createEl('h3', { text: 'Generating Batch...' });
+    loadingContainer.createEl('p', { text: 'Analyzing your library and selecting the best items for triage.' });
   }
 
   /**
@@ -464,6 +469,35 @@ export class TriageView extends ItemView {
    */
   private async handleAccept(item: ZoteroItem): Promise<void> {
     const previousState = this.plugin.registry.getState(item.itemID);
+
+    // 0. Check for sufficient evidence BEFORE any processing
+    // This prevents "MetadataOnly" notes from being generated
+    try {
+      const evidence = await this.plugin.evidenceExtractor.extract(item);
+      if (!this.plugin.evidenceExtractor.canEnrich(evidence)) {
+        new InsufficientDataModal(this.app, {
+          item,
+          onOpenInZotero: () => {
+            window.open(`zotero://select/items/${item.itemKey}`);
+          },
+          onDefer: () => {
+            this.handleDefer(item);
+          },
+          onRetry: () => {
+            // Re-run this handler, ostensibly after user has added content
+            this.handleAccept(item);
+          },
+          onCancel: () => {
+            // Do nothing
+          }
+        }).open();
+        return;
+      }
+    } catch (error) {
+      console.error(`[TriageView] Failed to check evidence for ${item.itemKey}:`, error);
+      // We could block here, but if extraction fails, maybe we let performAccept try/fail?
+      // For now, let's just log and proceed - performAccept deals with errors too.
+    }
 
     // Run validation if quality gate is enabled
     if (this.plugin.settings.qualityGate.enabled) {
@@ -897,16 +931,9 @@ export class TriageView extends ItemView {
     });
   }
 
-  /**
-   * Refresh the view with current state
-   */
   refresh(): void {
     const container = this.containerEl.children[1] as HTMLElement;
-
-    if (!this.currentBatch) {
-      this.renderEmptyState(container);
-    } else {
-      this.renderBatch(container);
-    }
+    this.renderBatch(container);
   }
+
 }

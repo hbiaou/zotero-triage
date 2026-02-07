@@ -21,6 +21,7 @@ import type { EvidenceExtractor } from '../services/evidence-extractor';
 import type { BatchOptions, Batch } from './types';
 import type { ZoteroItem } from '../types';
 import type { Domain } from '../classification/types';
+import type { ValidationService } from '../validation/validation-service';
 import { getErrorContext } from '../error/error-handler';
 import { ProgressTracker } from '../performance/progress-tracker';
 import { ClassificationModal } from '../ui/classification-modal';
@@ -38,6 +39,7 @@ export class BatchService {
   private adaptiveLearner: AdaptiveLearner;
   private domainClassifier: DomainClassifier;
   private evidenceExtractor: EvidenceExtractor;
+  private validationService: ValidationService;
   private app: App;
 
   /**
@@ -59,6 +61,7 @@ export class BatchService {
     adaptiveLearner: AdaptiveLearner,
     domainClassifier: DomainClassifier,
     evidenceExtractor: EvidenceExtractor,
+    validationService: ValidationService,
     app: App
   ) {
     this.connector = connector;
@@ -68,6 +71,7 @@ export class BatchService {
     this.adaptiveLearner = adaptiveLearner;
     this.domainClassifier = domainClassifier;
     this.evidenceExtractor = evidenceExtractor;
+    this.validationService = validationService;
     this.app = app;
   }
 
@@ -106,6 +110,20 @@ export class BatchService {
 
         // Optionally exclude deferred items
         if (!options.includeDeferred && state === 'deferred') {
+          return false;
+        }
+
+        // Optionally exclude deferred items
+        if (!options.includeDeferred && state === 'deferred') {
+          return false;
+        }
+
+        // Validate item quality if gates are enabled
+        // This filters out items with missing required fields (e.g. no DOI/Abstract)
+        const validation = this.validationService.validate(item);
+        if (!validation.valid) {
+          // Log only if verbose debugging enabled, otherwise it's expected filtering
+          // console.log(`[BatchService] Filtered invalid item ${item.itemID}: ${validation.errors.map(e => e.message).join(', ')}`);
           return false;
         }
 

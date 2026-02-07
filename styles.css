@@ -798,6 +798,7 @@
   padding: 40px 20px;
 }
 
+.zotero-triage-spinner,
 .preflight-spinner {
   width: 40px;
   height: 40px;

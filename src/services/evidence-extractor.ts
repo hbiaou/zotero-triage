@@ -228,39 +228,50 @@ export class EvidenceExtractor {
         transcriptSource = 'video_transcript_manual_cached';
       }
     } else if (item.url) {
-      try {
-        const transcript = await this.transcriptExtractor.extractTranscript(item.url);
-        if (this.isValidEvidence(transcript.transcript)) {
-          transcriptContent = transcript.transcript;
-          transcriptSource = `video_transcript_${transcript.platform}`;
-        }
-      } catch (error) {
-        if (error instanceof TranscriptExtractionError && error.requiresManualInput) {
-          console.log(`[EvidenceExtractor] Transcript extraction failed asking for manual input: ${error.message}`);
+      // FIX: Only attempt transcript extraction for:
+      // 1. Relevant item types (video/audio)
+      // 2. Known video platforms (YouTube)
+      // This prevents "Manual Transcript Required" prompts for Book Sections/Articles with generic URLs
+      const isVideoType = ['videoRecording', 'audioRecording', 'podcast', 'radioBroadcast'].includes(item.itemType);
+      const isYouTube = item.url.includes('youtube.com') || item.url.includes('youtu.be');
 
-          if (hasNotes) {
-            console.log('[EvidenceExtractor] Skipping manual transcript prompt because valid Zotero notes exist');
-          } else {
-            console.log('[EvidenceExtractor] Requesting manual transcript from user...');
-            const manualTranscript = await this.promptForManualTranscript(item);
-            console.log(`[EvidenceExtractor] Manual transcript received (length: ${manualTranscript.length})`);
-
-            if (this.isValidEvidence(manualTranscript)) {
-              // FIX: Save to both registry and static session cache
-              this.registry.saveManualTranscript(item.itemID, manualTranscript);
-              EvidenceExtractor.sessionTranscriptCache.set(item.itemID, manualTranscript);
-
-              transcriptContent = manualTranscript;
-              transcriptSource = 'video_transcript_manual';
-            } else {
-              console.log('[EvidenceExtractor] User skipped manual transcript, saving skip state');
-              this.registry.saveManualTranscript(item.itemID, TRANSCRIPT_SKIPPED);
-              EvidenceExtractor.sessionTranscriptCache.set(item.itemID, TRANSCRIPT_SKIPPED);
-            }
+      if (isVideoType || isYouTube) {
+        try {
+          const transcript = await this.transcriptExtractor.extractTranscript(item.url);
+          if (this.isValidEvidence(transcript.transcript)) {
+            transcriptContent = transcript.transcript;
+            transcriptSource = `video_transcript_${transcript.platform}`;
           }
-        } else {
-          console.log(`[EvidenceExtractor] Transcript extraction failed (non-recoverable): ${error}`);
+        } catch (error) {
+          if (error instanceof TranscriptExtractionError && error.requiresManualInput) {
+            console.log(`[EvidenceExtractor] Transcript extraction failed asking for manual input: ${error.message}`);
+
+            if (hasNotes) {
+              console.log('[EvidenceExtractor] Skipping manual transcript prompt because valid Zotero notes exist');
+            } else {
+              console.log('[EvidenceExtractor] Requesting manual transcript from user...');
+              const manualTranscript = await this.promptForManualTranscript(item);
+              console.log(`[EvidenceExtractor] Manual transcript received (length: ${manualTranscript.length})`);
+
+              if (this.isValidEvidence(manualTranscript)) {
+                // FIX: Save to both registry and static session cache
+                this.registry.saveManualTranscript(item.itemID, manualTranscript);
+                EvidenceExtractor.sessionTranscriptCache.set(item.itemID, manualTranscript);
+
+                transcriptContent = manualTranscript;
+                transcriptSource = 'video_transcript_manual';
+              } else {
+                console.log('[EvidenceExtractor] User skipped manual transcript, saving skip state');
+                this.registry.saveManualTranscript(item.itemID, TRANSCRIPT_SKIPPED);
+                EvidenceExtractor.sessionTranscriptCache.set(item.itemID, TRANSCRIPT_SKIPPED);
+              }
+            }
+          } else {
+            console.log(`[EvidenceExtractor] Transcript extraction failed (non-recoverable): ${error}`);
+          }
         }
+      } else {
+        console.log(`[EvidenceExtractor] Skipping transcript extraction for non-video item: ${item.itemType} (${item.url})`);
       }
     }
 
