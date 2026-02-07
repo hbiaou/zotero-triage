@@ -299,7 +299,13 @@ RULES:
    - MUST PROPOSE CORRECTION ONLY IF GROUNDED by strict evidence match.
    - Ignore paraphrasing (Type B) or formatting (Type C).
 
-OUTPUT JSON:
+OUTPUT FORMAT:
+- Return STRICT JSON only.
+- NO Markdown formatting (no \`\`\`json blocks).
+- NO trailing commas.
+- NO comments in JSON.
+
+JSON STRUCTURE:
 {
   "hallucinations": [
     { "claim": "text", "reason": "reason", "severity": "warning", "evidenceQuote": "optional quote" }
@@ -400,8 +406,9 @@ RULES:
 - IF evidence is LOW reliability: Remove hallucinations unless you are 100% sure from Zotero metadata.
 - DO NOT INVENT FACTS. If unsure, remove the claim.
 - Preservere original structure/formatting.
+- Output STRICT JSON only. NO Markdown blocks.
 
-OUTPUT JSON ONLY:
+OUTPUT JSON STRUCTURE:
 {
   "updatedNote": "full markdown string",
   "appliedCorrections": [{ "original": "...", "suggested": "...", "count": 1 }],
@@ -418,7 +425,7 @@ OUTPUT JSON ONLY:
         prompt,
         model: modelId,
         temperature: 0.0,
-        maxTokens: 4000, // accommodate full note
+        maxTokens: 4000,
       });
 
       const parsed = this.parseJsonSafe(response.content);
@@ -427,11 +434,10 @@ OUTPUT JSON ONLY:
 
       return {
         updatedNote: parsed.updatedNote,
-        appliedCorrections: parsed.appliedCorrections || [], // Map back to full correction objects if strict tracking needed, simplified for now
+        appliedCorrections: parsed.appliedCorrections || [],
         repairedHallucinations: parsed.repairedHallucinations || [],
         skipped: parsed.skipped || []
-      } as any; // Cast needed as we aren't reconstructing full correction objects here perfectly matching strict types without more logic, but runtime logic holds.
-      // Actually for appliedCorrections we should probably return the input corrections that were applied, or trust the LLM output.
+      } as any;
 
     } catch (error) {
       console.warn('[OutputValidator] Repair failed:', error);
@@ -441,49 +447,36 @@ OUTPUT JSON ONLY:
 
   private parseJsonSafe(text: string): any {
     try {
-      text = text.trim();
-      // Try to extract JSON from markdown code blocks
-      if (text.includes('```json')) {
-        const jsonStart = text.indexOf('```json') + 7;
-        const jsonEnd = text.indexOf('```', jsonStart);
-        if (jsonEnd !== -1) {
-          text = text.substring(jsonStart, jsonEnd).trim();
-        }
-      } else if (text.includes('```')) {
-        // Handle unmarked code blocks
-        const codeStart = text.indexOf('```') + 3;
-        const codeEnd = text.indexOf('```', codeStart);
-        if (codeEnd !== -1) {
-          text = text.substring(codeStart, codeEnd).trim();
-        }
-      }
+      let cleanText = text.trim();
 
-      // Find JSON object boundaries
-      const firstBrace = text.indexOf('{');
-      const lastBrace = text.lastIndexOf('}');
+      // Remove markdown code blocks if present
+      cleanText = cleanText.replace(/^```json\s*/, '').replace(/^```\s*/, '').replace(/\s*```$/, '');
+
+      // Find valid JSON boundaries
+      const firstBrace = cleanText.indexOf('{');
+      const lastBrace = cleanText.lastIndexOf('}');
+
       if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
-        let jsonStr = text.substring(firstBrace, lastBrace + 1);
+        cleanText = cleanText.substring(firstBrace, lastBrace + 1);
 
         // First attempt: direct parse
         try {
-          return JSON.parse(jsonStr);
+          return JSON.parse(cleanText);
         } catch (firstError) {
-          // Second attempt: fix common issues
-          // Fix unescaped newlines in string values
-          jsonStr = jsonStr.replace(/:\s*"([^"]*)[\n\r]+([^"]*)"/g, ': "$1\\n$2"');
-          // Fix trailing commas
-          jsonStr = jsonStr.replace(/,\s*([\]}])/g, '$1');
-          // Fix single quotes (common AI mistake)
-          jsonStr = jsonStr.replace(/'/g, '"');
+          // Recovery attempts
+          // 1. Fix unescaped newlines in strings
+          let fixedText = cleanText.replace(/:\s*"([^"]*)[\n\r]+([^"]*)"/g, ': "$1\\n$2"');
+          // 2. Remove trailing commas
+          fixedText = fixedText.replace(/,\s*([\]}])/g, '$1');
 
           try {
-            return JSON.parse(jsonStr);
+            return JSON.parse(fixedText);
           } catch (secondError) {
-            console.warn('[OutputValidator] JSON parse failed after recovery attempts:', {
-              originalError: firstError,
-              recoveryError: secondError,
-              preview: jsonStr.substring(0, 200)
+            console.warn('[OutputValidator] JSON parse failed after recovery:', {
+              original: text.substring(0, 100) + '...',
+              error: secondError
             });
+            return {};
           }
         }
       }

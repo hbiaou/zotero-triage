@@ -97,6 +97,15 @@ export const ITEM_TYPE_SCHEMAS: Record<string, z.ZodSchema> = {
 // Phase 16: Enriched Note Validation Schemas
 // ============================================================================
 
+const CoercedString = z.union([
+  z.string(),
+  z.number().transform(n => String(n)),
+  z.array(z.string()).transform(arr => arr.length > 0 ? arr[0] : null),
+  z.array(z.any()).transform(arr => arr.length > 0 ? String(arr[0]) : null),
+  z.null(),
+  z.undefined()
+]).transform(val => val === null || val === undefined ? undefined : String(val));
+
 /**
  * YAML Frontmatter Schema for enriched literature notes
  *
@@ -172,13 +181,13 @@ export const YAMLFrontmatterSchema = z.object({
   template_used: z.enum(['ACADEMIC', 'SOFTWARE', 'FARMING', 'GENERAL']),
   date_processed: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Must be YYYY-MM-DD format'),
 
-  // Optional fields
-  zotero_key: z.string().optional(),
-  doi: z.string().optional(),
+  // Optional fields with relaxed validation
+  zotero_key: CoercedString.optional(),
+  doi: CoercedString.optional(),
   // Relaxed URL validation to prevent blocking on malformed URLs
-  url: z.string().optional().nullable(),
+  url: CoercedString.optional().nullable(),
   confidence_score: z.number().min(0).max(1).optional(),
-  model_used: z.string().optional(),
+  model_used: CoercedString.optional(),
   token_count: z.number().int().positive().optional(),
 
   // Allow additional fields for extensibility

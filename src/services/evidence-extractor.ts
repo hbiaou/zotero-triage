@@ -264,6 +264,47 @@ export class EvidenceExtractor {
       }
     }
 
+    // FIX: Force 'Transcript' evidence level for video recordings
+    if (item.itemType === 'videoRecording') {
+      console.log('[EvidenceExtractor] Item is videoRecording, forcing Transcript evidence level');
+
+      // If we have transcript content (from any source), use it as primary
+      if (transcriptContent) {
+        let finalContent = transcriptContent;
+        const sources = [transcriptSource];
+
+        if (hasNotes) {
+          finalContent += '\n\n--- ADDITIONAL NOTES FROM ZOTERO ---\n\n' + notesContent;
+          sources.push('zotero_notes');
+        }
+
+        // If we found PDF content earlier, we might want to include it or just note it
+        // For now, let's treat it as supplementary if needed, but primary is Transcript
+        if (pdfContent && this.isValidEvidence(pdfContent)) {
+          // We could concatenate or just log. For now, rely on transcript + notes.
+          // Maybe add it if transcript is short? 
+          // Stick to plan: Override evidence level.
+        }
+
+        return {
+          level: 'Transcript',
+          content: finalContent,
+          sources: sources,
+          tokenEstimate: this.estimateTokens(finalContent)
+        };
+      }
+
+      // If no transcript but we have PDF (likely a transcript export), use PDF but label as Transcript
+      if (pdfContent && this.isValidEvidence(pdfContent)) {
+        return {
+          level: 'Transcript', // Force Transcript level
+          content: pdfContent,
+          sources: ['pdf_fulltext_as_transcript'], // Distinct source label
+          tokenEstimate: this.estimateTokens(pdfContent)
+        };
+      }
+    }
+
     if (transcriptContent) {
       let finalContent = transcriptContent;
       const sources = [transcriptSource];

@@ -227,22 +227,27 @@ export class EnrichmentService {
     return `You are a literature note enrichment assistant. Your task is to fill template sections using ONLY the provided evidence from the source material.
 
 CRITICAL INSTRUCTIONS:
-1. Use ONLY information explicitly stated in the evidence
-2. For sections without supporting evidence, write "N/A - insufficient evidence"
-3. Preserve verbatim quotes for key claims, methods, and results
-4. Use mixed style: verbatim quotes for important claims, paraphrasing for context
-5. Do NOT add your own interpretations or external knowledge
-6. Do NOT infer information not present in the evidence
-7. When evidence conflicts, prioritize PDF fulltext over notes
-8. Do NOT correct the spelling of technical terms, proper names, or unique jargon (e.g. if the source says 'ClawdBot', do NOT change it to 'ClaudeBot')
+1. LANGUAGE: Write the main note content (headers, summaries, analysis) in ENGLISH, even if the source is in another language.
+   - EXCEPTION: Keep Title, Original Abstract, and Proper Names in their ORIGINAL language.
+2. EVIDENCE: Use ONLY information explicitly stated in the evidence.
+   - For sections without supporting evidence, write "N/A - insufficient evidence".
+   - Preserve verbatim quotes for key claims, methods, and results.
+   - When evidence conflicts, prioritize PDF fulltext over notes.
+3. STYLE: Use mixed style: verbatim quotes for important claims, paraphrasing for context.
+   - Do NOT add your own interpretations or external knowledge.
+   - Do NOT infer information not present in the evidence.
+   - Do NOT correct the spelling of technical terms, proper names, or unique jargon.
 
 OUTPUT FORMAT:
-- Return valid Markdown with YAML frontmatter
+- Return valid Markdown with YAML frontmatter.
 - Frontmatter format: ---\\nkey: value\\n...\\n---
-- CRITICAL: You must include "note_type: literature-note" in frontmatter
-- NO code blocks wrapping the output
-- NO emojis in the content
-- Generate 6-8 relevant tags at the end (single line format)`;
+- CRITICAL: "note_type" must be "literature-note".
+- METADATA RULES:
+  - 'doi', 'url', 'zotero_key', 'model_used' must be SINGLE STRINGS (not lists).
+  - If a metadata field is missing, omit it or use null. Do NOT use empty lists [].
+- NO code blocks wrapping the output (no \`\`\`markdown).
+- NO emojis in the content.
+- Generate 6-8 relevant tags at the end (single line format).`;
   }
 
   /**
@@ -304,14 +309,14 @@ ${item.journal ? `Journal: ${item.journal}` : ''}
 ${item.url ? `URL: ${item.url}` : ''}
 
 INSTRUCTIONS:
-1. Fill each template section using ONLY the evidence above
-2. Use "N/A - insufficient evidence" for sections without supporting text
-3. Preserve verbatim quotes for key claims, methods, and results
-4. Use mixed style: quotes for claims, paraphrasing for context
-5. Generate 6-8 relevant tags at the end (single line)
-6. Output format: YAML frontmatter (---\\nkey: value\\n---) followed by markdown body
-7. NO code blocks wrapping the output
-8. NO emojis in the content
+1. Fill each template section using ONLY the evidence above.
+2. English Rule: Write the body content in ENGLISH. Keep Title/Abstract in original language if not English.
+3. Use "N/A - insufficient evidence" for sections without supporting text.
+4. Preserve verbatim quotes for key claims, methods, and results.
+5. Generate 6-8 relevant tags at the end (single line).
+6. Output format: YAML frontmatter (---\\nkey: value\\n---) followed by markdown body.
+7. NO code blocks wrapping the output.
+8. NO emojis in the content.
 
 Generate the enriched literature note now.`;
 
