@@ -130,7 +130,7 @@ export interface ProviderConfig {
  * - Abstract: Paper abstract only (low quality, very low cost)
  * - MetadataOnly: Title, authors, keywords (minimal quality, negligible cost)
  */
-export type EvidenceLevel = 'FullText' | 'Notes' | 'Abstract' | 'MetadataOnly';
+export type EvidenceLevel = 'FullText' | 'Transcript' | 'Notes' | 'Abstract' | 'MetadataOnly';
 
 /**
  * Evidence extraction result

@@ -267,12 +267,16 @@ export class EvidenceExtractor {
     if (transcriptContent) {
       let finalContent = transcriptContent;
       const sources = [transcriptSource];
+      // Determine correct evidence level for video content
+      let evidenceLevel: 'Transcript' | 'Notes' = 'Transcript';
       if (hasNotes) {
         finalContent += '\n\n--- ADDITIONAL NOTES FROM ZOTERO ---\n\n' + notesContent;
         sources.push('zotero_notes');
+        // When we have both transcript and notes, still use Transcript as primary
+        // The sources array indicates both were used
       }
       return {
-        level: 'FullText',
+        level: evidenceLevel,
         content: finalContent,
         sources: sources,
         tokenEstimate: this.estimateTokens(finalContent)
@@ -312,16 +316,18 @@ export class EvidenceExtractor {
   }
 
   canEnrich(evidence: EvidenceExtraction): boolean {
-    return evidence.level === 'FullText' || evidence.level === 'Notes';
+    return evidence.level === 'FullText' || evidence.level === 'Transcript' || evidence.level === 'Notes';
   }
 
   getEvidenceDescription(level: EvidenceLevel, sources?: string[]): string {
     switch (level) {
       case 'FullText':
-        if (sources && sources.some(s => s.startsWith('video_transcript_'))) {
-          return 'Video transcript extracted';
-        }
         return 'PDF fulltext extracted';
+      case 'Transcript':
+        if (sources && sources.some(s => s.includes('zotero_notes'))) {
+          return 'Video transcript + notes';
+        }
+        return 'Video transcript extracted';
       case 'Notes':
         return 'Zotero notes and annotations';
       case 'Abstract':

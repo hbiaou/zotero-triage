@@ -7,10 +7,62 @@ import * as SQLite from 'wa-sqlite';
 import { Base as BaseVFS } from 'wa-sqlite/src/VFS.js';
 
 /**
+ * Simple LRU Page Cache for NodeVFS
+ * 
+ * Caches 4KB pages from SQLite database reads to reduce syscall overhead.
+ * Default: 12500 pages = 50MB cache (12500 * 4096 bytes)
+ */
+class PageCache {
+    private cache: Map<string, Buffer> = new Map();
+    private maxPages: number;
+
+    constructor(maxPages: number = 12500) {
+        this.maxPages = maxPages;
+    }
+
+    private makeKey(fileId: number, offset: number, length: number): string {
+        return `${fileId}:${offset}:${length}`;
+    }
+
+    get(fileId: number, offset: number, length: number): Buffer | undefined {
+        const key = this.makeKey(fileId, offset, length);
+        const value = this.cache.get(key);
+        if (value) {
+            // Move to end for LRU (delete and re-add)
+            this.cache.delete(key);
+            this.cache.set(key, value);
+        }
+        return value;
+    }
+
+    set(fileId: number, offset: number, length: number, data: Buffer): void {
+        const key = this.makeKey(fileId, offset, length);
+        // Evict oldest if at capacity
+        if (this.cache.size >= this.maxPages && !this.cache.has(key)) {
+            const oldest = this.cache.keys().next().value;
+            if (oldest) this.cache.delete(oldest);
+        }
+        this.cache.set(key, data);
+    }
+
+    clear(): void {
+        this.cache.clear();
+    }
+
+    get size(): number {
+        return this.cache.size;
+    }
+}
+
+/**
  * NodeVFS - A specific VFS implementation for Node.js using fs.promises
  * 
  * Implements the minimal set of VFS methods required by SQLite to operate
  * in a read-only or read-write capacity using Node's filesystem APIs.
+ * 
+ * Features:
+ * - LRU page cache for read operations (50MB default)
+ * - Reusable buffer pool to reduce GC pressure
  * 
  * Based on the reference MinimalVFS from wa-sqlite.
  */
@@ -19,6 +71,12 @@ export class NodeVFS extends BaseVFS {
 
     // Map of fileId -> file descriptor
     private openFiles: Map<number, { fd: number, path: string, flags: number, isTemp?: boolean }> = new Map();
+
+    // Page cache for read optimization
+    private pageCache: PageCache = new PageCache();
+
+    // Reusable buffer pool (reduces GC pressure)
+    private bufferPool: Map<number, Buffer> = new Map();
 
     constructor() {
         super();
@@ -102,6 +160,21 @@ export class NodeVFS extends BaseVFS {
     }
 
     /**
+     * Get or create a reusable buffer of the given size
+     */
+    private getBuffer(size: number): Buffer {
+        let buffer = this.bufferPool.get(size);
+        if (!buffer) {
+            buffer = Buffer.alloc(size);
+            // Only cache common page sizes (4KB, 8KB, 16KB, etc.)
+            if (size === 4096 || size === 8192 || size === 16384 || size === 32768) {
+                this.bufferPool.set(size, buffer);
+            }
+        }
+        return buffer;
+    }
+
+    /**
      * Read from a file
      * @param fileId - File handle ID
      * @param pData - Uint8Array to write data into (from wa-sqlite)
@@ -110,15 +183,22 @@ export class NodeVFS extends BaseVFS {
      */
     xRead(fileId: number, pData: Uint8Array, iOfst: number): number {
         const file = this.openFiles.get(fileId);
-        // Console logging here is too verbose and kills performance
-        // console.log(`[NodeVFS] xRead called: fileId=${fileId}, amt=${pData?.length}, offset=${iOfst}, file=${file?.path}`);
         if (!file) return SQLite.SQLITE_IOERR_READ;
 
         try {
             const iAmt = pData.length;
-            // Use a temp buffer for fs.readSync
-            const buffer = Buffer.alloc(iAmt);
-            const bytesRead = fs.readSync(file.fd, buffer, 0, iAmt, Number(iOfst));
+            const offset = Number(iOfst);
+
+            // Check page cache first
+            const cached = this.pageCache.get(fileId, offset, iAmt);
+            if (cached) {
+                pData.set(cached);
+                return SQLite.SQLITE_OK;
+            }
+
+            // Cache miss - read from disk
+            const buffer = this.getBuffer(iAmt);
+            const bytesRead = fs.readSync(file.fd, buffer, 0, iAmt, offset);
 
             // Copy to pData
             pData.set(buffer.subarray(0, bytesRead));
@@ -128,6 +208,9 @@ export class NodeVFS extends BaseVFS {
                 pData.fill(0, bytesRead);
                 return SQLite.SQLITE_IOERR_SHORT_READ;
             }
+
+            // Store in cache (only full reads)
+            this.pageCache.set(fileId, offset, iAmt, Buffer.from(buffer.subarray(0, bytesRead)));
 
             return SQLite.SQLITE_OK;
         } catch (err) {

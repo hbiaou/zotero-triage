@@ -442,18 +442,54 @@ OUTPUT JSON ONLY:
   private parseJsonSafe(text: string): any {
     try {
       text = text.trim();
-      // Remove markdown blocks if present
-      const jsonMatch = text.match(/```json\n([\s\S]*?)\n```/) || text.match(/```\n([\s\S]*?)\n```/);
-      if (jsonMatch) text = jsonMatch[1];
+      // Try to extract JSON from markdown code blocks
+      if (text.includes('```json')) {
+        const jsonStart = text.indexOf('```json') + 7;
+        const jsonEnd = text.indexOf('```', jsonStart);
+        if (jsonEnd !== -1) {
+          text = text.substring(jsonStart, jsonEnd).trim();
+        }
+      } else if (text.includes('```')) {
+        // Handle unmarked code blocks
+        const codeStart = text.indexOf('```') + 3;
+        const codeEnd = text.indexOf('```', codeStart);
+        if (codeEnd !== -1) {
+          text = text.substring(codeStart, codeEnd).trim();
+        }
+      }
 
+      // Find JSON object boundaries
       const firstBrace = text.indexOf('{');
       const lastBrace = text.lastIndexOf('}');
-      if (firstBrace !== -1 && lastBrace !== -1) {
-        return JSON.parse(text.substring(firstBrace, lastBrace + 1));
+      if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+        let jsonStr = text.substring(firstBrace, lastBrace + 1);
+
+        // First attempt: direct parse
+        try {
+          return JSON.parse(jsonStr);
+        } catch (firstError) {
+          // Second attempt: fix common issues
+          // Fix unescaped newlines in string values
+          jsonStr = jsonStr.replace(/:\s*"([^"]*)[\n\r]+([^"]*)"/g, ': "$1\\n$2"');
+          // Fix trailing commas
+          jsonStr = jsonStr.replace(/,\s*([\]}])/g, '$1');
+          // Fix single quotes (common AI mistake)
+          jsonStr = jsonStr.replace(/'/g, '"');
+
+          try {
+            return JSON.parse(jsonStr);
+          } catch (secondError) {
+            console.warn('[OutputValidator] JSON parse failed after recovery attempts:', {
+              originalError: firstError,
+              recoveryError: secondError,
+              preview: jsonStr.substring(0, 200)
+            });
+          }
+        }
       }
       return {};
     } catch (e) {
-      console.warn('JSON Parse Error', e);
+      console.warn('[OutputValidator] JSON Parse Error:', e);
       return {};
     }
   }
