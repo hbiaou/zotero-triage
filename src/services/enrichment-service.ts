@@ -349,10 +349,25 @@ Generate the enriched literature note now.`;
       }
 
       // Validate has frontmatter
-      if (!cleanContent.startsWith('---')) {
+      // Relaxed check: Look for start of frontmatter, not necessarily at index 0 (handle preamble)
+      const frontmatterStartIndex = cleanContent.indexOf('---');
+      if (frontmatterStartIndex === -1) {
         throw new EnrichmentParseError(
           itemId,
-          'Invalid response: Missing YAML frontmatter. Content must start with ---'
+          'Invalid response: Missing YAML frontmatter. Content must contain --- block.'
+        );
+      }
+
+      // If there is preamble, strip it
+      if (frontmatterStartIndex > 0) {
+        cleanContent = cleanContent.substring(frontmatterStartIndex);
+      }
+
+      if (!cleanContent.startsWith('---')) {
+        // Should be covered by substring above, but double check
+        throw new EnrichmentParseError(
+          itemId,
+          'Invalid response: Content must accept YAML frontmatter.'
         );
       }
 
@@ -454,7 +469,9 @@ Generate the enriched literature note now.`;
           // Simple value
           isMultiline = false;
           isArray = false;
-          currentValue = [value];
+          // Strip quotes from scalar values
+          const unquoted = value.replace(/^["']|["']$/g, '');
+          currentValue = [unquoted];
         }
       } else if (currentKey) {
         // Continuation line (array item or multiline value)
@@ -543,7 +560,7 @@ GENERATE CORRECTED NOTE NOW (Start with ---):`;
       if (!modelId) throw new EnrichmentAPIError(item.itemID, "No AI model configured.");
 
       const completionPromise = this.aiService.complete({
-        systemPrompt: "You are an automated editor. Your goal is to fix factual inconsistencies in notes based on provided evidence.",
+        systemPrompt: "You are an automated editor. Your goal is to fix factual inconsistencies. You must output a valid Markdown document starting with YAML frontmatter. Do not output any conversational text before the frontmatter.",
         prompt: correctionPrompt,
         temperature: 0.3, // Lower temperature for correction/editing
         maxTokens: 4096,
