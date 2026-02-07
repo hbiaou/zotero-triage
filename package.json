@@ -1,6 +1,6 @@
 {
   "name": "zotero-triage",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "Progressive Zotero-Obsidian bridge for sustainable literature processing",
   "main": "main.js",
   "scripts": {

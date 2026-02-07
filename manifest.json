@@ -1,7 +1,7 @@
 {
   "id": "zotero-triage",
   "name": "Zotero Triage",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "minAppVersion": "1.0.0",
   "description": "Progressive Zotero-Obsidian bridge for sustainable literature processing",
   "author": "BIAOU Samadori S. Honoré",
