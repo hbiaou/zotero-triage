@@ -579,8 +579,12 @@ export default class ZoteroTriagePlugin extends Plugin {
    * @param item - Selected Zotero item
    */
   private async showPreviewAndImport(item: ZoteroItem): Promise<void> {
-    // Check if already imported
-    if (this.registry.isImported(item.itemID)) {
+    // Check if already imported AND file exists
+    const isRegistered = this.registry.isImported(item.itemID);
+    const filePath = this.noteGenerator.getFilePath(item);
+    const fileExists = this.app.vault.getAbstractFileByPath(filePath);
+
+    if (isRegistered && fileExists) {
       new Notice(`This item has already been imported: ${item.title}`);
       return;
     }

@@ -83,7 +83,7 @@ export class OutputValidator {
     // Only run if no critical schema/metadata errors and evidence is available
     if (errors.length === 0 && evidence.level !== 'MetadataOnly') {
       // Stage 1: Validation (Detect hallucinations and corrections)
-      const contentResult = await this.validateContent(enrichedContent, evidence);
+      const contentResult = await this.validateContent(enrichedContent, item, evidence);
 
       result.hallucinations = contentResult.hallucinations;
       result.corrections = contentResult.corrections;
@@ -272,6 +272,7 @@ export class OutputValidator {
    */
   private async validateContent(
     content: string,
+    item: ZoteroItem,
     evidence: EvidenceExtraction
   ): Promise<ValidationResult> {
     const errors: ValidationError[] = [];
@@ -282,7 +283,18 @@ export class OutputValidator {
       const isPdf = evidence.level === 'FullText';
       const reliability = isPdf ? 'HIGH' : 'LOW';
 
+      // Construct metadata context for source of truth
+      const metadataContext = `
+TITLE: ${item.title || 'Unknown'}
+AUTHORS: ${item.authors ? item.authors.join(', ') : 'Unknown'}
+ABSTRACT: ${item.abstract || 'None'}
+YEAR: ${item.year || 'Unknown'}
+`.trim();
+
       const prompt = `You are a strict output validator for academic notes.
+
+METADATA (HIGH RELIABILITY - SOURCE OF TRUTH):
+${metadataContext}
       
 EVIDENCE (${reliability} RELIABILITY):
 ${evidence.content.substring(0, 15000)}
@@ -294,14 +306,20 @@ TASK: Detect hallucinations (Type D) and corrections (Type A only).
 
 RULES:
 1. Hallucinations (Type D): Facts in the note that are DIRECTLY CONTRADICTED by evidence or FABRICATED.
-   - If evidence is LOW reliability (transcript), be conservative. flagged only if clearly impossible.
+   - CHECK METADATA FIRST. If a claim matches the Title, Abstract, or Authors, it is NOT a hallucination.
+   - If evidence is LOW reliability (transcript), be conservative. Flag ONLY if contradicted by METADATA or clearly impossible.
+   - typos in transcripts are common. Do not flag claims that sound similar to transcript phonetics if they match Metadata.
 2. Corrections (Type A): Typos, name/title variants.
-   - MUST PROPOSE CORRECTION ONLY IF GROUNDED by strict evidence match.
+   - MUST PROPOSE CORRECTION ONLY IF GROUNDED by strict evidence match or METADATA.
+   - Use Metadata as the spelling authority for proper names and titles.
+   - Ignore paraphrasing (Type B) or formatting (Type C).
+
    - Ignore paraphrasing (Type B) or formatting (Type C).
 
 OUTPUT FORMAT:
 - Return STRICT JSON only.
-- NO Markdown formatting (no \`\`\`json blocks).
+- ESCAPE ALL DOUBLE QUOTES inside strings (e.g., "The term \"quoted\"").
+- No Markdown formatting (no \`\`\`json blocks).
 - NO trailing commas.
 - NO comments in JSON.
 
@@ -316,7 +334,7 @@ JSON STRUCTURE:
       "original": "text",
       "suggested": "text",
       "confidence": 0.0-1.0,
-      "sourceOfTruth": { "kind": "pdf_evidence", "field": "content", "value": "exact match" }
+      "sourceOfTruth": { "kind": "zotero_metadata|pdf_evidence", "field": "title|abstract|content", "value": "exact match" }
     }
   ]
 }`;
@@ -328,7 +346,8 @@ JSON STRUCTURE:
         prompt,
         model: modelId,
         temperature: 0.0,
-        maxTokens: 2000
+        maxTokens: 2000,
+        responseMimeType: 'application/json'
       });
 
       const parsed = this.parseJsonSafe(response.content);
@@ -407,6 +426,7 @@ RULES:
 - DO NOT INVENT FACTS. If unsure, remove the claim.
 - Preservere original structure/formatting.
 - Output STRICT JSON only. NO Markdown blocks.
+- ESCAPE ALL DOUBLE QUOTES inside strings.
 
 OUTPUT JSON STRUCTURE:
 {
@@ -426,6 +446,7 @@ OUTPUT JSON STRUCTURE:
         model: modelId,
         temperature: 0.0,
         maxTokens: 4000,
+        responseMimeType: 'application/json'
       });
 
       const parsed = this.parseJsonSafe(response.content);
