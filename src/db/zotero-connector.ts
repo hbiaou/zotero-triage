@@ -10,6 +10,10 @@ import {
   ITEM_COLLECTIONS_QUERY,
   ITEM_COUNT_QUERY,
   LIBRARY_STATS_QUERY,
+  BULK_CREATORS_QUERY,
+  BULK_ATTACHMENTS_QUERY,
+  BULK_TAGS_QUERY,
+  BULK_COLLECTIONS_QUERY,
   formatCreator,
   parseYear,
   CreatorRow
@@ -191,6 +195,16 @@ export class ZoteroConnector {
       this.isLoaded = false;
 
       console.log(`[ZoteroConnector] Connected to ${dbPath} using wa-sqlite/NodeVFS`);
+
+      // Set SQLite PRAGMAs for optimal read-only performance
+      // These run once per connection and significantly improve query speed
+      await this.sqlite3.exec(this.db, `
+        PRAGMA cache_size = -50000;    -- 50MB page cache
+        PRAGMA mmap_size = 268435456;  -- 256MB memory-mapped I/O
+        PRAGMA temp_store = MEMORY;    -- Keep temp tables in memory
+        PRAGMA query_only = ON;        -- Enforce read-only mode
+      `);
+      console.log('[ZoteroConnector] Performance PRAGMAs applied');
     });
   }
 
@@ -324,67 +338,97 @@ export class ZoteroConnector {
   }
 
   async loadItems(onProgress?: LoadProgressCallback): Promise<ZoteroItem[]> {
-    // Refactored to use async queryObj
     if (!this.db || !this.dbPath) throw new Error('Not connected');
 
-    // Count
+    const loadStart = performance.now();
+    console.log('[ZoteroConnector] Starting bulk item load...');
+
+    // Count total items for progress
     const countRes = await this.queryObj(ITEM_COUNT_QUERY);
     const totalItems = countRes[0] ? Number(Object.values(countRes[0])[0]) : 0;
 
     if (totalItems === 0) throw new Error('No items found');
     if (onProgress) onProgress(0, totalItems);
 
-    // Main Items
-    // Note: If huge, we should stream or chunk?
-    // Since we are now using SQLite directly, we can use OFFSET/LIMIT or just iterate the cursor?
-    // But `queryObj` loads all into memory.
-    // Ideally we should use a cursor iterator.
-    // For now, let's load all raw rows (plain objects are smaller than sql.js overhead) 
-    // but strictly speaking we should chunk if valid memory concern.
-    // prompt said "replace logic ... to ... read specific pages ... rather than loading entire file"
-    // This is handled by VFS. But holding 10k items in JS array is still memory.
-    // I'll stick to loading all for now as user prompt was about "loading entire file into RAM" (the .sqlite file).
-
-    const rows = await this.queryObj(ITEMS_QUERY);
-    const items: ZoteroItem[] = [];
-    let loaded = 0;
+    // =========================================================================
+    // BULK LOADING: Execute 5 queries total instead of 4N+1 (N = item count)
+    // =========================================================================
     const dataDir = getZoteroDataDir(this.dbPath);
 
-    // Helper for batch processing
+    // 1. Load all items (main query)
+    const rows = await this.queryObj(ITEMS_QUERY);
+    console.log(`[ZoteroConnector] Loaded ${rows.length} main item rows`);
+
+    // 2. Bulk load creators and group by itemID
+    const creatorsRows = await this.queryObj(BULK_CREATORS_QUERY);
+    const creatorsByItem = new Map<number, CreatorRow[]>();
+    for (const c of creatorsRows) {
+      const list = creatorsByItem.get(c.itemID) || [];
+      list.push({
+        firstName: c.firstName,
+        lastName: c.lastName,
+        fieldMode: c.fieldMode,
+        creatorType: c.creatorType,
+        orderIndex: c.orderIndex
+      });
+      creatorsByItem.set(c.itemID, list);
+    }
+    console.log(`[ZoteroConnector] Loaded ${creatorsRows.length} creator rows`);
+
+    // 3. Bulk load attachments and group by parentItemID
+    const attachRows = await this.queryObj(BULK_ATTACHMENTS_QUERY);
+    const attachmentsByItem = new Map<number, any>();
+    for (const a of attachRows) {
+      // Store first PDF attachment per parent item
+      if (!attachmentsByItem.has(a.parentItemID)) {
+        attachmentsByItem.set(a.parentItemID, a);
+      }
+    }
+    console.log(`[ZoteroConnector] Loaded ${attachRows.length} attachment rows`);
+
+    // 4. Bulk load tags and group by itemID
+    const tagRows = await this.queryObj(BULK_TAGS_QUERY);
+    const tagsByItem = new Map<number, string[]>();
+    for (const t of tagRows) {
+      const list = tagsByItem.get(t.itemID) || [];
+      list.push(t.name);
+      tagsByItem.set(t.itemID, list);
+    }
+    console.log(`[ZoteroConnector] Loaded ${tagRows.length} tag rows`);
+
+    // 5. Bulk load collections and group by itemID
+    const collRows = await this.queryObj(BULK_COLLECTIONS_QUERY);
+    const collectionsByItem = new Map<number, string[]>();
+    for (const c of collRows) {
+      const list = collectionsByItem.get(c.itemID) || [];
+      list.push(c.collectionName);
+      collectionsByItem.set(c.itemID, list);
+    }
+    console.log(`[ZoteroConnector] Loaded ${collRows.length} collection rows`);
+
+    // =========================================================================
+    // ASSEMBLY: Build ZoteroItem objects from pre-loaded data
+    // =========================================================================
+    const items: ZoteroItem[] = [];
+    let loaded = 0;
+
     for (const row of rows) {
       const itemID = row.itemID;
       const itemKey = row.itemKey;
 
-      // Creators - Parameterized
-      const creators = await this.queryObj(CREATORS_QUERY, [itemID]);
-      const authors: string[] = [];
-      for (const c of creators) {
-        const creator: CreatorRow = {
-          firstName: c.firstName,
-          lastName: c.lastName,
-          fieldMode: c.fieldMode,
-          creatorType: c.creatorType,
-          orderIndex: c.orderIndex
-        };
-        // Filter types...
-        // (Simplifying for brevity - logic remains same as original)
-        authors.push(formatCreator(creator)); // Need to import or allow loose type?
-      }
+      // Get creators from pre-loaded map
+      const creators = creatorsByItem.get(itemID) || [];
+      const authors = creators.map(c => formatCreator(c));
 
-      // Attachments - Parameterized
-      const attachments = await this.queryObj(ATTACHMENTS_QUERY, [itemID]);
-      let pdfPath = null;
-      if (attachments.length > 0) {
-        pdfPath = resolvePdfPath(attachments[0].path, dataDir, itemKey);
-      }
+      // Get attachment path from pre-loaded map
+      const attachment = attachmentsByItem.get(itemID);
+      const pdfPath = attachment
+        ? resolvePdfPath(attachment.path, dataDir, itemKey)
+        : null;
 
-      // Tags - Parameterized
-      const tagRows = await this.queryObj(ITEM_TAGS_QUERY, [itemID]);
-      const tags = tagRows.map(t => t.name as string); // Assuming column is name
-
-      // Collections - Parameterized
-      const collRows = await this.queryObj(ITEM_COLLECTIONS_QUERY, [itemID]);
-      const collections = collRows.map(c => c.collectionName as string);
+      // Get tags and collections from pre-loaded maps
+      const tags = tagsByItem.get(itemID) || [];
+      const collections = collectionsByItem.get(itemID) || [];
 
       items.push({
         itemID,
@@ -410,11 +454,15 @@ export class ZoteroConnector {
       });
 
       loaded++;
-      if (onProgress && loaded % 50 === 0) onProgress(loaded, totalItems);
+      if (onProgress && loaded % 100 === 0) onProgress(loaded, totalItems);
     }
 
     this.items = items;
     this.isLoaded = true;
+
+    const loadTime = ((performance.now() - loadStart) / 1000).toFixed(2);
+    console.log(`[ZoteroConnector] Bulk load complete: ${items.length} items in ${loadTime}s`);
+
     return items;
   }
 

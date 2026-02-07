@@ -191,6 +191,78 @@ ORDER BY c.collectionName
 `;
 
 /**
+ * ============================================================================
+ * BULK QUERIES - Performance optimization to eliminate N+1 query pattern
+ * ============================================================================
+ * These queries fetch data for ALL items at once, allowing loadItems() to
+ * execute ~5 queries total instead of 4N+1 queries.
+ */
+
+/**
+ * Bulk query to get creators for ALL items.
+ * Returns: itemID, firstName, lastName, fieldMode, creatorType, orderIndex
+ * Ordered by itemID then orderIndex for efficient grouping.
+ */
+export const BULK_CREATORS_QUERY = `
+SELECT
+  ic.itemID,
+  c.firstName,
+  c.lastName,
+  c.fieldMode,
+  ct.creatorType,
+  ic.orderIndex
+FROM itemCreators ic
+JOIN creators c ON ic.creatorID = c.creatorID
+JOIN creatorTypes ct ON ic.creatorTypeID = ct.creatorTypeID
+ORDER BY ic.itemID, ic.orderIndex
+`;
+
+/**
+ * Bulk query to get PDF attachments for ALL items.
+ * Returns: parentItemID, itemID, linkMode, path, contentType
+ * Filters to only PDF files.
+ */
+export const BULK_ATTACHMENTS_QUERY = `
+SELECT
+  ia.parentItemID,
+  ia.itemID,
+  ia.linkMode,
+  ia.path,
+  ia.contentType
+FROM itemAttachments ia
+WHERE ia.contentType = 'application/pdf'
+ORDER BY ia.parentItemID
+`;
+
+/**
+ * Bulk query to get user-created tags for ALL items.
+ * Returns: itemID, name (tag name)
+ * Excludes Zotero 7 auto-generated annotation tags.
+ */
+export const BULK_TAGS_QUERY = `
+SELECT it.itemID, t.name
+FROM itemTags it
+JOIN tags t ON it.tagID = t.tagID
+WHERE t.name NOT LIKE 'custom-color-%'
+  AND t.name NOT LIKE 'highlight-%'
+  AND t.name NOT LIKE 'annotation-%'
+  AND t.name NOT LIKE '$_%' ESCAPE '$'
+ORDER BY it.itemID, t.name
+`;
+
+/**
+ * Bulk query to get collections for ALL items.
+ * Returns: itemID, collectionName
+ */
+export const BULK_COLLECTIONS_QUERY = `
+SELECT ci.itemID, c.collectionName
+FROM collectionItems ci
+JOIN collections c ON ci.collectionID = c.collectionID
+ORDER BY ci.itemID, c.collectionName
+`;
+
+
+/**
  * Query to count total items (excluding attachments, child notes, and annotations).
  * Used for progress reporting and validation.
  *

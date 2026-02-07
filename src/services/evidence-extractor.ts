@@ -94,7 +94,7 @@ export class EvidenceExtractor {
           AND ia.linkMode IN (0, 1, 2)
       `;
 
-      const result = await this.connector.query(query, [itemID]);
+      const result = await this.connector.queryObj(query, [itemID]);
       console.log(`[EvidenceExtractor] Found ${result?.length || 0} PDF attachments for itemID ${itemID}`);
 
       if (!result || result.length === 0) {
@@ -141,7 +141,7 @@ export class EvidenceExtractor {
           AND items.itemTypeID = (SELECT itemTypeID FROM itemTypes WHERE typeName = 'note')
       `;
 
-      const result = await this.connector.query(query, [itemID]);
+      const result = await this.connector.queryObj(query, [itemID]);
       if (!result || result.length === 0) return '';
 
       return result
@@ -163,7 +163,7 @@ export class EvidenceExtractor {
         JOIN fields ON itemData.fieldID = fields.fieldID
         WHERE itemData.itemID = ? AND fields.fieldName = 'abstractNote'
       `;
-      const result = await this.connector.query(query, [itemID]);
+      const result = await this.connector.queryObj(query, [itemID]);
       return (result && result.length > 0) ? (result[0].value as string) : '';
     } catch (err) {
       console.error(`Failed to extract abstract for item ${itemID}: ${err}`);
