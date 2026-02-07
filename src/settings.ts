@@ -618,6 +618,17 @@ export class ZoteroTriageSettingTab extends PluginSettingTab {
       return;
     }
 
+    const isConnected = (this.plugin as any).connector?.isConnected;
+
+    if (isConnected) {
+      statusContainer.createEl('p', {
+        text: '✅ Status: Connected (VFS Mode)',
+        cls: 'setting-item-description',
+        attr: { style: 'color: var(--text-success); font-weight: bold;' }
+      });
+      return;
+    }
+
     statusContainer.createEl('p', {
       text: 'Status: Database file found. Click "Test Connection" to verify access.',
       cls: 'setting-item-description'

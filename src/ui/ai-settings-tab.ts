@@ -66,6 +66,25 @@ export class AISettingsTab {
       cls: 'setting-item-description',
     });
 
+    // Privacy Notice
+    const privacyDiv = this.containerEl.createDiv({ cls: 'usage-scenario-notice' });
+    privacyDiv.style.marginBottom = '20px';
+    privacyDiv.style.backgroundColor = 'var(--background-secondary-alt)';
+    privacyDiv.style.border = '1px solid var(--background-modifier-border)';
+    privacyDiv.style.borderRadius = 'var(--radius-m)';
+    privacyDiv.style.padding = '12px';
+
+    const privacyHeader = privacyDiv.createDiv({ cls: 'privacy-notice-header' });
+    privacyHeader.style.display = 'flex';
+    privacyHeader.style.alignItems = 'center';
+    privacyHeader.style.marginBottom = '8px';
+    privacyHeader.style.fontWeight = 'bold';
+    privacyHeader.createSpan({ text: '🔒 Privacy Notice' });
+
+    privacyDiv.createEl('span', {
+      text: 'When using AI enrichment, the text of your PDF attachments and Zotero notes will be sent to the selected AI provider (e.g., OpenAI, Anthropic, Google). Please review their privacy policies regarding data handling using the links below.'
+    });
+
     // Provider configuration sections
     this.renderProviderSection('openai', 'OpenAI');
     if (this.secretStorage.hasAPIKey('openai')) {

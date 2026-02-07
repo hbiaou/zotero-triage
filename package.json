@@ -18,6 +18,7 @@
   "dependencies": {
     "lodash.debounce": "^4.0.8",
     "sql.js": "^1.13.0",
+    "wa-sqlite": "^1.0.0",
     "yaml": "^2.8.2",
     "youtube-transcript": "^1.2.1",
     "zod": "^3.25.76",

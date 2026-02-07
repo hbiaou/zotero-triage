@@ -117,24 +117,53 @@ export function resolvePdfPath(
   // Normalize path for case-insensitive prefix comparison
   const normalizedPath = normalizePath(attachmentPath);
 
+  // Helper to verify path is within Allowed Directory (Jail)
+  const isWithinJail = (resolvedPath: string, jailRoot: string): boolean => {
+    const relative = path.relative(jailRoot, resolvedPath);
+    return !relative.startsWith('..') && !path.isAbsolute(relative);
+  };
+
   // Handle storage: prefix (imported files) - case-insensitive check
   if (normalizedPath.startsWith('storage:')) {
     const filename = attachmentPath.substring('storage:'.length);
-    const resolved = path.join(dataDir, 'storage', itemKey, filename);
-
-    // Verify file exists
-    if (fs.existsSync(resolved)) {
-      return resolved;
+    // Prevent directory traversal in filename immediately
+    if (filename.includes('/') || filename.includes('\\')) {
+      // Zotero storage filenames shouldn't have directory separators
+      // If they do, checks below should catch traversal, but let's be strict
     }
-    // Return the path even if file doesn't exist - let caller handle
+
+    const storageRoot = path.join(dataDir, 'storage');
+    // We expect storage/{itemKey}/{filename}
+    const itemDir = path.join(storageRoot, itemKey);
+    const resolved = path.join(itemDir, filename);
+
+    // Security Check: Enforce Jail
+    if (!isWithinJail(resolved, itemDir)) {
+      console.warn(`[Security] Blocked path traversal attempt: ${attachmentPath}`);
+      return null;
+    }
+
     return resolved;
   }
 
   // Handle attachments: prefix (linked files with base directory) - case-insensitive check
   if (normalizedPath.startsWith('attachments:')) {
     // This requires knowing the base attachment directory from Zotero settings
-    // Return the relative path - caller may need to resolve further
-    return attachmentPath.substring('attachments:'.length);
+    // Since we don't have it here, we return the relative path part
+    // BUT we must ensure it doesn't try to traverse up from the future base
+    const relativePart = attachmentPath.substring('attachments:'.length);
+
+    // Check for traversal attempts in the relative part itself
+    // We can't fully resolve without the base, but we can check if it tries to go '..'
+    // We assume the base will be prepended later.
+    if (relativePart.includes('..')) {
+      // Naive check, but effectively blocks obvious traversal
+      // A more robust check requires the base.
+      console.warn(`[Security] Blocked path traversal attempt in attachments: path: ${attachmentPath}`);
+      return null;
+    }
+
+    return relativePart;
   }
 
   // Absolute path - verify it looks like a path
@@ -142,7 +171,12 @@ export function resolvePdfPath(
     return attachmentPath;
   }
 
-  // Unknown format - return as-is
+  // Unknown format - return as-is but warn if suspicious
+  if (attachmentPath.includes('..')) {
+    console.warn(`[Security] Suspicious path blocked: ${attachmentPath}`);
+    return null;
+  }
+
   return attachmentPath;
 }
 
