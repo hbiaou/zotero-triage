@@ -1,62 +1,107 @@
 # Zotero Triage
 
-A progressive Zotero-Obsidian bridge for sustainable literature processing.
+**Turn your Zotero library into rich, AI-enhanced literature notes in Obsidian.**
 
-## Overview
+## What It Does
 
-Zotero Triage is an Obsidian plugin that helps you progressively triage and process literature from your Zotero library. It provides a workflow for managing research papers and references in a sustainable, organized way.
+Zotero Triage bridges the gap between your reference manager and your knowledge base. Instead of manually copying metadata and writing summaries, this plugin:
+
+1. **Connects directly to your Zotero database** — no CSV exports needed
+2. **Extracts content** from PDFs, video transcripts, and notes
+3. **Generates AI-powered literature notes** with key findings, methodology, and themes
+4. **Validates output** to catch hallucinations and metadata errors
+5. **Auto-repairs** issues using your actual source content
+
+The result: structured, trustworthy notes ready for your second brain.
+
+---
 
 ## Features
 
-- **Progressive Literature Processing**: A structured workflow for moving references from inbox to permanent notes.
-- **YouTube Transcript Fetching**: Automatically fetches transcripts for YouTube videos, supporting both manual and auto-looping modes.
-- **Metadata Validation & Auto-correction**: diverse checks for metadata quality with an auto-fix capability for common issues.
-- **Dry Run / Simulation Mode**: Test your workflow configurations safely without modifying your actual data.
-- **Direct Zotero Integration**: Seamlessly connect with your Zotero database.
-- **Clean Interface**: A minimal, focused UI for efficient triage work.
+### 📚 Smart Content Extraction
+- **PDF fulltext** — extracts and analyzes complete documents
+- **Video transcripts** — automatic YouTube transcript fetching with manual input fallback
+- **Zotero notes** — includes your annotations and highlights
+- **Graceful fallbacks** — works with abstracts or metadata when content isn't available
+
+### 🤖 AI-Powered Enrichment
+- Generates structured literature notes with configurable templates
+- Identifies key findings, methodology, limitations, and themes
+- Supports multiple AI providers (OpenAI, Google, Anthropic, OpenRouter)
+
+### ✅ Quality Assurance
+- **Hallucination detection** — flags claims not supported by source content
+- **Metadata validation** — ensures authors, dates, and citations are correct
+- **Auto-correction** — fixes issues automatically using source truth
+- **Dry run mode** — preview changes before writing to your vault
+
+### ⚡ Performance Optimized
+- Bulk database queries (50x fewer database calls)
+- Smart page caching for responsive loading
+- Memory-mapped I/O for large libraries
+
+---
+
+## Quick Start
+
+1. **Install the plugin** (see Installation below)
+2. **Set your Zotero database path** in Settings → Zotero Triage
+3. **Configure an AI provider** with your API key
+4. **Run triage** from the command palette: `Zotero Triage: Open`
+
+---
 
 ## Installation
 
+### From Community Plugins (Recommended)
+1. Open Obsidian Settings → Community Plugins
+2. Search for "Zotero Triage"
+3. Click Install, then Enable
+
 ### From Release
-
 1. Download the latest release from the [Releases page](https://github.com/hbiaou/zotero-triage/releases)
-2. Extract the files to your Obsidian vault's `.obsidian/plugins/zotero-triage/` directory
-3. Reload Obsidian
-4. Enable the plugin in Settings → Community Plugins
+2. Extract to `.obsidian/plugins/zotero-triage/` in your vault
+3. Reload Obsidian and enable the plugin
 
-### Manual Installation
+### Manual Build
+```bash
+git clone https://github.com/hbiaou/zotero-triage.git
+cd zotero-triage
+npm install
+npm run build
+```
+Copy `main.js`, `manifest.json`, and `styles.css` to your vault's plugins folder.
 
-1. Clone this repository
-2. Run `npm install` to install dependencies
-3. Run `npm run build` to build the plugin
-4. Copy `main.js`, `manifest.json`, and `styles.css` to your vault's `.obsidian/plugins/zotero-triage/` directory
+---
+
+## Requirements
+
+- **Obsidian** v1.0.0 or later
+- **Zotero** with an accessible `zotero.sqlite` database
+- **AI Provider** API key (OpenAI, Google, Anthropic, or OpenRouter)
+
+---
 
 ## Development
 
 ```bash
-# Install dependencies
-npm install
-
-# Build the plugin
-npm run build
-
-# Watch for changes during development
-npm run dev
+npm install      # Install dependencies
+npm run dev      # Watch mode for development
+npm run build    # Production build
 ```
 
-## Requirements
-
-- Obsidian v1.0.0+
-- Zotero (with accessible database)
+---
 
 ## License
 
-MIT License - see [LICENSE](LICENSE) file for details
+MIT License — see [LICENSE](LICENSE) for details.
 
 ## Author
 
-BIAOU Samadori S. Honoré
+**BIAOU Samadori S. Honoré**
+
+---
 
 ## Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+Contributions welcome! Feel free to open issues or submit pull requests.
