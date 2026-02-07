@@ -22,6 +22,7 @@ The result: structured, trustworthy notes ready for your second brain.
 - **PDF fulltext** — extracts and analyzes complete documents
 - **Video transcripts** — automatic YouTube transcript fetching with manual input fallback
 - **Zotero notes** — includes your annotations and highlights
+- **Search & Add** — manually search your full library and trigger AI enrichment for specific items
 - **Graceful fallbacks** — works with abstracts or metadata when content isn't available
 
 ### 🤖 AI-Powered Enrichment

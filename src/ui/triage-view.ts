@@ -210,6 +210,16 @@ export class TriageView extends ItemView {
       text: 'Generate Batch'
     });
     generateBtn.addEventListener('click', () => this.generateAndShowBatch());
+
+    const searchBtn = emptyState.createEl('button', {
+      text: 'Search Library',
+      cls: 'zotero-triage-secondary-btn'
+    });
+    searchBtn.style.marginLeft = '10px';
+    searchBtn.addEventListener('click', () => {
+      // Execute the manual import command
+      (this.app as any).commands.executeCommandById('zotero-triage:zotero-triage-import-item');
+    });
   }
 
   /**
@@ -217,6 +227,21 @@ export class TriageView extends ItemView {
    */
   private renderBatch(container: HTMLElement): void {
     container.empty();
+
+    // Render header actions (Search Button)
+    const header = container.createDiv({ cls: 'zotero-triage-header-actions' });
+    header.style.display = 'flex';
+    header.style.justifyContent = 'flex-end';
+    header.style.marginBottom = '10px';
+
+    const manualImportBtn = header.createEl('button', {
+      text: 'Search & Add Item',
+      cls: 'zotero-triage-secondary-btn'
+    });
+    manualImportBtn.setAttribute('aria-label', 'Manually search and add a specific item from library');
+    manualImportBtn.addEventListener('click', () => {
+      (this.app as any).commands.executeCommandById('zotero-triage:zotero-triage-import-item');
+    });
 
     if (!this.currentBatch) {
       this.renderEmptyState(container);

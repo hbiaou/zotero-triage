@@ -26,6 +26,8 @@ export class PreviewModal extends Modal {
   private previewContent: string;
   private filePath: string;
   private onConfirm: ConfirmCallback;
+  private onBasicImport?: ConfirmCallback;
+  private canEnrich: boolean;
   private previewExpanded: boolean = false;
 
   /**
@@ -35,20 +37,26 @@ export class PreviewModal extends Modal {
    * @param item - Zotero item being imported
    * @param previewContent - Full markdown content to preview
    * @param filePath - Path where note will be created
-   * @param onConfirm - Callback when user confirms import
+   * @param onConfirm - Callback when user confirms metadata-rich import (smart or basic)
+   * @param canEnrich - Whether the item has sufficient data for AI enrichment
+   * @param onBasicImport - Callback for explicit basic import when enrichment is available
    */
   constructor(
     app: App,
     item: ZoteroItem,
     previewContent: string,
     filePath: string,
-    onConfirm: ConfirmCallback
+    onConfirm: ConfirmCallback,
+    canEnrich: boolean = false,
+    onBasicImport?: ConfirmCallback
   ) {
     super(app);
     this.item = item;
     this.previewContent = previewContent;
     this.filePath = filePath;
     this.onConfirm = onConfirm;
+    this.canEnrich = canEnrich;
+    this.onBasicImport = onBasicImport;
   }
 
   /**
@@ -181,15 +189,38 @@ export class PreviewModal extends Modal {
   private renderButtons(container: HTMLElement): void {
     const buttonRow = container.createDiv({ cls: 'zotero-triage-button-row' });
 
-    // Create Note button (primary action)
+    // Primary Action Button (Enrich or Basic)
+    const primaryLabel = this.canEnrich ? 'Generate Literature Note' : 'Create Note';
     const createBtn = buttonRow.createEl('button', {
       cls: 'mod-cta',
-      text: 'Create Note'
+      text: primaryLabel
     });
+
+    if (this.canEnrich) {
+      createBtn.setAttribute('aria-label', 'Generates a rich AI-enriched literature note');
+      createBtn.title = 'Generates a rich AI-enriched literature note from PDF/abstract';
+    }
+
     createBtn.addEventListener('click', () => {
       this.onConfirm();
       this.close();
     });
+
+    // Secondary Action: Basic Import (only if enrichment is available)
+    if (this.canEnrich && this.onBasicImport) {
+      const basicBtn = buttonRow.createEl('button', {
+        text: 'Create Basic Note',
+        cls: 'zotero-triage-secondary-btn' // You might need to add this class or just use default
+      });
+      basicBtn.style.marginRight = 'auto'; // Push others to right if flex, or just spacing
+      basicBtn.style.marginRight = '10px';
+
+      basicBtn.title = 'Creates a standard markdown note without AI enrichment';
+      basicBtn.addEventListener('click', () => {
+        if (this.onBasicImport) this.onBasicImport();
+        this.close();
+      });
+    }
 
     // Cancel button
     const cancelBtn = buttonRow.createEl('button', {

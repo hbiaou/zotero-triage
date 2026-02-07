@@ -13,6 +13,7 @@ import { PreviewModal } from './ui/preview-modal';
 import { deepMerge } from './utils/merge';
 import { TriageView, TRIAGE_VIEW_TYPE } from './ui/triage-view';
 import { ValidationService } from './validation/validation-service';
+import { OverrideConfirmModal } from './ui/override-modal';
 import { ProfileService } from './profile/profile-service';
 import { RecommendationEngine } from './recommendations/recommendation-engine';
 import { AdaptiveLearner } from './recommendations/adaptive-learner';
@@ -584,18 +585,123 @@ export default class ZoteroTriagePlugin extends Plugin {
       return;
     }
 
+    // Validate if quality gate enabled
+    if (this.settings.qualityGate.enabled) {
+      const validation = this.validationService.validate(item);
+      if (!validation.valid) {
+        new OverrideConfirmModal(this.app, {
+          item,
+          missingFields: validation.missingFields,
+          onConfirm: () => this.continuePreviewAndImport(item),
+          onCancel: () => {
+            new Notice('Import cancelled');
+          }
+        }).open();
+        return;
+      }
+    }
+
+    await this.continuePreviewAndImport(item);
+  }
+
+  /**
+   * Continue with preview and import after validation checks
+   */
+  private async continuePreviewAndImport(item: ZoteroItem): Promise<void> {
+    // Check for evidence/enrichment capability
+    let canEnrich = false;
+    try {
+      if (this.evidenceExtractor && this.aiService && this.aiService.isReady()) {
+        const evidence = await this.evidenceExtractor.extract(item);
+        canEnrich = this.evidenceExtractor.canEnrich(evidence);
+      }
+    } catch (e) {
+      console.error("[Main] Failed to check evidence for smart import:", e);
+    }
+
     // Generate preview content
     const previewContent = this.noteGenerator.previewContent(item);
     const filePath = this.noteGenerator.getFilePath(item);
 
-    // Open preview modal
+    // Open preview modal with Smart Import options
     new PreviewModal(
       this.app,
       item,
       previewContent,
       filePath,
+      // Primary Action (Enrich or Basic)
+      () => {
+        if (canEnrich) {
+          this.performSmartImport(item);
+        } else {
+          this.performImport(item);
+        }
+      },
+      canEnrich,
+      // Secondary Action (Basic Only)
       () => this.performImport(item)
     ).open();
+  }
+
+  /**
+   * Perform Smart Import (Enrichment)
+   */
+  private async performSmartImport(item: ZoteroItem): Promise<void> {
+    if (!this.enrichmentOrchestrator) {
+      new Notice("Enrichment service not available");
+      this.performImport(item);
+      return;
+    }
+
+    try {
+      const result = await this.enrichmentOrchestrator.orchestrate(item);
+
+      if (result.success) {
+        new Notice(`✅ Enriched note created: ${result.notePath}`);
+        this.registry.markState(item.itemID, 'imported');
+
+        // Open the created file
+        const file = this.app.vault.getAbstractFileByPath(result.notePath!);
+        if (file) {
+          await this.app.workspace.getLeaf().openFile(file as any);
+        }
+      } else {
+        // Enrichment failed - handle failure (stub note)
+        const failureContext = {
+          stage: result.stage as any,
+          error: result.error!,
+          item
+        };
+
+        const stubNote = this.stubNoteGenerator.createStubNote(failureContext);
+        const stubPath = await this.stubNoteGenerator.saveStubNote(
+          stubNote,
+          this.settings.outputFolder
+        );
+
+        // Queue for retry
+        await this.retryQueue.enqueue({
+          itemId: item.itemID,
+          itemKey: item.itemKey || '',
+          itemTitle: item.title || 'Untitled',
+          notePath: stubPath,
+          failureStage: result.stage,
+          failureReason: result.error!.message
+        });
+
+        new Notice(`⚠️ Enrichment failed - stub note created. Queued for retry.`, 5000);
+        this.registry.markState(item.itemID, 'imported');
+
+        // Open stub note
+        const file = this.app.vault.getAbstractFileByPath(stubPath);
+        if (file) {
+          await this.app.workspace.getLeaf().openFile(file as any);
+        }
+      }
+    } catch (error) {
+      console.error("[Main] Smart import error:", error);
+      new Notice(`Smart import failed: ${(error as Error).message}`);
+    }
   }
 
   /**
