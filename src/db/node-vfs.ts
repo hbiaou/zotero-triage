@@ -17,16 +17,8 @@ import { Base as BaseVFS } from 'wa-sqlite/src/VFS.js';
 export class NodeVFS extends BaseVFS {
     name: string = 'node-vfs';
 
-    // Properties expected by BaseVFS or used by us
-    // These are usually injected or available in the mixed-in class
-    // We declare them here to satisfy TS
-    mxInt32: Int32Array = new Int32Array(0);
-    heap8: Int8Array = new Int8Array(0);
-    heap32: Int32Array = new Int32Array(0);
-
     // Map of fileId -> file descriptor
-    private openFiles: Map<number, { fd: number, path: string, flags: number }> = new Map();
-    private nextId: number = 1;
+    private openFiles: Map<number, { fd: number, path: string, flags: number, isTemp?: boolean }> = new Map();
 
     constructor() {
         super();
@@ -34,41 +26,44 @@ export class NodeVFS extends BaseVFS {
 
     /**
      * Open a file
-     * @param name - Path to the file
+     * @param name - Path to the file (null for temporary files)
      * @param fileId - ID assigned by SQLite for this file handle
      * @param flags - implementation specific flags
-     * @param pOutFlags - pointer to write output flags
+     * @param pOutFlags - DataView to write output flags
      * @returns SQLITE_OK or error code
      */
-    xOpen(name: string, fileId: number, flags: number, pOutFlags: number): number {
-        if (name === null) {
-            // Temporary file, not fully supported in this minimal VFS for read-only focus
-            // But SQLite might request it for journals.
-            return SQLite.SQLITE_CANTOPEN;
-        }
+    xOpen(name: string | null, fileId: number, flags: number, pOutFlags: DataView): number {
+        // console.log(`[NodeVFS] xOpen called: name=${name}, fileId=${fileId}, flags=${flags}`);
 
         try {
-            // Determine fs flags
-            // We are primarily targeting O_RDONLY for the main DB to prevent corruption
-            // but SQLite might try to open WAL/SHM files with different flags.
+            let filePath: string;
+            let fsFlags: string;
+            let isTemp = false;
 
-            let fsFlags = 'r'; // Default to read-only
+            if (name === null) {
+                // Temporary file - create in system temp directory
+                const os = require('os');
+                const tempDir = os.tmpdir();
+                filePath = path.join(tempDir, `sqlite_temp_${fileId}_${Date.now()}.tmp`);
+                fsFlags = 'w+'; // Create and read/write
+                isTemp = true;
+                console.log(`[NodeVFS] Creating temp file: ${filePath}`);
+            } else {
+                filePath = name;
 
-            if (flags & SQLite.SQLITE_OPEN_READWRITE) {
-                fsFlags = 'r+';
-            } else if (flags & SQLite.SQLITE_OPEN_READONLY) {
-                fsFlags = 'r';
+                if (flags & SQLite.SQLITE_OPEN_READWRITE) {
+                    fsFlags = 'r+';
+                } else if (flags & SQLite.SQLITE_OPEN_READONLY) {
+                    fsFlags = 'r';
+                } else {
+                    fsFlags = 'r';
+                }
             }
 
-            // If we are strictly enforcing Read-Only for the main DB in logic outside VFS,
-            // we can respect the flags passed here.
+            const fd = fs.openSync(filePath, fsFlags);
+            this.openFiles.set(fileId, { fd, path: filePath, flags, isTemp });
 
-            const fd = fs.openSync(name, fsFlags);
-            this.openFiles.set(fileId, { fd, path: name, flags });
-
-            if (pOutFlags) {
-                this.mxInt32[pOutFlags >> 2] = flags; // Confirm flags
-            }
+            pOutFlags.setInt32(0, flags, true);
 
             return SQLite.SQLITE_OK;
         } catch (err: any) {
@@ -85,6 +80,17 @@ export class NodeVFS extends BaseVFS {
         if (file) {
             try {
                 fs.closeSync(file.fd);
+
+                // Delete temporary files after closing
+                if (file.isTemp) {
+                    try {
+                        fs.unlinkSync(file.path);
+                        console.log(`[NodeVFS] Deleted temp file: ${file.path}`);
+                    } catch (unlinkErr) {
+                        console.warn(`[NodeVFS] Failed to delete temp file: ${file.path}`, unlinkErr);
+                    }
+                }
+
                 this.openFiles.delete(fileId);
                 return SQLite.SQLITE_OK;
             } catch (err) {
@@ -97,46 +103,29 @@ export class NodeVFS extends BaseVFS {
 
     /**
      * Read from a file
+     * @param fileId - File handle ID
+     * @param pData - Uint8Array to write data into (from wa-sqlite)
+     * @param iOfst - Offset in the file to read from
+     * @returns SQLITE_OK or error code
      */
-    xRead(fileId: number, pData: number, iAmt: number, iOfst: number): number {
+    xRead(fileId: number, pData: Uint8Array, iOfst: number): number {
         const file = this.openFiles.get(fileId);
+        // Console logging here is too verbose and kills performance
+        // console.log(`[NodeVFS] xRead called: fileId=${fileId}, amt=${pData?.length}, offset=${iOfst}, file=${file?.path}`);
         if (!file) return SQLite.SQLITE_IOERR_READ;
 
         try {
-            const buffer = new Uint8Array(iAmt);
-            // fs.readSync(fd, buffer, offset, length, position)
+            const iAmt = pData.length;
+            // Use a temp buffer for fs.readSync
+            const buffer = Buffer.alloc(iAmt);
             const bytesRead = fs.readSync(file.fd, buffer, 0, iAmt, Number(iOfst));
 
-            // Copy to SQLite memory
-            // this.heap8 is usually available on the VFS instance if properly initialized?
-            // Wait, BaseVFS doesn't have direct heap access unless we mix it in or access the module.
-            // In wa-sqlite, xRead receives pData which is a pointer.
-            // We need to write to the heap at pData.
-
-            // WARNING: We need access to the HEAP. 
-            // BaseVFS implementation in wa-sqlite usually assumes we can write to memory.
-            // The `handleAsync` wrapper usually manages checking result.
-
-            // Actually, looking at wa-sqlite docs, we need to access the module memory.
-            // BaseVFS typically needs the `module` property set after registration?
-            // Or we assume `this.heap8` is populated by the mixin/wrapper?
-            // Standard BaseVFS methods usually use `this.context.memory` or similar if abstracted, 
-            // but in `wa-sqlite` standard VFS, we write to `this.heap8.set(buffer, pData)`?
-
-            // Let's assume we copy `buffer` to `pData`.
-            // NOTE: `this.heap8` is a DataView or Uint8Array on the WebAssembly Memory.
-            // We need to ensure we are using the correct property.
-
-            // Since I don't have the full wa-sqlite types context here, I'll rely on the standard pattern.
-            // `this.heap8.set(buffer.subarray(0, bytesRead), pData)`
-
-            // However, if bytesRead < iAmt, we must zero fill the rest and return SQLITE_IOERR_SHORT_READ
-
-            this.heap8.set(buffer.subarray(0, bytesRead), pData);
+            // Copy to pData
+            pData.set(buffer.subarray(0, bytesRead));
 
             if (bytesRead < iAmt) {
                 // Zero fill the rest
-                this.heap8.fill(0, pData + bytesRead, pData + iAmt);
+                pData.fill(0, bytesRead);
                 return SQLite.SQLITE_IOERR_SHORT_READ;
             }
 
@@ -149,17 +138,18 @@ export class NodeVFS extends BaseVFS {
 
     /**
      * Write to a file
+     * @param fileId - File handle ID
+     * @param pData - Uint8Array containing data to write (from wa-sqlite)
+     * @param iOfst - Offset in the file to write to
+     * @returns SQLITE_OK or error code
      */
-    xWrite(fileId: number, pData: number, iAmt: number, iOfst: number): number {
+    xWrite(fileId: number, pData: Uint8Array, iOfst: number): number {
         const file = this.openFiles.get(fileId);
         if (!file) return SQLite.SQLITE_IOERR_WRITE;
 
         try {
-            // Read from SQLite memory
-            const buffer = this.heap8.subarray(pData, pData + iAmt);
-
-            // fs.writeSync(fd, buffer, offset, length, position)
-            const bytesWritten = fs.writeSync(file.fd, buffer, 0, iAmt, Number(iOfst));
+            const iAmt = pData.length;
+            const bytesWritten = fs.writeSync(file.fd, pData, 0, iAmt, Number(iOfst));
 
             if (bytesWritten !== iAmt) {
                 return SQLite.SQLITE_IOERR_WRITE;
@@ -204,21 +194,18 @@ export class NodeVFS extends BaseVFS {
 
     /**
      * File size
+     * @param fileId - File handle ID
+     * @param pSize64 - DataView to write the 64-bit file size
+     * @returns SQLITE_OK or error code
      */
-    xFileSize(fileId: number, pSize: number): number {
+    xFileSize(fileId: number, pSize64: DataView): number {
         const file = this.openFiles.get(fileId);
         if (!file) return SQLite.SQLITE_IOERR_FSTAT;
 
         try {
             const stats = fs.fstatSync(file.fd);
-            // Write 64-bit integer size
             const size = BigInt(stats.size);
-            const view = new DataView(this.heap8.buffer);
-            // pSize is a pointer to an sqlite3_int64 (8 bytes)
-            // DataView setBigInt64(byteOffset, value, littleEndian)
-            // SQLite WASM is little endian typically
-            view.setBigInt64(pSize, size, true);
-
+            pSize64.setBigInt64(0, size, true);
             return SQLite.SQLITE_OK;
         } catch (err) {
             return SQLite.SQLITE_IOERR_FSTAT;
@@ -237,11 +224,17 @@ export class NodeVFS extends BaseVFS {
         return SQLite.SQLITE_OK;
     }
 
-    xCheckReservedLock(fileId: number, pResOut: number): number {
-        this.heap32[pResOut >> 2] = 0;
+    /**
+     * Check reserved lock
+     * @param fileId - File handle ID
+     * @param pResOut - DataView to write the result
+     * @returns SQLITE_OK
+     */
+    xCheckReservedLock(fileId: number, pResOut: DataView): number {
+        pResOut.setInt32(0, 0, true);
         return SQLite.SQLITE_OK;
     }
-    xFileControl(fileId: number, op: number, pArg: number): number {
+    xFileControl(fileId: number, op: number, pArg: DataView): number {
         return SQLite.SQLITE_NOTFOUND;
     }
     xDeviceCharacteristics(fileId: number): number {
@@ -250,31 +243,30 @@ export class NodeVFS extends BaseVFS {
 
     // VFS Methods
 
-    xAccess(name: string, flags: number, pResOut: number): number {
+    /**
+     * Check file access
+     * @param name - File path
+     * @param flags - Access flags
+     * @param pResOut - DataView to write the result
+     * @returns SQLITE_OK
+     */
+    xAccess(name: string, flags: number, pResOut: DataView): number {
         try {
             fs.accessSync(name);
-            this.heap32[pResOut >> 2] = 1; // Exists
+            pResOut.setInt32(0, 1, true); // Exists
         } catch {
-            this.heap32[pResOut >> 2] = 0; // Does not exist
+            pResOut.setInt32(0, 0, true); // Does not exist
         }
         return SQLite.SQLITE_OK;
     }
 
-    xFullPathname(name: string, nOut: number, zOut: number): number {
-        // Just copy the name as strict full path if possible, or assume absolute
-        // SQLite usually needs absolute path
-        const fullPath = path.resolve(name);
-
-        const encoder = new TextEncoder();
-        const data = encoder.encode(fullPath);
-
-        if (data.length >= nOut) {
-            return SQLite.SQLITE_CANTOPEN;
-        }
-
-        this.heap8.set(data, zOut);
-        this.heap8[zOut + data.length] = 0; // Null terminate
-
-        return SQLite.SQLITE_OK;
-    }
+    /**
+     * Get full pathname (not needed for this VFS, paths are absolute)
+     * Since wa-sqlite doesn't pass a buffer for xFullPathname in base VFS,
+     * this is often not called or handled differently.
+     * We'll keep a basic implementation.
+     */
+    // xFullPathname is not in the base VFS signatures, so we can remove it
+    // or keep it if the VFS registration expects it.
+    // For now, remove it as it uses heap8 which we removed.
 }

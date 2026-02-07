@@ -65,6 +65,7 @@ export type LoadProgressCallback = (loaded: number, total: number) => void;
  */
 export class ZoteroConnector {
   private sqlite3: any = null;
+  private sqliteConstants: any = null; // SQLite constants from wa-sqlite
   private db: number | null = null; // SQLite3 db handle (pointer)
   private pluginDir: string;
   private items: ZoteroItem[] = [];
@@ -109,14 +110,28 @@ export class ZoteroConnector {
       const { default: SQLiteFactory } = await import('wa-sqlite/dist/wa-sqlite.mjs');
 
       // Initialize module
-      const module = await SQLiteFactory();
+      const wasmPath = path.join(this.pluginDir, 'wa-sqlite.wasm');
+      const wasmBinary = fs.readFileSync(wasmPath);
+
+      const module = await SQLiteFactory({
+        wasmBinary,
+        locateFile: (file: string) => {
+          if (file.endsWith('.wasm')) {
+            return wasmPath;
+          }
+          return file;
+        }
+      });
       this.sqlite3 = waSQLiteImport.Factory(module);
+      this.sqliteConstants = waSQLiteImport; // Store constants
 
       // Use our custom VFS
       this.vfs = new NodeVFS();
 
       // Register VFS
+      console.log('[ZoteroConnector] Registering VFS...');
       this.sqlite3.vfs_register(this.vfs, true); // true = make default
+      console.log('[ZoteroConnector] VFS registered successfully');
 
     } catch (err) {
       console.error('Failed to initialize wa-sqlite:', err);
@@ -124,6 +139,9 @@ export class ZoteroConnector {
     }
   }
 
+  /**
+   * Connect to a Zotero SQLite database.
+   */
   /**
    * Connect to a Zotero SQLite database.
    */
@@ -139,28 +157,23 @@ export class ZoteroConnector {
 
       this.dbPath = dbPath;
 
-      // Open database using sqlite3_open_v2
-      // Flags: SQLITE_OPEN_READONLY
-      const flags = this.sqlite3.SQLITE_OPEN_READONLY; //  | this.sqlite3.SQLITE_OPEN_URI if needed
+      // Open database using open_v2 (high-level API)
+      // Flags: SQLITE_OPEN_READONLY from stored constants
+      const flags = this.sqliteConstants.SQLITE_OPEN_READONLY;
 
-      const pDb = this.sqlite3._malloc(4); // Pointer for DB handle
-
-      // We assume dbPath is passed to xOpen of our VFS
-      const result = await this.sqlite3.sqlite3_open_v2(dbPath, pDb, flags, 'node-vfs');
-
-      if (result !== this.sqlite3.SQLITE_OK) {
-        const msg = this.sqlite3.sqlite3_errmsg(this.sqlite3.getValue(pDb, 'i32'));
-        this.sqlite3._free(pDb);
-        throw new Error(`Failed to open database: ${msg}`);
+      try {
+        // wa-sqlite open_v2 returns the db handle directly
+        console.log(`[ZoteroConnector] Opening database: ${dbPath} with flags: ${flags}`);
+        this.db = await this.sqlite3.open_v2(dbPath, flags, 'node-vfs');
+        console.log(`[ZoteroConnector] Database opened, db handle: ${this.db}`);
+      } catch (err: any) {
+        throw new Error(`Failed to open database: ${err.message || err}`);
       }
-
-      this.db = this.sqlite3.getValue(pDb, 'i32');
-      this.sqlite3._free(pDb);
 
       // Verify schema version is supported (using our query helper)
       const schemaCheck = await this.checkSchemaVersion();
       if (!schemaCheck.supported) {
-        this.close();
+        await this.close();
         throw new Error(schemaCheck.message);
       }
 
@@ -178,7 +191,6 @@ export class ZoteroConnector {
       this.isLoaded = false;
 
       console.log(`[ZoteroConnector] Connected to ${dbPath} using wa-sqlite/NodeVFS`);
-      initialDelayMs: 100
     });
   }
 
@@ -190,7 +202,7 @@ export class ZoteroConnector {
     try {
       // Connect (or reconnect if path changed)
       if (this.dbPath !== dbPath || !this.isConnected) {
-        if (this.isConnected) this.close();
+        if (this.isConnected) await this.close();
         await this.connect(dbPath);
       }
 
@@ -204,7 +216,7 @@ export class ZoteroConnector {
         schemaVersion: schemaCheck.version
       };
     } catch (err: any) {
-      this.close(); // Clean up on failure
+      await this.close(); // Clean up on failure
       return {
         success: false,
         itemCount: 0,
@@ -216,93 +228,61 @@ export class ZoteroConnector {
 
   /**
    * Helper to execute a query and return results as objects.
-   * Replaces db.exec() from sql.js
+   * Uses the high-level exec() API which accepts plain JS strings.
    */
   async queryObj(sql: string, params: any[] = []): Promise<Record<string, any>[]> {
     if (!this.db || !this.sqlite3) throw new Error('Database not connected');
+    console.log(`[ZoteroConnector] queryObj: ${sql.substring(0, 100)}...`);
 
     const results: Record<string, any>[] = [];
-    let stmt: number = 0;
+    let columnNames: string[] = [];
 
     try {
-      // Prepare
-      const str = this.sqlite3.str_new(this.db, sql);
-      const pStmt = this.sqlite3._malloc(4);
-      // prepare_v2(db, sql, -1, &stmt, 0)
-      const prepRes = await this.sqlite3.sqlite3_prepare_v2(this.db, this.sqlite3.str_value(str), -1, pStmt, 0);
-      this.sqlite3.str_finish(str);
-
-      stmt = this.sqlite3.getValue(pStmt, 'i32');
-      this.sqlite3._free(pStmt);
-
-      if (prepRes !== this.sqlite3.SQLITE_OK) {
-        const err = this.sqlite3.sqlite3_errmsg(this.db);
-        throw new Error(`Prepare failed: ${err}`);
-      }
-
-      // Bind parameters
+      // Handle parameters by substituting them into the SQL
+      // Note: For production, proper escaping should be done
+      let finalSql = sql;
       if (params.length > 0) {
-        for (let i = 0; i < params.length; i++) {
-          const param = params[i];
-          const idx = i + 1;
-          let bindRes;
-
-          if (param === null || param === undefined) {
-            bindRes = this.sqlite3.sqlite3_bind_null(stmt, idx);
-          } else if (typeof param === 'number') {
-            if (Number.isInteger(param)) {
-              bindRes = this.sqlite3.sqlite3_bind_int(stmt, idx, param);
-            } else {
-              bindRes = this.sqlite3.sqlite3_bind_double(stmt, idx, param);
-            }
-          } else if (typeof param === 'string') {
-            bindRes = this.sqlite3.sqlite3_bind_text(stmt, idx, param, -1, 0);
+        // Replace ? placeholders with actual values
+        let paramIndex = 0;
+        finalSql = sql.replace(/\?/g, () => {
+          const value = params[paramIndex++];
+          if (value === null || value === undefined) {
+            return 'NULL';
+          } else if (typeof value === 'string') {
+            // Escape single quotes by doubling them
+            return `'${value.replace(/'/g, "''")}'`;
+          } else if (typeof value === 'number') {
+            return String(value);
           } else {
-            bindRes = this.sqlite3.sqlite3_bind_text(stmt, idx, String(param), -1, 0);
+            return `'${String(value).replace(/'/g, "''")}'`;
           }
+        });
+      }
 
-          if (bindRes !== this.sqlite3.SQLITE_OK) {
-            throw new Error(`Bind failed for arg ${i}: ${this.sqlite3.sqlite3_errmsg(this.db)}`);
-          }
+      console.log(`[ZoteroConnector] Executing SQL via exec: ${finalSql.substring(0, 100)}...`);
+
+      // Use the high-level exec() API which accepts plain JS strings
+      await this.sqlite3.exec(this.db, finalSql, (row: any[], columns: string[]) => {
+        // First call sets column names
+        if (columnNames.length === 0) {
+          columnNames = columns;
         }
-      }
 
-      // Step through results
-      while ((await this.sqlite3.sqlite3_step(stmt)) === this.sqlite3.SQLITE_ROW) {
-        const row: Record<string, any> = {};
-        const colCount = this.sqlite3.sqlite3_column_count(stmt);
-
-        for (let i = 0; i < colCount; i++) {
-          const name = this.sqlite3.sqlite3_column_name(stmt, i);
-          const type = this.sqlite3.sqlite3_column_type(stmt, i);
-
-          let value;
-          switch (type) {
-            case this.sqlite3.SQLITE_INTEGER:
-              value = this.sqlite3.sqlite3_column_int(stmt, i);
-              break;
-            case this.sqlite3.SQLITE_FLOAT:
-              value = this.sqlite3.sqlite3_column_double(stmt, i);
-              break;
-            case this.sqlite3.SQLITE_TEXT:
-              value = this.sqlite3.sqlite3_column_text(stmt, i);
-              break;
-            case this.sqlite3.SQLITE_NULL:
-              value = null;
-              break;
-            default:
-              value = this.sqlite3.sqlite3_column_text(stmt, i); // Blob as text for now or implementation dependent?
-          }
-          row[name] = value;
+        // Build row object
+        const rowObj: Record<string, any> = {};
+        for (let i = 0; i < columns.length; i++) {
+          rowObj[columns[i]] = row[i];
         }
-        results.push(row);
-      }
+        results.push(rowObj);
+      });
 
-    } finally {
-      if (stmt) {
-        await this.sqlite3.sqlite3_finalize(stmt);
-      }
+      console.log(`[ZoteroConnector] Query returned ${results.length} rows`);
+
+    } catch (e: any) {
+      console.error(`[ZoteroConnector] Query error:`, e);
+      throw new Error(`Query failed: ${e.message || e}`);
     }
+
     return results;
   }
 
@@ -529,9 +509,10 @@ export class ZoteroConnector {
     return service.detectDuplicates();
   }
 
-  close(): void {
+  async close(): Promise<void> {
     if (this.db && this.sqlite3) {
-      this.sqlite3.sqlite3_close(this.db);
+      // close is async in wa-sqlite API
+      await this.sqlite3.close(this.db);
       this.db = null;
     }
     this.dbPath = null;

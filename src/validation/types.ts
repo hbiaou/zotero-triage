@@ -46,6 +46,7 @@ export interface ValidationResult {
   valid: boolean;
   errors: ValidationError[];
   warnings: ValidationError[];
+  missingFields: string[];
   hallucinations?: Hallucination[];
   corrections?: Correction[];
   updatedBody?: string;

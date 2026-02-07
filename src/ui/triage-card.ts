@@ -74,7 +74,7 @@ export function createTriageCard(
     errorDiv.createEl('strong', { text: 'Issues found:' });
     const list = errorDiv.createEl('ul');
     validationResult.errors.slice(0, 3).forEach(error => {
-      list.createEl('li', { text: error });
+      list.createEl('li', { text: error.message });
     });
 
     // Link to fix in Zotero
@@ -135,7 +135,7 @@ export function createTriageCard(
  * @param card - The card element to update
  * @param state - The new registry state
  */
-export function updateCardStatus(card: HTMLElement, state: RegistryState): void {
+export function updateCardStatus(card: HTMLElement, state: RegistryState | 'processing'): void {
   const header = card.querySelector('.triage-card-header') as HTMLElement;
   if (!header) return;
 

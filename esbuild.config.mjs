@@ -65,3 +65,13 @@ if (existsSync(wasmSource)) {
 } else {
   console.warn('Warning: sql-wasm.wasm not found in node_modules/sql.js/dist/');
 }
+
+// Copy wa-sqlite.wasm to plugin root
+const waSqliteSource = join(__dirname, 'node_modules', 'wa-sqlite', 'dist', 'wa-sqlite.wasm');
+const waSqliteDest = join(__dirname, 'wa-sqlite.wasm');
+if (existsSync(waSqliteSource)) {
+  copyFileSync(waSqliteSource, waSqliteDest);
+  console.log('Copied wa-sqlite.wasm to plugin root');
+} else {
+  console.warn('Warning: wa-sqlite.wasm not found in node_modules/wa-sqlite/dist/');
+}

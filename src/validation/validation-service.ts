@@ -34,7 +34,7 @@
 import { ZodError } from 'zod';
 import { fromZodError } from 'zod-validation-error';
 import { ITEM_TYPE_SCHEMAS } from './schemas';
-import type { ValidationResult, QualityGateConfig } from './types';
+import type { ValidationResult, QualityGateConfig, ValidationError } from './types';
 import type { ZoteroItem } from '../db/zotero-connector';
 import { getErrorContext } from '../error/error-handler';
 
@@ -50,7 +50,7 @@ export class ValidationService {
    *
    * @param config - Quality gate configuration from plugin settings
    */
-  constructor(private config: QualityGateConfig) {}
+  constructor(private config: QualityGateConfig) { }
 
   /**
    * Validate a Zotero item against its item type schema
@@ -77,6 +77,7 @@ export class ValidationService {
         return {
           valid: true,
           errors: [],
+          warnings: [],
           missingFields: []
         };
       }
@@ -92,6 +93,7 @@ export class ValidationService {
         return {
           valid: true,
           errors: [],
+          warnings: [],
           missingFields: []
         };
       }
@@ -104,6 +106,7 @@ export class ValidationService {
         return {
           valid: true,
           errors: [],
+          warnings: [],
           missingFields: []
         };
       }
@@ -119,10 +122,15 @@ export class ValidationService {
       });
       const errorMessage = validationError.toString();
 
-      // Split into individual error strings
+      // Split into individual error strings and map to ValidationError objects
       const errors = errorMessage
         .split('\n')
-        .filter(e => e.trim().length > 0);
+        .filter(e => e.trim().length > 0)
+        .map((msg): ValidationError => ({
+          type: 'schema',
+          severity: 'error',
+          message: msg
+        }));
 
       // Extract missing field names from ZodError issues
       // Filter for 'too_small' (array/string too short) and 'invalid_type' (null/undefined)
@@ -144,6 +152,7 @@ export class ValidationService {
       return {
         valid: false,
         errors,
+        warnings: [],
         missingFields: uniqueMissingFields
       };
     } catch (err) {
@@ -152,7 +161,12 @@ export class ValidationService {
       // Return validation failure rather than throwing
       return {
         valid: false,
-        errors: [context.message],
+        errors: [{
+          type: 'schema',
+          severity: 'error',
+          message: context.message
+        }],
+        warnings: [],
         missingFields: []
       };
     }

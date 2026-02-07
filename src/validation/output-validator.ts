@@ -75,7 +75,8 @@ export class OutputValidator {
     let result: ValidationResult = {
       valid: errors.length === 0,
       errors,
-      warnings
+      warnings,
+      missingFields: []
     };
 
     // Step 3: Content Validation & Repair (Hallucination detection + Correction)
@@ -185,7 +186,7 @@ export class OutputValidator {
       });
     }
 
-    return { valid: errors.length === 0, errors, warnings };
+    return { valid: errors.length === 0, errors, warnings, missingFields: [] };
   }
 
   /**
@@ -262,7 +263,7 @@ export class OutputValidator {
       });
     }
 
-    return { valid: errors.length === 0, errors, warnings };
+    return { valid: errors.length === 0, errors, warnings, missingFields: [] };
   }
 
   /**
@@ -315,7 +316,7 @@ OUTPUT JSON:
 }`;
 
       const modelId = this.aiService.getCurrentModel();
-      if (!modelId) return { valid: true, errors, warnings };
+      if (!modelId) return { valid: true, errors, warnings, missingFields: [] };
 
       const response = await this.aiService.complete({
         prompt,
@@ -339,11 +340,11 @@ OUTPUT JSON:
         });
       });
 
-      return { valid: errors.length === 0, errors, warnings, hallucinations, corrections };
+      return { valid: errors.length === 0, errors, warnings, hallucinations, corrections, missingFields: [] };
 
     } catch (error) {
       console.warn('[OutputValidator] Content validation failed:', error);
-      return { valid: true, errors, warnings };
+      return { valid: true, errors, warnings, missingFields: [] };
     }
   }
 
