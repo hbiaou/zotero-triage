@@ -72,6 +72,13 @@ Together, they form a robust system for knowledge ingestion and synthesis.
 
 _This plugin has been submitted to the community plugins list and is pending approval. In the meantime, please use the manual installation method below or install from a release._
 
+### Using BRAT (Beta Reviewers Auto-update Tool)
+
+1. Install the **BRAT** community plugin in Obsidian.
+2. Open the command palette and run `BRAT: Add a beta plugin for testing`.
+3. Enter the GitHub repository URL: `https://github.com/hbiaou/zotero-triage`.
+4. Enable the plugin in **Community Plugins** settings.
+
 ### From Release
 1. Download the latest release from the [Releases page](https://github.com/hbiaou/zotero-triage/releases)
 2. Extract to `.obsidian/plugins/zotero-triage/` in your vault
