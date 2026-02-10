@@ -30,3 +30,7 @@ npm-debug.log*
 
 # System generated files
 nul
+
+# Temporary and planning artifacts
+tmp/
+.planning/
