@@ -14,6 +14,20 @@ Zotero Triage bridges the gap between your reference manager and your knowledge 
 
 The result: structured, trustworthy notes ready for your second brain.
 
+> [!NOTE]
+> I built Zotero Triage primarily to solve my own problem of accumulating Zotero items without processing them. While it's designed for my workflow, I'm sharing it in case others find it helpful. Feel free to use it, adapt it, or build upon it to suit your needs.
+
+---
+
+## 🤝 The Perfect Companion
+
+For the complete workflow, I recommend using Zotero Triage alongside its sister project, **[ZettelForge](https://github.com/hbiaou/zettelforge)**.
+
+- **Zotero Triage**: Creates rich literature notes from your sources.
+- **ZettelForge**: Helps you distill those literature notes into atomic, permanent notes.
+
+Together, they form a robust system for knowledge ingestion and synthesis.
+
 ---
 
 ## Features
@@ -54,10 +68,9 @@ The result: structured, trustworthy notes ready for your second brain.
 
 ## Installation
 
-### From Community Plugins (Recommended)
-1. Open Obsidian Settings → Community Plugins
-2. Search for "Zotero Triage"
-3. Click Install, then Enable
+### From Community Plugins (Coming Soon)
+
+_This plugin has been submitted to the community plugins list and is pending approval. In the meantime, please use the manual installation method below or install from a release._
 
 ### From Release
 1. Download the latest release from the [Releases page](https://github.com/hbiaou/zotero-triage/releases)
