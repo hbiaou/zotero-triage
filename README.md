@@ -70,7 +70,7 @@ Together, they form a robust system for knowledge ingestion and synthesis.
 
 ### From Community Plugins (Coming Soon)
 
-_This plugin has been submitted to the community plugins list and is pending approval. In the meantime, please use the manual installation method below or install from a release._
+_This plugin has not yet been submitted to the community plugins list. We will submit it once it has matured enough. In the meantime, please use BRAT, manual installation, or install from a release._
 
 ### Using BRAT (Beta Reviewers Auto-update Tool)
 
