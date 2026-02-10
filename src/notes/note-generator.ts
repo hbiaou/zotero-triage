@@ -7,6 +7,7 @@
 
 import { App, TFile, TFolder } from 'obsidian';
 import type { ZoteroItem } from '../db/zotero-connector';
+import type { ZoteroTriageSettings } from '../types';
 import { generateFrontmatter, generateNoteBody } from './templates';
 
 /**
@@ -24,17 +25,21 @@ const MAX_FILENAME_LENGTH = 100;
  */
 export class NoteGenerator {
   private app: App;
+  private settings: ZoteroTriageSettings;
   private outputFolder: string;
+  private namingPattern: 'citation-key' | 'title';
 
   /**
    * Create a new NoteGenerator
    *
    * @param app - Obsidian app instance
-   * @param outputFolder - Folder path for created notes (relative to vault root)
+   * @param settings - Plugin settings containing output folder and naming pattern
    */
-  constructor(app: App, outputFolder: string) {
+  constructor(app: App, settings: ZoteroTriageSettings) {
     this.app = app;
-    this.outputFolder = outputFolder;
+    this.settings = settings;
+    this.outputFolder = settings.outputFolder;
+    this.namingPattern = settings.noteNamingPattern || 'citation-key';
   }
 
   /**
@@ -43,8 +48,24 @@ export class NoteGenerator {
    *
    * @param folder - New output folder path
    */
+  /**
+   * Update the output folder path.
+   * Call this when settings change.
+   *
+   * @param folder - New output folder path
+   */
   setOutputFolder(folder: string): void {
     this.outputFolder = folder;
+  }
+
+  /**
+   * Update the naming pattern.
+   * Call this when settings change.
+   *
+   * @param pattern - New naming pattern ('citation-key' or 'title')
+   */
+  setNamingPattern(pattern: 'citation-key' | 'title'): void {
+    this.namingPattern = pattern;
   }
 
   /**
@@ -57,14 +78,14 @@ export class NoteGenerator {
   async createNote(item: ZoteroItem): Promise<TFile> {
     const filePath = this.getFilePath(item);
 
-    // Check if file already exists
-    const existing = this.app.vault.getAbstractFileByPath(filePath);
-    if (existing) {
+    // Check for existing note
+    const existingFile = this.app.vault.getAbstractFileByPath(filePath);
+    if (existingFile) {
       throw new Error(`Note already exists: ${filePath}`);
     }
 
     // Ensure output folder exists
-    await this.ensureFolder(this.outputFolder);
+    await this.ensureFolder(this.settings.outputFolder);
 
     // Generate content
     const content = this.generateContent(item);
@@ -106,8 +127,16 @@ export class NoteGenerator {
    * @returns Full path relative to vault root
    */
   getFilePath(item: ZoteroItem): string {
-    const filename = this.sanitizeFilename(item.title);
-    return `${this.outputFolder}/${filename}.md`;
+    let filename: string;
+
+    if (this.namingPattern === 'citation-key' && item.citationKey) {
+      filename = item.citationKey;
+    } else {
+      // Fallback to title if pattern is 'title' OR 'citation-key' is missing
+      filename = this.sanitizeFilename(item.title);
+    }
+
+    return `${this.settings.outputFolder}/${filename}.md`;
   }
 
   /**

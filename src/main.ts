@@ -93,7 +93,7 @@ export default class ZoteroTriagePlugin extends Plugin {
     await this.registry.load();
 
     // Initialize note generator
-    this.noteGenerator = new NoteGenerator(this.app, this.settings.outputFolder);
+    this.noteGenerator = new NoteGenerator(this.app, this.settings);
 
     // Initialize profile service
     this.profileService = new ProfileService(this);
@@ -449,19 +449,10 @@ export default class ZoteroTriagePlugin extends Plugin {
     await this.saveData(this.settings);
     console.log('[Main] Settings saved successfully');
 
-    // Verify save by reading back
-    const verifyData = await this.loadData();
-    console.log('[Main] Verification - data read back after save:', JSON.stringify(verifyData, null, 2));
-    if (verifyData?.zoteroDbPath !== this.settings.zoteroDbPath) {
-      console.error('[Main] ERROR: zoteroDbPath mismatch after save!', {
-        expected: this.settings.zoteroDbPath,
-        actual: verifyData?.zoteroDbPath
-      });
-    }
-
     // Update note generator with new settings
     if (this.noteGenerator) {
       this.noteGenerator.setOutputFolder(this.settings.outputFolder);
+      this.noteGenerator.setNamingPattern(this.settings.noteNamingPattern);
     }
 
     // Update evidence extractor with new data path
@@ -603,6 +594,11 @@ export default class ZoteroTriagePlugin extends Plugin {
         }).open();
         return;
       }
+    }
+
+    // Check for citation key fallback
+    if (this.settings.noteNamingPattern === 'citation-key' && !item.citationKey) {
+      new Notice('Citation key missing. Using title instead. Install Better BibTeX for citation keys.', 5000);
     }
 
     await this.continuePreviewAndImport(item);

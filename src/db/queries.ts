@@ -97,7 +97,8 @@ SELECT
   MAX(CASE WHEN fieldName = 'abstractNote' THEN value END) AS abstract,
   MAX(CASE WHEN fieldName = 'publisher' THEN value END) AS publisher,
   MAX(CASE WHEN fieldName = 'ISBN' THEN value END) AS isbn,
-  MAX(CASE WHEN fieldName = 'url' THEN value END) AS url
+  MAX(CASE WHEN fieldName = 'url' THEN value END) AS url,
+  MAX(CASE WHEN fieldName = 'extra' THEN value END) AS extra
 FROM itemFields
 GROUP BY itemID
 ORDER BY dateAdded DESC

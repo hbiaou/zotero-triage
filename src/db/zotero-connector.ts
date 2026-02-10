@@ -52,6 +52,7 @@ export interface ZoteroItem {
   collections: string[];
   dateAdded: string;
   dateModified: string;
+  citationKey?: string;
 }
 
 export interface ConnectionTestResult {
@@ -450,7 +451,8 @@ export class ZoteroConnector {
         tags,
         collections,
         dateAdded: row.dateAdded,
-        dateModified: row.dateModified
+        dateModified: row.dateModified,
+        citationKey: this.extractCitationKey(row.extra)
       });
 
       loaded++;
@@ -517,7 +519,8 @@ export class ZoteroConnector {
       tags: [],
       collections: [],
       dateAdded: row.dateAdded,
-      dateModified: row.dateModified
+      dateModified: row.dateModified,
+      citationKey: this.extractCitationKey(row.extra)
     } as ZoteroItem;
     // Note: The above incomplete hydration is a trade-off. 
     // Ideally duplicate the logic from loadItems for the single row 
@@ -566,5 +569,15 @@ export class ZoteroConnector {
     this.dbPath = null;
     this.items = [];
     this.isLoaded = false;
+  }
+
+  /**
+   * Extract Better BibTeX citation key from 'extra' field
+   * Format: "Citation Key: [key]"
+   */
+  private extractCitationKey(extra: string | null): string | undefined {
+    if (!extra) return undefined;
+    const match = extra.match(/Citation Key:\s*(\S+)/i);
+    return match ? match[1] : undefined;
   }
 }

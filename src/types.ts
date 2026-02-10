@@ -65,6 +65,12 @@ export interface ZoteroTriageSettings {
       google?: string[];
     };
   } | null;
+  /**
+   * Naming pattern for generated literature notes
+   * 'citation-key' = Use Better BibTeX citation key (fallback to title if missing)
+   * 'title' = Use item title (sanitized)
+   */
+  noteNamingPattern: 'citation-key' | 'title';
 }
 
 import { DEFAULT_QUALITY_GATE_CONFIG } from './validation/types';
@@ -83,7 +89,8 @@ export const DEFAULT_SETTINGS: ZoteroTriageSettings = {
   relevanceVsDiversity: 0,  // Pure relevance by default
   recencyBoost: true,  // Boost recent publications
   libraryFilterMode: 'personal',  // User library only
-  aiConfig: null  // Not configured by default
+  aiConfig: null,  // Not configured by default
+  noteNamingPattern: 'citation-key' // Default to citation key
 };
 
 /**
@@ -131,6 +138,8 @@ export interface ZoteroItem {
   collections: string[];
   /** Issue number */
   issue: string | null;
+  /** Better BibTeX Citation Key (extracted from extra field) */
+  citationKey?: string;
 }
 
 /**

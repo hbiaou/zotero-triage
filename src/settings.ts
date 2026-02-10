@@ -107,6 +107,27 @@ export class ZoteroTriageSettingTab extends PluginSettingTab {
           await this.plugin.saveSettings();
         }));
 
+    new Setting(containerEl)
+      .setName('Note Naming Pattern')
+      .setDesc('Choose how literature note filenames are generated')
+      .addDropdown(dropdown => dropdown
+        .addOption('citation-key', 'Citation Key (Better BibTeX)')
+        .addOption('title', 'Item Title')
+        .setValue(this.plugin.settings.noteNamingPattern)
+        .onChange(async (value: 'citation-key' | 'title') => {
+          this.plugin.settings.noteNamingPattern = value;
+          await this.plugin.saveSettings();
+          this.display(); // Refresh to update description
+        }));
+
+    if (this.plugin.settings.noteNamingPattern === 'citation-key') {
+      containerEl.createDiv({
+        cls: 'setting-item-description',
+        attr: { style: 'margin-bottom: 18px; font-style: italic; color: var(--text-muted);' },
+        text: 'Tip: Requires Better BibTeX installed in Zotero. If a citation key is missing, we will fallback to the item title and show a notice.'
+      });
+    }
+
     // Section 7: AI Enrichment (new section)
     const aiSettingsContainer = containerEl.createDiv({ cls: 'ai-settings-section' });
     if (this.plugin.secretStorage && this.plugin.aiService) {
